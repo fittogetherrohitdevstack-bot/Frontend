@@ -1,0 +1,125 @@
+/* FitTogether Design Tokens & Color System - Athletic Light Theme */
+
+:root {
+  /* Color System - Light Theme (Default) */
+  --bg-deep: #F4F6FB;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #EBF0F8;
+  --bg-glass: rgba(255, 255, 255, 0.88);
+  --bg-glass-subtle: rgba(255, 255, 255, 0.65);
+  --border-glass: rgba(15, 23, 42, 0.08);
+  --border-glass-highlight: rgba(15, 23, 42, 0.15);
+
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+
+  /* Energy Accents (High-Contrast for Light Theme) */
+  --energy-lime: #65A30D;
+  --energy-lime-bright: #84CC16;
+  --energy-lime-glow: rgba(132, 204, 22, 0.28);
+
+  --vivid-violet: #7C3AED;
+  --vivid-violet-glow: rgba(124, 58, 237, 0.25);
+
+  --hot-coral: #E11D48;
+  --hot-coral-glow: rgba(225, 29, 72, 0.25);
+
+  --cool-cyan: #0284C7;
+  --cool-cyan-bright: #06B6D4;
+  --cool-cyan-glow: rgba(6, 182, 212, 0.25);
+
+  --flame-start: #EA580C;
+  --flame-end: #E11D48;
+
+  /* Domain Tokens */
+  --color-meal: var(--energy-lime-bright);
+  --color-workout: var(--vivid-violet);
+  --color-water: var(--cool-cyan-bright);
+  --color-streak: var(--flame-start);
+
+  /* Typography */
+  --font-display: 'Plus Jakarta Sans Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Radii */
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 9999px;
+
+  /* Safe areas */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.theme-dark {
+  --bg-deep: #07070C;
+  --bg-surface: #0E0E18;
+  --bg-elevated: #16162A;
+  --bg-glass: rgba(22, 22, 42, 0.65);
+  --bg-glass-subtle: rgba(14, 14, 24, 0.45);
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --border-glass-highlight: rgba(255, 255, 255, 0.15);
+
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+
+  --energy-lime: #C6FF3D;
+  --energy-lime-bright: #C6FF3D;
+  --energy-lime-glow: rgba(198, 255, 61, 0.25);
+  --vivid-violet: #7C5CFF;
+  --vivid-violet-glow: rgba(124, 92, 255, 0.25);
+  --hot-coral: #FF5C7A;
+  --hot-coral-glow: rgba(255, 92, 122, 0.25);
+  --cool-cyan: #2DE2E6;
+  --cool-cyan-bright: #2DE2E6;
+  --cool-cyan-glow: rgba(45, 226, 230, 0.25);
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+}
+
+.glass-panel-interactive {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel-interactive:hover {
+  border-color: var(--border-glass-highlight);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Subtle inner bevel / border highlight */
+.inner-highlight {
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Ambient colored glows */
+.glow-lime {
+  box-shadow: 0 8px 32px -4px var(--energy-lime-glow);
+}
+.glow-violet {
+  box-shadow: 0 8px 32px -4px var(--vivid-violet-glow);
+}
+.glow-coral {
+  box-shadow: 0 8px 32px -4px var(--hot-coral-glow);
+}
+.glow-cyan {
+  box-shadow: 0 8px 32px -4px var(--cool-cyan-glow);
+}
+
+/* Tabular numbers for fitness statistics */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

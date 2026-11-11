@@ -202,7 +202,7 @@ export const ThisWeekCard = ({ forceHideNumbers = false, className = "" }) => {
   return (
     <>
       <GlassCard
-        className={`p-5 sm:p-6 bg-white/95 border-slate-200/90 shadow-[0_8px_30px_rgba(15,23,42,0.05)] space-y-4 ${className}`}
+        className={`p-4 sm:p-6 bg-white/95 border-slate-200/90 shadow-[0_8px_30px_rgba(15,23,42,0.05)] space-y-4 ${className}`}
       >
         {/* Top Row: Title, Week Range & Controls */}
         <div className="flex flex-wrap items-center justify-between gap-2.5">
@@ -387,7 +387,7 @@ export const ThisWeekCard = ({ forceHideNumbers = false, className = "" }) => {
             <Link
               to="/measurements"
               onClick={() => haptics.tick()}
-              className={`min-h-[40px] px-3 py-1.5 rounded-xl border text-xs font-bold inline-flex items-center gap-1.5 transition-colors ${measMeta.classes}`}
+              className={`min-h-[44px] px-3 py-1.5 rounded-xl border text-xs font-bold inline-flex items-center gap-1.5 transition-colors ${measMeta.classes}`}
             >
               <Ruler className="w-3.5 h-3.5" />
               <span>Measurements: {measMeta.label}</span>
@@ -399,7 +399,7 @@ export const ThisWeekCard = ({ forceHideNumbers = false, className = "" }) => {
               <Link
                 to="/photos"
                 onClick={() => haptics.tick()}
-                className={`min-h-[40px] px-3 py-1.5 rounded-xl border text-xs font-bold inline-flex items-center gap-1.5 transition-colors ${photoMeta.classes}`}
+                className={`min-h-[44px] px-3 py-1.5 rounded-xl border text-xs font-bold inline-flex items-center gap-1.5 transition-colors ${photoMeta.classes}`}
               >
                 <Camera className="w-3.5 h-3.5" />
                 <span>
@@ -410,11 +410,11 @@ export const ThisWeekCard = ({ forceHideNumbers = false, className = "" }) => {
             )}
           </div>
 
-          <Link to="/weight" onClick={() => haptics.tick()}>
+          <Link to="/weight" onClick={() => haptics.tick()} className="w-full sm:w-auto">
             <Button
               size="sm"
               variant={progress.todayLogged ? "secondary" : "primary"}
-              className="min-h-[44px] px-4 text-xs font-extrabold"
+              className="w-full sm:w-auto min-h-[44px] px-4 text-xs font-extrabold"
             >
               {progress.todayLogged ? (
                 <>

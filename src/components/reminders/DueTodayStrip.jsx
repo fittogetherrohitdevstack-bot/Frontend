@@ -101,7 +101,7 @@ export const DueTodayStrip = ({ className = "" }) => {
         <Link
           to="/settings/reminders"
           onClick={() => haptics.tick()}
-          className="inline-flex items-center gap-1 min-h-[36px] px-2.5 rounded-xl text-[11px] font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors shrink-0"
+          className="inline-flex items-center gap-1 min-h-[44px] px-2.5 rounded-xl text-[11px] font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors shrink-0"
         >
           <SlidersHorizontal className="w-3 h-3" />
           <span>Schedule</span>
@@ -152,7 +152,7 @@ export const DueTodayStrip = ({ className = "" }) => {
                       haptics.tick();
                       setExpandedType(isExpanded ? null : item.type);
                     }}
-                    className="w-8 h-8 rounded-xl bg-white/80 hover:bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 cursor-pointer shrink-0"
+                    className="min-w-[44px] min-h-[44px] rounded-xl bg-white/80 hover:bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 cursor-pointer shrink-0"
                   >
                     <Clock className="w-3.5 h-3.5" />
                   </button>
@@ -169,7 +169,7 @@ export const DueTodayStrip = ({ className = "" }) => {
                           minutes: item.defaultSnoozeMinutes || 60,
                         })
                       }
-                      className="flex-1 min-h-[38px] px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold inline-flex items-center justify-center gap-1 cursor-pointer"
+                      className="flex-1 min-h-[44px] px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold inline-flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <Clock className="w-3 h-3" /> Snooze {item.defaultSnoozeMinutes || 60}m
                     </button>
@@ -182,7 +182,7 @@ export const DueTodayStrip = ({ className = "" }) => {
                           periodKey: item.periodKey,
                         })
                       }
-                      className="flex-1 min-h-[38px] px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold inline-flex items-center justify-center gap-1 cursor-pointer"
+                      className="flex-1 min-h-[44px] px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold inline-flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <SkipForward className="w-3 h-3" /> Skip this time
                     </button>

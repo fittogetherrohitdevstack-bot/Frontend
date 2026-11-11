@@ -672,7 +672,7 @@ export const PhotoCaptureWizard = ({
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="e.g., Morning fasted, window lighting"
-                className="w-full min-h-[44px] px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                className="w-full min-h-[46px] px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-base text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
               />
             </div>
 
@@ -794,7 +794,7 @@ export const PhotoCaptureWizard = ({
                   stopCameraStream();
                   onOpenChange(false);
                 }}
-                className="min-h-[36px] px-2.5 font-bold text-slate-700 hover:text-slate-900 inline-flex items-center gap-1 cursor-pointer"
+                className="min-h-[44px] px-2.5 font-bold text-slate-700 hover:text-slate-900 inline-flex items-center gap-1 cursor-pointer"
               >
                 Done for now
                 <ArrowRight className="w-3.5 h-3.5" />

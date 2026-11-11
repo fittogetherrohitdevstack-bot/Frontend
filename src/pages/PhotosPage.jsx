@@ -270,7 +270,7 @@ export const PhotosPage = () => {
   if (!photoEnabled) {
     return (
       <FadeUp>
-        <div className="max-w-xl mx-auto px-4 py-8">
+        <div className="max-w-xl mx-auto py-2 sm:py-6">
           <Card className="p-6 sm:p-8 text-center space-y-5">
             <div className="w-16 h-16 rounded-3xl bg-lime-100 text-lime-700 mx-auto flex items-center justify-center shadow-xs">
               <Camera className="w-8 h-8" />
@@ -326,9 +326,9 @@ export const PhotosPage = () => {
 
   return (
     <FadeUp>
-      <div className="max-w-4xl mx-auto px-4 py-5 space-y-5 pb-24">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5">
         {/* Top Hero / Cycle Status Card */}
-        <Card className="p-5 sm:p-6 bg-gradient-to-br from-white via-white to-lime-50/40">
+        <Card className="p-4 sm:p-6 bg-gradient-to-br from-white via-white to-lime-50/40">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
@@ -368,7 +368,7 @@ export const PhotosPage = () => {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto shrink-0">
               <Button
                 type="button"
                 variant="outline"
@@ -381,18 +381,18 @@ export const PhotosPage = () => {
                   );
                   setAnchorSheetOpen(true);
                 }}
-                className="min-h-[44px] text-xs font-bold"
+                className="w-full sm:w-auto min-h-[44px] text-xs font-bold"
               >
-                <Calendar className="w-4 h-4 mr-1.5 text-slate-600" />
+                <Calendar className="w-4 h-4 mr-1.5 text-slate-600 shrink-0" />
                 Cycle Anchor
               </Button>
               <Button
                 type="button"
                 variant="primary"
                 onClick={() => openCaptureForCurrent()}
-                className="min-h-[44px] text-xs sm:text-sm font-bold"
+                className="w-full sm:w-auto min-h-[44px] text-xs sm:text-sm font-bold"
               >
-                <Camera className="w-4 h-4 mr-1.5" />
+                <Camera className="w-4 h-4 mr-1.5 shrink-0" />
                 {currentInfo?.completedCount > 0 && !currentInfo?.isComplete
                   ? `Finish Check-In (${currentInfo.completedCount}/3)`
                   : currentInfo?.isComplete
@@ -404,17 +404,19 @@ export const PhotosPage = () => {
 
           {/* Graceful warning if Cloudinary env variables are blank */}
           {!storageConfigured && (
-            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs text-amber-900 flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-bold">Cloudinary isn't configured yet</p>
-                <p className="text-amber-800 mt-0.5">
-                  Photo uploads are paused until server storage credentials are set. Your cycle schedule and in-app reminders continue working normally.
-                </p>
+            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs text-amber-900 flex flex-col sm:flex-row items-start gap-2.5">
+              <div className="flex items-start gap-2.5 flex-1">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-bold">Cloudinary isn't configured yet</p>
+                  <p className="text-amber-800 mt-0.5">
+                    Photo uploads are paused until server storage credentials are set. Your cycle schedule and in-app reminders continue working normally.
+                  </p>
+                </div>
               </div>
               <Link
                 to="/settings/reminders"
-                className="shrink-0 font-bold text-amber-900 underline underline-offset-2 inline-flex items-center gap-1"
+                className="shrink-0 min-h-[38px] px-2.5 rounded-lg bg-amber-100/80 font-bold text-amber-900 underline underline-offset-2 inline-flex items-center gap-1 self-end sm:self-center"
               >
                 <Bell className="w-3.5 h-3.5" />
                 Reminders
@@ -424,21 +426,21 @@ export const PhotosPage = () => {
         </Card>
 
         {/* Sub-view Switcher: Timeline vs Compare */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="inline-flex p-1 rounded-2xl bg-slate-100 border border-slate-200/70">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="grid grid-cols-2 sm:inline-flex p-1 rounded-2xl bg-slate-100 border border-slate-200/70 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => {
                 haptics.tick();
                 setActiveTab("timeline");
               }}
-              className={`min-h-[40px] px-4 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors ${
+              className={`min-h-[44px] px-3 sm:px-4 py-1.5 rounded-xl text-xs font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors ${
                 activeTab === "timeline"
                   ? "bg-white text-slate-900 shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <Images className="w-4 h-4" />
+              <Images className="w-4 h-4 shrink-0" />
               Timeline ({sets.length})
             </button>
             <button
@@ -447,22 +449,22 @@ export const PhotosPage = () => {
                 haptics.tick();
                 setActiveTab("compare");
               }}
-              className={`min-h-[40px] px-4 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors ${
+              className={`min-h-[44px] px-3 sm:px-4 py-1.5 rounded-xl text-xs font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors ${
                 activeTab === "compare"
                   ? "bg-white text-slate-900 shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <SlidersHorizontal className="w-4 h-4" />
+              <SlidersHorizontal className="w-4 h-4 shrink-0" />
               Compare
             </button>
           </div>
 
           <Link
             to="/settings/reminders"
-            className="min-h-[40px] px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 inline-flex items-center gap-1.5"
+            className="min-h-[44px] w-full sm:w-auto justify-center px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 inline-flex items-center gap-1.5"
           >
-            <Bell className="w-3.5 h-3.5 text-indigo-600" />
+            <Bell className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
             Reminder schedule
           </Link>
         </div>
@@ -484,7 +486,7 @@ export const PhotosPage = () => {
             ))}
           </div>
         ) : sets.length === 0 ? (
-          <Card className="p-8 text-center space-y-4">
+          <Card className="p-5 sm:p-8 text-center space-y-4">
             <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-500 mx-auto flex items-center justify-center">
               <Camera className="w-7 h-7" />
             </div>
@@ -501,7 +503,7 @@ export const PhotosPage = () => {
               type="button"
               variant="primary"
               onClick={() => openCaptureForCurrent("front_relaxed")}
-              className="min-h-[48px] px-6 font-bold"
+              className="w-full sm:w-auto min-h-[48px] px-6 font-bold"
             >
               <Plus className="w-4 h-4 mr-1.5" />
               Start Cycle #{currentInfo?.cycleNumber || 1}
@@ -558,19 +560,19 @@ export const PhotosPage = () => {
                   </div>
 
                   {/* 3-Pose Strip */}
-                  <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3.5">
                     {POSE_ORDER.map((poseKey) => {
                       const cfg = POSE_CONFIG[poseKey];
                       const poseData = set.photos?.[poseKey];
                       const hasPhoto = Boolean(poseData?.url);
                       return (
-                        <div key={poseKey} className="space-y-1.5">
-                          <div className="flex items-center justify-between px-0.5">
+                        <div key={poseKey} className="space-y-1.5 min-w-0">
+                          <div className="flex items-center justify-between gap-1 px-0.5">
                             <span className="text-[11px] font-bold text-slate-700 truncate">
                               {cfg.shortLabel}
                             </span>
                             {hasPhoto && (
-                              <span className="text-[10px] font-semibold text-emerald-600">
+                              <span className="text-[10px] font-semibold text-emerald-600 shrink-0">
                                 Saved
                               </span>
                             )}
@@ -616,6 +618,7 @@ export const PhotosPage = () => {
                             <div className="flex items-center gap-1">
                               <button
                                 type="button"
+                                aria-label={`Retake ${cfg.label}`}
                                 onClick={() => {
                                   haptics.tick();
                                   setWizardState({
@@ -626,10 +629,10 @@ export const PhotosPage = () => {
                                     existingSet: set,
                                   });
                                 }}
-                                className="flex-1 min-h-[36px] px-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-bold text-slate-700 inline-flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                                className="flex-1 min-w-[44px] min-h-[44px] px-1.5 sm:px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[11px] font-bold text-slate-700 inline-flex items-center justify-center gap-1 cursor-pointer transition-colors"
                               >
-                                <RefreshCw className="w-3 h-3" />
-                                Retake
+                                <RefreshCw className="w-3.5 h-3.5 shrink-0" />
+                                <span className="hidden sm:inline">Retake</span>
                               </button>
                               <button
                                 type="button"
@@ -644,9 +647,9 @@ export const PhotosPage = () => {
                                     cycleNumber: set.cycleNumber,
                                   });
                                 }}
-                                className="min-w-[36px] min-h-[36px] rounded-lg bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
+                                className="min-w-[44px] min-h-[44px] rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-500 flex items-center justify-center cursor-pointer transition-colors shrink-0"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
                           )}
@@ -656,8 +659,8 @@ export const PhotosPage = () => {
                   </div>
 
                   {/* Set Footer Actions */}
-                  <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
+                  <div className="pt-2.5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
                       {isGroupShared ? (
                         <Button
                           type="button"
@@ -670,9 +673,9 @@ export const PhotosPage = () => {
                               visibility: "private",
                             })
                           }
-                          className="min-h-[40px] text-xs font-bold"
+                          className="flex-1 sm:flex-initial min-h-[44px] text-xs font-bold"
                         >
-                          <Lock className="w-3.5 h-3.5 mr-1.5" />
+                          <Lock className="w-3.5 h-3.5 mr-1.5 shrink-0" />
                           Make private again
                         </Button>
                       ) : (
@@ -685,9 +688,9 @@ export const PhotosPage = () => {
                             haptics.tick();
                             setShareConfirmSet(set);
                           }}
-                          className="min-h-[40px] text-xs font-bold"
+                          className="flex-1 sm:flex-initial min-h-[44px] text-xs font-bold"
                         >
-                          <Users className="w-3.5 h-3.5 mr-1.5 text-indigo-600" />
+                          <Users className="w-3.5 h-3.5 mr-1.5 text-indigo-600 shrink-0" />
                           Share with squad
                         </Button>
                       )}
@@ -698,9 +701,9 @@ export const PhotosPage = () => {
                           size="sm"
                           variant="primary"
                           onClick={() => openCaptureForCurrent()}
-                          className="min-h-[40px] text-xs font-bold"
+                          className="flex-1 sm:flex-initial min-h-[44px] text-xs font-bold"
                         >
-                          <Plus className="w-3.5 h-3.5 mr-1" />
+                          <Plus className="w-3.5 h-3.5 mr-1 shrink-0" />
                           Complete set
                         </Button>
                       )}
@@ -716,9 +719,9 @@ export const PhotosPage = () => {
                           cycleNumber: set.cycleNumber,
                         });
                       }}
-                      className="min-h-[40px] px-3 rounded-xl text-xs font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50 inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                      className="min-h-[44px] w-full sm:w-auto px-3.5 rounded-xl border border-rose-200/70 sm:border-transparent bg-rose-50/40 sm:bg-transparent text-xs font-bold text-rose-600 sm:text-slate-500 hover:text-rose-600 hover:bg-rose-50 inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3.5 h-3.5 shrink-0" />
                       Delete set
                     </button>
                   </div>
@@ -859,7 +862,7 @@ export const PhotosPage = () => {
               required
               value={anchorInput}
               onChange={(e) => setAnchorInput(e.target.value)}
-              className="w-full min-h-[46px] px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
+              className="w-full min-h-[46px] px-3 py-2 rounded-xl border border-slate-200 bg-white text-base font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-lime-500"
             />
           </div>
           <div className="grid grid-cols-2 gap-2.5">

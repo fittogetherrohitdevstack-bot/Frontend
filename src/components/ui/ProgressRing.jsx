@@ -47,7 +47,7 @@ export const ProgressRing = ({
       percent: calPercent,
       color: "#84CC16",
       trackColor: "rgba(132, 204, 22, 0.15)",
-      label: "Calories",
+      label: "Calories Consumed",
       current: calCur,
       target: calTar,
       unit: "kcal",
@@ -94,8 +94,8 @@ export const ProgressRing = ({
           haptics.tick();
           setSheetOpen(true);
         }}
-        className={`relative flex items-center justify-center cursor-pointer select-none group mx-auto ${className}`}
-        style={{ width: size, height: size }}
+        className={`relative flex items-center justify-center cursor-pointer select-none group mx-auto aspect-square ${className}`}
+        style={{ width: `min(100%, ${size}px)` }}
       >
         {/* Soft Ambient Radial Glow */}
         <div
@@ -107,10 +107,8 @@ export const ProgressRing = ({
         />
 
         <svg
-          width={size}
-          height={size}
           viewBox={`0 0 ${size} ${size}`}
-          className="rotate-[-90deg] overflow-visible"
+          className="w-full h-full rotate-[-90deg] overflow-visible"
         >
           <defs>
             <linearGradient id="grad-calories" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -177,8 +175,8 @@ export const ProgressRing = ({
 
         {/* Center Numbers & Tap Hint */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none p-4">
-          <span className="text-[10px] font-black uppercase tracking-wider text-lime-700 flex items-center gap-1 mb-0.5">
-            <Flame className="w-3.5 h-3.5 text-lime-600 fill-lime-500" /> Active Burn
+          <span className="text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider text-lime-700 flex items-center justify-center gap-1 mb-0.5 leading-tight">
+            <Flame className="w-3.5 h-3.5 text-lime-600 fill-lime-500 shrink-0" /> Calories Consumed
           </span>
           <div className="flex items-baseline justify-center">
             <AnimatedNumber
@@ -206,8 +204,8 @@ export const ProgressRing = ({
       <Sheet
         open={sheetOpen}
         onOpenChange={setSheetOpen}
-        title="Today's Activity Breakdown"
-        description="Concentric rings track your daily energy, macros & hydration"
+        title="Today's Nutrition & Hydration"
+        description="Concentric rings track your calories consumed, macros & water"
       >
         <div className="space-y-3.5 pt-2">
           {rings.map((ring, i) => {

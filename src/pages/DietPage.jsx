@@ -386,14 +386,14 @@ export const DietPage = () => {
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto text-slate-900 pb-24">
+    <div className="space-y-4 sm:space-y-6 max-w-4xl mx-auto text-slate-900">
       {/* Top Header & Overview */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <span className="text-xs font-black text-lime-700 uppercase tracking-widest bg-lime-100/70 px-2.5 py-0.5 rounded-full border border-lime-200">
             Ongoing Recurring Meal Plan
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5">
             {activePlan?.name || "My Ongoing Meal Plan"}
           </h1>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -401,9 +401,15 @@ export const DietPage = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Link to="/tracker">
-            <Button size="sm" className="text-xs font-bold bg-lime-500 hover:bg-lime-600 text-black">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto shrink-0">
+          <Link
+            to="/tracker"
+            className={activePlan && mealsForDay.length > 0 ? "w-full sm:w-auto" : "col-span-2 sm:col-span-1 w-full sm:w-auto"}
+          >
+            <Button
+              size="sm"
+              className="w-full sm:w-auto min-h-[44px] text-xs font-bold bg-lime-500 hover:bg-lime-600 text-black"
+            >
               Today's Checklist <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Button>
           </Link>
@@ -416,7 +422,7 @@ export const DietPage = () => {
                 setDuplicateToAll(false);
                 setShowDuplicateModal(true);
               }}
-              className="text-xs"
+              className="w-full sm:w-auto min-h-[44px] text-xs"
             >
               <Copy className="w-3.5 h-3.5 mr-1" /> Duplicate Day
             </Button>
@@ -425,7 +431,7 @@ export const DietPage = () => {
       </div>
 
       {/* Info Card Explaining Continuous / Ongoing Mode */}
-      <GlassCard className="p-4 bg-gradient-to-r from-lime-50/70 via-emerald-50/50 to-teal-50/70 border border-lime-200/80 rounded-2xl shadow-xs">
+      <GlassCard className="p-3.5 sm:p-4 bg-gradient-to-r from-lime-50/70 via-emerald-50/50 to-teal-50/70 border border-lime-200/80 rounded-2xl shadow-xs">
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 rounded-xl bg-lime-500 text-black flex items-center justify-center shrink-0 font-bold shadow-xs">
             <Repeat className="w-4 h-4" />
@@ -455,35 +461,35 @@ export const DietPage = () => {
       </GlassCard>
 
       {/* Day Totals Banner */}
-      <div className="grid grid-cols-4 gap-2 bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 text-center shadow-xs">
-        <div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 bg-white/95 border border-slate-200/90 rounded-2xl p-3 sm:p-3.5 text-center shadow-xs">
+        <div className="rounded-xl bg-lime-50/60 sm:bg-transparent py-2 sm:py-0 px-2">
           <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Calories</span>
-          <p className="text-base font-extrabold text-lime-700">{dayTotals.calories} kcal</p>
+          <p className="text-base font-extrabold text-lime-700 tabular-nums">{dayTotals.calories} kcal</p>
         </div>
-        <div>
+        <div className="rounded-xl bg-purple-50/60 sm:bg-transparent py-2 sm:py-0 px-2">
           <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Protein</span>
-          <p className="text-base font-extrabold text-purple-700">{dayTotals.protein} g</p>
+          <p className="text-base font-extrabold text-purple-700 tabular-nums">{dayTotals.protein} g</p>
         </div>
-        <div>
+        <div className="rounded-xl bg-amber-50/60 sm:bg-transparent py-2 sm:py-0 px-2">
           <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Carbs</span>
-          <p className="text-base font-extrabold text-amber-600">{dayTotals.carbs} g</p>
+          <p className="text-base font-extrabold text-amber-600 tabular-nums">{dayTotals.carbs} g</p>
         </div>
-        <div>
+        <div className="rounded-xl bg-rose-50/60 sm:bg-transparent py-2 sm:py-0 px-2">
           <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Fats</span>
-          <p className="text-base font-extrabold text-rose-600">{dayTotals.fats} g</p>
+          <p className="text-base font-extrabold text-rose-600 tabular-nums">{dayTotals.fats} g</p>
         </div>
       </div>
 
       {/* Meals List for Selected Day */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div className="flex items-center gap-2">
             <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">
               {dayNames[selectedDay]} Schedule ({mealsForDay.length} Meals)
             </h3>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
             {mealsForDay.length > 0 && (
               <button
                 type="button"
@@ -495,21 +501,25 @@ export const DietPage = () => {
                     });
                   }
                 }}
-                className="text-[11px] font-bold text-violet-700 bg-violet-50 hover:bg-violet-100 px-2.5 py-1.5 rounded-xl border border-violet-200 flex items-center gap-1 transition-all"
+                className="flex-1 sm:flex-initial min-h-[44px] text-xs font-bold text-violet-700 bg-violet-50 hover:bg-violet-100 px-3 py-2 rounded-xl border border-violet-200 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
               >
-                <Repeat className="w-3 h-3" />
+                <Repeat className="w-3.5 h-3.5 shrink-0" />
                 <span>Apply to All 7 Days</span>
               </button>
             )}
 
-            <Button size="sm" onClick={handleOpenAddMeal} className="text-xs">
+            <Button
+              size="sm"
+              onClick={handleOpenAddMeal}
+              className="flex-1 sm:flex-initial min-h-[44px] px-4 text-xs"
+            >
               <Plus className="w-3.5 h-3.5 mr-1" /> Add Meal
             </Button>
           </div>
         </div>
 
         {mealsForDay.length === 0 ? (
-          <GlassCard className="text-center py-10 border-dashed border-slate-200 bg-white/70 space-y-3">
+          <GlassCard className="text-center py-8 sm:py-10 px-4 border-dashed border-slate-200 bg-white/70 space-y-3">
             <Utensils className="w-10 h-10 text-slate-400 mx-auto" />
             <div className="space-y-1">
               <h4 className="font-bold text-slate-800 text-sm">
@@ -520,8 +530,8 @@ export const DietPage = () => {
               </p>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-2 pt-1">
-              <Button size="sm" onClick={handleOpenAddMeal}>
+            <div className="flex flex-col sm:flex-row justify-center gap-2.5 pt-1">
+              <Button size="sm" onClick={handleOpenAddMeal} className="w-full sm:w-auto min-h-[44px]">
                 <Plus className="w-4 h-4 mr-1" /> Add Meal to {dayNames[selectedDay]}
               </Button>
 
@@ -529,6 +539,7 @@ export const DietPage = () => {
                 <Button
                   size="sm"
                   variant="secondary"
+                  className="w-full sm:w-auto min-h-[44px]"
                   onClick={() => {
                     setTargetDuplicateDay(selectedDay);
                     setDuplicateToAll(false);
@@ -562,47 +573,51 @@ export const DietPage = () => {
             return (
               <GlassCard
                 key={meal.mealId || idx}
-                className="hover:border-slate-300 transition-all p-4 bg-white/95"
+                className="hover:border-slate-300 transition-all p-3.5 sm:p-4 bg-white/95"
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h4 className="font-bold text-slate-900 text-base">{meal.name}</h4>
-                      <span className="text-xs text-slate-500 flex items-center gap-1 bg-slate-100 px-2.5 py-0.5 rounded-full font-medium">
+                      <span className="text-xs text-slate-500 flex items-center gap-1 bg-slate-100 px-2.5 py-0.5 rounded-full font-medium shrink-0">
                         <Clock className="w-3 h-3 text-lime-600" />
                         {meal.scheduledTime}
                       </span>
                     </div>
 
-                    <p className="text-xs text-slate-500 mt-1 font-medium">
+                    <p className="text-xs text-slate-500 mt-1.5 font-medium leading-relaxed">
                       {meal.foodItems?.map((f) => `${f.name}${f.quantity ? ` (${f.quantity}${f.unit || "g"})` : ""}`).join(" • ")}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <div className="text-right mr-2 shrink-0">
+                  <div className="flex items-center justify-between sm:justify-end gap-2 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
+                    <div className="text-left sm:text-right sm:mr-2">
                       <span className="text-xs font-black text-lime-700 block tabular-nums">{mealCals} kcal</span>
-                      <p className="text-[10px] text-slate-500 font-bold tabular-nums">
+                      <p className="text-[11px] sm:text-[10px] text-slate-500 font-bold tabular-nums">
                         <span className="text-purple-700">{mealProtein}g P</span> ·{" "}
                         <span className="text-amber-600">{mealCarbs}g C</span> ·{" "}
                         <span className="text-rose-600">{mealFats}g F</span>
                       </p>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleOpenEditMeal(meal, idx)}
-                      className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteMeal(idx)}
-                      className="p-2 rounded-xl hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        aria-label={`Edit ${meal.name}`}
+                        onClick={() => handleOpenEditMeal(meal, idx)}
+                        className="min-w-[44px] min-h-[44px] rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Delete ${meal.name}`}
+                        onClick={() => handleDeleteMeal(idx)}
+                        className="min-w-[44px] min-h-[44px] rounded-xl hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </GlassCard>
@@ -618,7 +633,7 @@ export const DietPage = () => {
         title={editingMealIndex >= 0 ? "Edit Meal" : `Add Meal to ${dayNames[selectedDay]}`}
         description="Configure meal name, time, and food items"
       >
-        <form onSubmit={handleSaveMeal} className="space-y-4 pt-2 max-h-[80vh] overflow-y-auto px-1">
+        <form onSubmit={handleSaveMeal} className="space-y-4 pt-1 pb-3">
           <div className="space-y-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">Meal Name</label>
@@ -628,7 +643,7 @@ export const DietPage = () => {
                 value={mealForm.name}
                 onChange={(e) => setMealForm({ ...mealForm, name: e.target.value })}
                 placeholder="e.g. Breakfast, Pre-Workout, Lunch, Dinner"
-                className="w-full min-h-[46px] px-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-lime-500 focus:bg-white shadow-xs font-medium"
+                className="w-full min-h-[46px] px-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-base focus:outline-none focus:border-lime-500 focus:bg-white shadow-xs font-medium"
               />
             </div>
 
@@ -645,7 +660,7 @@ export const DietPage = () => {
               </div>
 
               {/* Time Input with 1-Tap Trigger and Micro-Steppers */}
-              <div className="flex items-center gap-1.5 xs:gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div
                   onClick={() => {
                     try {
@@ -666,15 +681,15 @@ export const DietPage = () => {
                         setMealForm({ ...mealForm, scheduledTime: e.target.value });
                       }
                     }}
-                    className="w-full min-h-[44px] px-3.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-sm font-bold focus:outline-none focus:border-lime-500 shadow-xs cursor-pointer"
+                    className="w-full min-h-[44px] px-3.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-base font-bold focus:outline-none focus:border-lime-500 shadow-xs cursor-pointer"
                   />
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="grid grid-cols-3 sm:flex items-center gap-1.5 shrink-0">
                   <button
                     type="button"
                     onClick={() => adjustScheduledTime(-15)}
-                    className="h-11 px-2.5 rounded-xl bg-white hover:bg-slate-100 active:scale-95 text-slate-700 border border-slate-200 text-xs font-bold transition-all shadow-xs cursor-pointer select-none"
+                    className="min-h-[44px] px-3 rounded-xl bg-white hover:bg-slate-100 active:scale-95 text-slate-700 border border-slate-200 text-xs font-bold transition-all shadow-xs cursor-pointer select-none"
                     title="15 min earlier"
                   >
                     -15m
@@ -682,7 +697,7 @@ export const DietPage = () => {
                   <button
                     type="button"
                     onClick={() => adjustScheduledTime(15)}
-                    className="h-11 px-2.5 rounded-xl bg-white hover:bg-slate-100 active:scale-95 text-slate-700 border border-slate-200 text-xs font-bold transition-all shadow-xs cursor-pointer select-none"
+                    className="min-h-[44px] px-3 rounded-xl bg-white hover:bg-slate-100 active:scale-95 text-slate-700 border border-slate-200 text-xs font-bold transition-all shadow-xs cursor-pointer select-none"
                     title="15 min later"
                   >
                     +15m
@@ -690,7 +705,7 @@ export const DietPage = () => {
                   <button
                     type="button"
                     onClick={() => adjustScheduledTime(30)}
-                    className="h-11 px-2.5 rounded-xl bg-lime-100 hover:bg-lime-200 active:scale-95 text-lime-800 border border-lime-300 text-xs font-black transition-all shadow-xs cursor-pointer select-none"
+                    className="min-h-[44px] px-3 rounded-xl bg-lime-100 hover:bg-lime-200 active:scale-95 text-lime-800 border border-lime-300 text-xs font-black transition-all shadow-xs cursor-pointer select-none"
                     title="30 min later"
                   >
                     +30m
@@ -699,7 +714,7 @@ export const DietPage = () => {
               </div>
 
               {/* One-Tap Meal Time Presets */}
-              <div className="pt-1 border-t border-slate-100">
+              <div className="pt-1.5 border-t border-slate-100">
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">
                   1-Tap Time Presets
                 </span>
@@ -714,9 +729,9 @@ export const DietPage = () => {
                           setMealForm({ ...mealForm, scheduledTime: preset.time });
                           haptics.tick();
                         }}
-                        className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                        className={`min-h-[38px] px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                           isSelected
-                            ? "bg-lime-500 text-slate-950 shadow-xs ring-1 ring-lime-600 scale-[1.02]"
+                            ? "bg-lime-500 text-slate-950 shadow-xs ring-1 ring-lime-600"
                             : "bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/90 shadow-2xs"
                         }`}
                       >
@@ -814,19 +829,19 @@ export const DietPage = () => {
 
           {/* 2. Instant Autocomplete Food Library Chips */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center justify-between gap-2 mb-1.5">
               <label className="text-[11px] font-black uppercase tracking-wider text-slate-400">
                 Quick-Add Food Suggestions
               </label>
-              <span className="text-[10px] text-slate-400 font-medium">Adds item & updates totals</span>
+              <span className="text-[10px] text-slate-400 font-medium shrink-0">Tap to add</span>
             </div>
-            <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+            <div className="flex sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-visible pb-1.5 sm:pb-0 scrollbar-none">
               {QUICK_FOOD_ITEMS.map((food, i) => (
                 <button
                   key={i}
                   type="button"
                   onClick={() => handleSelectQuickFood(food)}
-                  className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-lime-100 text-[11px] font-bold text-slate-700 transition-colors cursor-pointer shadow-2xs"
+                  className="shrink-0 min-h-[38px] px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-lime-100 text-xs font-bold text-slate-700 transition-colors cursor-pointer shadow-2xs"
                 >
                   + {food.name} <span className="text-slate-400 font-normal">({food.calories} cal)</span>
                 </button>
@@ -836,8 +851,8 @@ export const DietPage = () => {
 
           {/* 3. Food items rows (Names and quantities only - no per-item macro clutter!) */}
           <div className="space-y-2.5 pt-2 border-t border-slate-100">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
                 <span className="text-xs font-black uppercase tracking-wider text-slate-900 block">
                   Food Items in this Meal
                 </span>
@@ -848,7 +863,7 @@ export const DietPage = () => {
               <button
                 type="button"
                 onClick={handleAddFoodItem}
-                className="text-xs text-lime-700 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                className="min-h-[44px] px-3 rounded-xl bg-lime-50 hover:bg-lime-100 text-xs text-lime-800 font-bold border border-lime-200 inline-flex items-center gap-1 cursor-pointer shrink-0 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Item
               </button>
@@ -856,39 +871,42 @@ export const DietPage = () => {
 
             <div className="space-y-2">
               {mealForm.foodItems.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50/90 border border-slate-200">
+                <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-50/90 border border-slate-200">
                   <input
                     type="text"
                     required
                     placeholder="e.g. Rolled Oats, 2 Eggs, Banana"
                     value={item.name}
                     onChange={(e) => handleFoodItemChange(idx, "name", e.target.value)}
-                    className="flex-1 min-h-[40px] px-3 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-lime-500 shadow-2xs"
+                    className="w-full sm:flex-1 min-h-[44px] px-3 rounded-xl bg-white border border-slate-200 text-base font-semibold text-slate-900 focus:outline-none focus:border-lime-500 shadow-2xs"
                   />
-                  <input
-                    type="number"
-                    placeholder="Qty"
-                    value={item.quantity || ""}
-                    onChange={(e) => handleFoodItemChange(idx, "quantity", e.target.value)}
-                    className="w-16 min-h-[40px] px-2 rounded-lg bg-white border border-slate-200 text-xs font-black text-slate-900 text-center shadow-2xs focus:outline-none focus:border-lime-500"
-                  />
-                  <input
-                    type="text"
-                    placeholder="unit"
-                    value={item.unit}
-                    onChange={(e) => handleFoodItemChange(idx, "unit", e.target.value)}
-                    className="w-14 min-h-[40px] px-1 text-center rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-900 shadow-2xs focus:outline-none focus:border-lime-500"
-                  />
-                  {mealForm.foodItems.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveFoodItem(idx)}
-                      className="text-slate-400 hover:text-rose-600 p-2 cursor-pointer transition-colors"
-                      title="Remove item"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2 sm:contents">
+                    <input
+                      type="number"
+                      placeholder="Qty"
+                      value={item.quantity || ""}
+                      onChange={(e) => handleFoodItemChange(idx, "quantity", e.target.value)}
+                      className="flex-1 sm:w-20 min-h-[44px] px-2.5 rounded-xl bg-white border border-slate-200 text-base font-black text-slate-900 text-center shadow-2xs focus:outline-none focus:border-lime-500"
+                    />
+                    <input
+                      type="text"
+                      placeholder="unit"
+                      value={item.unit}
+                      onChange={(e) => handleFoodItemChange(idx, "unit", e.target.value)}
+                      className="w-20 sm:w-16 min-h-[44px] px-2 text-center rounded-xl bg-white border border-slate-200 text-base font-bold text-slate-900 shadow-2xs focus:outline-none focus:border-lime-500"
+                    />
+                    {mealForm.foodItems.length > 1 && (
+                      <button
+                        type="button"
+                        aria-label={`Remove food item ${idx + 1}`}
+                        onClick={() => handleRemoveFoodItem(idx)}
+                        className="min-w-[44px] min-h-[44px] rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center cursor-pointer transition-colors shrink-0"
+                        title="Remove item"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -897,7 +915,7 @@ export const DietPage = () => {
           <Button
             type="submit"
             isLoading={updatePlanMutation.isPending || createPlanMutation.isPending}
-            className="w-full min-h-[48px] mt-3 bg-lime-500 hover:bg-lime-600 text-black font-extrabold text-sm shadow-md cursor-pointer"
+            className="w-full min-h-[48px] mt-3 bg-lime-500 hover:bg-lime-600 text-black font-extrabold text-base shadow-md cursor-pointer"
           >
             <Check className="w-4 h-4 mr-1.5 stroke-[3]" /> Save Meal
           </Button>
@@ -911,7 +929,7 @@ export const DietPage = () => {
         title="Duplicate Day Schedule"
         description="Copy meals from one day to another or to all 7 days"
       >
-        <div className="space-y-4 pt-2">
+        <div className="space-y-4 pt-2 pb-2">
           <p className="text-xs text-slate-600 font-medium">
             Copy all meals planned for <strong>{dayNames[selectedDay]}</strong> to other days of the week.
           </p>
@@ -926,7 +944,7 @@ export const DietPage = () => {
                 });
               }}
               disabled={duplicateDayMutation.isPending}
-              className="w-full p-3.5 rounded-2xl bg-lime-50 border border-lime-300 hover:bg-lime-100 text-left transition-all flex items-center justify-between"
+              className="w-full min-h-[52px] p-3.5 rounded-2xl bg-lime-50 border border-lime-300 hover:bg-lime-100 text-left transition-all flex items-center justify-between gap-2 cursor-pointer"
             >
               <div>
                 <span className="text-xs font-bold text-lime-900 block">
@@ -946,7 +964,7 @@ export const DietPage = () => {
               <select
                 value={targetDuplicateDay}
                 onChange={(e) => setTargetDuplicateDay(Number(e.target.value))}
-                className="w-full min-h-[46px] px-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-lime-500"
+                className="w-full min-h-[46px] px-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-base focus:outline-none focus:border-lime-500"
               >
                 {dayNames.map((dayName, i) => (
                   <option key={i} value={i} disabled={i === selectedDay}>
@@ -956,7 +974,7 @@ export const DietPage = () => {
               </select>
 
               <Button
-                className="w-full min-h-[46px] mt-3"
+                className="w-full min-h-[48px] mt-3 text-sm font-bold"
                 isLoading={duplicateDayMutation.isPending}
                 onClick={() =>
                   duplicateDayMutation.mutate({

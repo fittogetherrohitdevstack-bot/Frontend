@@ -211,6 +211,8 @@ export const AppLayout = () => {
                 {liveEvent.type === "water" && `crushed their hydration goal!`}
                 {liveEvent.type === "badge" && `unlocked badge: ${liveEvent.badgeName}!`}
                 {liveEvent.type === "challenge" && `joined ${liveEvent.challengeTitle}!`}
+                {liveEvent.type === "challenge-created" && `launched challenge: ${liveEvent.title}!`}
+                {liveEvent.type === "member-joined" && `joined the squad!`}
               </p>
             </div>
             <button

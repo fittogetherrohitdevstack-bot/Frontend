@@ -14,6 +14,17 @@ export const SocketProvider = ({ children }) => {
   const queryClient = useQueryClient();
   const [socket, setSocket] = useState(null);
   const [liveEvent, setLiveEvent] = useState(null);
+  const [recentEvents, setRecentEvents] = useState([]);
+
+  const pushActivityEvent = (evt) => {
+    const entry = {
+      id: `${evt.type}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      timestamp: evt.timestamp || new Date().toISOString(),
+      ...evt,
+    };
+    setLiveEvent(entry);
+    setRecentEvents((prev) => [entry, ...prev].slice(0, 20));
+  };
 
   useEffect(() => {
     if (!token) {
@@ -31,34 +42,50 @@ export const SocketProvider = ({ children }) => {
     });
 
     s.on("meal-logged", (data) => {
-      setLiveEvent({ type: "meal", ...data });
+      pushActivityEvent({ type: "meal", ...data });
       queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["group-leaderboard"] });
     });
 
     s.on("workout-completed", (data) => {
-      setLiveEvent({ type: "workout", ...data });
+      pushActivityEvent({ type: "workout", ...data });
       queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["group-leaderboard"] });
       confetti({ particleCount: 30, spread: 60, origin: { y: 0.8 } });
     });
 
     s.on("water-goal-hit", (data) => {
-      setLiveEvent({ type: "water", ...data });
+      pushActivityEvent({ type: "water", ...data });
       queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["group-leaderboard"] });
     });
 
     s.on("badge-earned", (data) => {
-      setLiveEvent({ type: "badge", ...data });
+      pushActivityEvent({ type: "badge", ...data });
       queryClient.invalidateQueries({ queryKey: ["my-badges"] });
       queryClient.invalidateQueries({ queryKey: ["group-leaderboard"] });
       confetti({ particleCount: 80, spread: 100, origin: { y: 0.6 } });
     });
 
     s.on("challenge-joined", (data) => {
-      setLiveEvent({ type: "challenge", ...data });
+      pushActivityEvent({ type: "challenge", ...data });
       queryClient.invalidateQueries({ queryKey: ["group-challenges"] });
+    });
+
+    s.on("challenge-created", (data) => {
+      pushActivityEvent({
+        type: "challenge-created",
+        userName: data.createdBy || "Teammate",
+        ...data,
+      });
+      queryClient.invalidateQueries({ queryKey: ["group-challenges"] });
+    });
+
+    s.on("member-joined", (data) => {
+      pushActivityEvent({ type: "member-joined", ...data });
+      queryClient.invalidateQueries({ queryKey: ["group-members"] });
+      queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["group-leaderboard"] });
     });
 
     setSocket(s);
@@ -70,6 +97,7 @@ export const SocketProvider = ({ children }) => {
 
   // Join active group room when group changes
   useEffect(() => {
+    setRecentEvents([]);
     if (socket && activeGroup?._id) {
       socket.emit("join-group", activeGroup._id);
     }
@@ -83,7 +111,7 @@ export const SocketProvider = ({ children }) => {
   const clearLiveEvent = () => setLiveEvent(null);
 
   return (
-    <SocketContext.Provider value={{ socket, liveEvent, clearLiveEvent }}>
+    <SocketContext.Provider value={{ socket, liveEvent, recentEvents, clearLiveEvent }}>
       {children}
     </SocketContext.Provider>
   );

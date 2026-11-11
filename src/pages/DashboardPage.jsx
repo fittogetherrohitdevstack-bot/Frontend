@@ -92,6 +92,12 @@ export const DashboardPage = () => {
     },
   });
 
+  const invalidateSquadQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
+    queryClient.invalidateQueries({ queryKey: ["group-leaderboard"] });
+    queryClient.invalidateQueries({ queryKey: ["group-challenges"] });
+  };
+
   // Meal status update mutation
   const mealStatusMutation = useMutation({
     mutationFn: async ({ mealId, status }) => {
@@ -102,7 +108,9 @@ export const DashboardPage = () => {
     onSuccess: (res, { mealId, status }) => {
       queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
       queryClient.invalidateQueries({ queryKey: ["today-meal-log"] });
-      queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["meal-day-chart"] });
+      queryClient.invalidateQueries({ queryKey: ["meal-summary"] });
+      invalidateSquadQueries();
 
       if (status === "eaten") {
         haptics.eaten();
@@ -136,8 +144,9 @@ export const DashboardPage = () => {
       haptics.goal();
       toast.success(`Hydrated! +${amount} ml logged 💧`);
       queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["today-water"] });
+      queryClient.invalidateQueries({ queryKey: ["water-history"] });
+      invalidateSquadQueries();
 
       const currentWater = summary?.water?.consumedMl || 0;
       const targetWater = summary?.water?.targetMl || 3000;
@@ -159,7 +168,7 @@ export const DashboardPage = () => {
       haptics.goal();
       toast.success(status === "completed" ? "Workout crushed! +30 points ⚡" : "Rest day logged");
       queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
+      invalidateSquadQueries();
     },
   });
 

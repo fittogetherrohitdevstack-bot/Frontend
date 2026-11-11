@@ -190,8 +190,9 @@ export const SquadActivityTab = ({
         });
       }
 
-      if ((t.totalMeals || 0) > 0 && t.eatenMeals > 0) {
+      if ((t.totalMeals || 0) > 0 && (t.eatenMeals > 0 || (t.mealCompletionRate || 0) > 0)) {
         const isPerfect = t.mealCompletionRate === 100;
+        const hasItems = (t.totalItems || 0) > 0;
         items.push({
           id: `meal-${m.userId}`,
           category: "fuel",
@@ -202,6 +203,8 @@ export const SquadActivityTab = ({
             : "bg-emerald-50 text-emerald-700 border-emerald-200",
           title: isPerfect
             ? `${firstName} completed all ${t.totalMeals}/${t.totalMeals} planned meals`
+            : hasItems
+            ? `${firstName} checked off ${t.itemsCompleted || 0}/${t.totalItems} food items (${t.mealCompletionRate}%)`
             : `${firstName} checked off ${t.eatenMeals}/${t.totalMeals} meals (${t.mealCompletionRate}%)`,
           detail: isPerfect ? "Clean nutrition day unlocked" : "Fuel tracker in progress",
           timeLabel: "Today",
@@ -502,7 +505,7 @@ export const SquadActivityTab = ({
 
                 {/* 3 Compact Visual Trackers */}
                 <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-200/60">
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center justify-between text-[10px] font-bold text-slate-600 mb-1">
                       <span>Meals</span>
                       <span className="tabular-nums">{t.mealCompletionRate || 0}%</span>
@@ -513,9 +516,14 @@ export const SquadActivityTab = ({
                         style={{ width: `${Math.min(100, t.mealCompletionRate || 0)}%` }}
                       />
                     </div>
+                    <span className="text-[9px] font-medium text-slate-400 tabular-nums truncate mt-0.5 block">
+                      {(t.totalItems || 0) > 0
+                        ? `${t.itemsCompleted || 0}/${t.totalItems} items`
+                        : `${t.eatenMeals || 0}/${t.totalMeals || 0} meals`}
+                    </span>
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center justify-between text-[10px] font-bold text-slate-600 mb-1">
                       <span>Workout</span>
                       <span
@@ -541,9 +549,12 @@ export const SquadActivityTab = ({
                         }`}
                       />
                     </div>
+                    <span className="text-[9px] font-medium text-slate-400 truncate mt-0.5 block">
+                      {t.workoutCompleted ? "+30 pts" : "Pending"}
+                    </span>
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center justify-between text-[10px] font-bold text-slate-600 mb-1">
                       <span>Water</span>
                       <span className="tabular-nums">{t.waterProgressPercent || 0}%</span>
@@ -554,6 +565,9 @@ export const SquadActivityTab = ({
                         style={{ width: `${Math.min(100, t.waterProgressPercent || 0)}%` }}
                       />
                     </div>
+                    <span className="text-[9px] font-medium text-slate-400 tabular-nums truncate mt-0.5 block">
+                      {t.totalWaterMl || 0}/{t.waterTarget || 3000} ml
+                    </span>
                   </div>
                 </div>
               </div>

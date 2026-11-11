@@ -245,6 +245,16 @@ export const DailyTrackerPage = () => {
   }, [itemsCompleted, totalItems, isToday]);
 
   // Mutations
+  const invalidateMealQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["meal-day-chart", selectedDate] });
+    queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
+    queryClient.invalidateQueries({ queryKey: ["today-meal-log"] });
+    queryClient.invalidateQueries({ queryKey: ["meal-summary"] });
+    queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
+    queryClient.invalidateQueries({ queryKey: ["group-leaderboard"] });
+    queryClient.invalidateQueries({ queryKey: ["group-challenges"] });
+  };
+
   const tickItemMutation = useMutation({
     mutationFn: async ({ mealId, itemId, eaten, actualQuantity }) =>
       await mealChartApi.updateItem({
@@ -285,10 +295,7 @@ export const DailyTrackerPage = () => {
       toast.error("Failed to update item tick");
     },
     onSuccess: (_, { eaten, mealId, itemId }) => {
-      queryClient.invalidateQueries({ queryKey: ["meal-day-chart", selectedDate] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["meal-summary"] });
+      invalidateMealQueries();
 
       if (eaten) {
         haptics.eaten();
@@ -313,10 +320,7 @@ export const DailyTrackerPage = () => {
         skipReason: reason,
       }),
     onSuccess: (_, { status }) => {
-      queryClient.invalidateQueries({ queryKey: ["meal-day-chart", selectedDate] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["meal-summary"] });
+      invalidateMealQueries();
       setSkipMealModal(null);
       setSkipReason("");
 
@@ -337,9 +341,7 @@ export const DailyTrackerPage = () => {
     mutationFn: async ({ mealId, item }) =>
       await mealChartApi.addUnplannedItem({ date: selectedDate, mealId, item }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["meal-day-chart", selectedDate] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
+      invalidateMealQueries();
       toast.success("Extra food item added and logged!");
       setIsUnplannedOpen(false);
       setUnplannedItem(INITIAL_UNPLANNED_ITEM);
@@ -350,7 +352,7 @@ export const DailyTrackerPage = () => {
   const copyChartMutation = useMutation({
     mutationFn: async (payload) => await mealChartApi.copyChart(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["meal-day-chart", selectedDate] });
+      invalidateMealQueries();
       toast.success("Diet chart copied successfully!");
       setIsCopyModalOpen(false);
     },
@@ -371,7 +373,7 @@ export const DailyTrackerPage = () => {
   const saveChartMutation = useMutation({
     mutationFn: async (payload) => await mealChartApi.saveDayChart(selectedDate, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["meal-day-chart", selectedDate] });
+      invalidateMealQueries();
       toast.success("Diet chart saved for this day!");
       setIsChartEditorOpen(false);
     },

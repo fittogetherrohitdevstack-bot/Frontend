@@ -32,6 +32,7 @@ export const LeaderboardPage = () => {
       return res.data?.data?.leaderboard || [];
     },
     enabled: !!activeGroup?._id,
+    refetchOnMount: "always",
   });
 
   if (!activeGroup) {

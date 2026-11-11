@@ -29,13 +29,19 @@ export const WaterPage = () => {
     },
   });
 
+  const invalidateWaterQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["today-water"] });
+    queryClient.invalidateQueries({ queryKey: ["water-history"] });
+    queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
+    queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
+    queryClient.invalidateQueries({ queryKey: ["group-leaderboard"] });
+    queryClient.invalidateQueries({ queryKey: ["group-challenges"] });
+  };
+
   const addWaterMutation = useMutation({
     mutationFn: (amountMl) => progressApi.addWater({ amountMl }),
     onSuccess: (res, amount) => {
-      queryClient.invalidateQueries({ queryKey: ["today-water"] });
-      queryClient.invalidateQueries({ queryKey: ["water-history"] });
-      queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
+      invalidateWaterQueries();
       haptics.goal();
       toast.success(`+${amount} ml logged! 💧`);
       if (res.data?.data?.percent >= 100) {
@@ -48,9 +54,7 @@ export const WaterPage = () => {
   const deleteEntryMutation = useMutation({
     mutationFn: (entryId) => progressApi.deleteWaterEntry(entryId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["today-water"] });
-      queryClient.invalidateQueries({ queryKey: ["water-history"] });
-      queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
+      invalidateWaterQueries();
       haptics.tick();
       toast("Water entry removed");
     },

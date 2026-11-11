@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { config } from "../config";
 import { useAuth } from "./AuthContext";
@@ -15,6 +15,17 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [liveEvent, setLiveEvent] = useState(null);
   const [recentEvents, setRecentEvents] = useState([]);
+  const activeGroupIdRef = useRef(activeGroup?._id);
+
+  useEffect(() => {
+    activeGroupIdRef.current = activeGroup?._id;
+  }, [activeGroup?._id]);
+
+  const invalidateSquadQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
+    queryClient.invalidateQueries({ queryKey: ["group-leaderboard"] });
+    queryClient.invalidateQueries({ queryKey: ["group-challenges"] });
+  };
 
   const pushActivityEvent = (evt) => {
     const entry = {
@@ -38,26 +49,29 @@ export const SocketProvider = ({ children }) => {
     });
 
     s.on("connect", () => {
-      // Connected to socket server
+      if (activeGroupIdRef.current) {
+        s.emit("join-group", activeGroupIdRef.current);
+      }
     });
 
     s.on("meal-logged", (data) => {
       pushActivityEvent({ type: "meal", ...data });
-      queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["group-leaderboard"] });
+      invalidateSquadQueries();
     });
 
     s.on("workout-completed", (data) => {
       pushActivityEvent({ type: "workout", ...data });
-      queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["group-leaderboard"] });
+      invalidateSquadQueries();
       confetti({ particleCount: 30, spread: 60, origin: { y: 0.8 } });
     });
 
     s.on("water-goal-hit", (data) => {
       pushActivityEvent({ type: "water", ...data });
-      queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["group-leaderboard"] });
+      invalidateSquadQueries();
+    });
+
+    s.on("squad-sync", () => {
+      invalidateSquadQueries();
     });
 
     s.on("badge-earned", (data) => {

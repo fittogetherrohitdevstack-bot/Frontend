@@ -2,6 +2,8 @@ import React, { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { dietApi } from "../api/endpoints";
+import { useAuth } from "../context/AuthContext";
+import { getLocalDateString } from "../utils/date";
 import { GlassCard } from "../components/ui/GlassCard";
 import { Button } from "../components/ui/Button";
 import { DaySelector } from "../components/ui/DaySelector";
@@ -43,6 +45,7 @@ const QUICK_FOOD_ITEMS = [
 
 export const DietPage = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [selectedDay, setSelectedDay] = useState(new Date().getDay()); // 0-6 (0=Sun, 1=Mon, ...)
   const [showMealModal, setShowMealModal] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
@@ -101,7 +104,7 @@ export const DietPage = () => {
     mutationFn: (initialData) =>
       dietApi.createPlan({
         name: initialData?.name || "Ongoing Meal Plan",
-        startDate: new Date().toISOString().split("T")[0],
+        startDate: getLocalDateString(new Date(), user?.timezone),
         endDate: "2035-12-31", // Continuous multi-year duration
         days: initialData?.days || [],
         isActive: true,
@@ -109,6 +112,9 @@ export const DietPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-diet-plans"] });
       queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["today-meal-log"] });
+      queryClient.invalidateQueries({ queryKey: ["meal-day-chart"] });
+      queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
       haptics.goal();
       toast.success("Continuous meal plan created! 🥗");
       setShowMealModal(false);
@@ -124,6 +130,9 @@ export const DietPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-diet-plans"] });
       queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["today-meal-log"] });
+      queryClient.invalidateQueries({ queryKey: ["meal-day-chart"] });
+      queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
       haptics.goal();
       toast.success("Diet plan updated! Future days will use this schedule.");
       setShowMealModal(false);

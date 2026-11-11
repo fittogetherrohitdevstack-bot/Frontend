@@ -61,6 +61,7 @@ export const GroupPage = () => {
     },
     enabled: !!groupId,
     refetchInterval: 20000,
+    refetchOnMount: "always",
   });
 
   // 2. Competitive Leaderboard (active period tab)
@@ -71,6 +72,7 @@ export const GroupPage = () => {
       return res.data?.data?.leaderboard || [];
     },
     enabled: !!groupId,
+    refetchOnMount: "always",
   });
 
   // 3. Weekly Leaderboard for Hero Rank & Score KPIs
@@ -81,6 +83,7 @@ export const GroupPage = () => {
       return res.data?.data?.leaderboard || [];
     },
     enabled: !!groupId && period !== "week",
+    refetchOnMount: "always",
   });
 
   // 4. Members list with goals & role metadata
@@ -101,6 +104,7 @@ export const GroupPage = () => {
       return res.data?.data?.challenges || [];
     },
     enabled: !!groupId,
+    refetchOnMount: "always",
   });
 
   // 6. Opt-in Shared Progress Check-In Photos

@@ -92,6 +92,11 @@ export const ProfilePage = () => {
       if (res.data?.success) {
         haptics.goal();
         updateProfileData(res.data.data.user, res.data.data.profile);
+        queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
+        queryClient.invalidateQueries({ queryKey: ["today-water"] });
+        queryClient.invalidateQueries({ queryKey: ["meal-day-chart"] });
+        queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["group-leaderboard"] });
         toast.success("Profile & targets updated successfully! 🎉");
         setSuccessMsg("Profile and targets saved!");
         setTimeout(() => setSuccessMsg(""), 3000);

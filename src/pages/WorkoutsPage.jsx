@@ -131,6 +131,8 @@ export const WorkoutsPage = () => {
       queryClient.invalidateQueries({ queryKey: ["personal-records"] });
       queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
       queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["group-leaderboard"] });
+      queryClient.invalidateQueries({ queryKey: ["group-challenges"] });
     },
   });
 

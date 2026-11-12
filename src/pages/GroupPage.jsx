@@ -12,6 +12,11 @@ import { SquadLeaderboardTab } from "../components/group/SquadLeaderboardTab";
 import { SquadActivityTab } from "../components/group/SquadActivityTab";
 import { SquadChallengesTab } from "../components/group/SquadChallengesTab";
 import { SquadRosterTab } from "../components/group/SquadRosterTab";
+import { SquadCheckInStrip } from "../components/group/SquadCheckInStrip";
+import { SquadFeedList } from "../components/group/SquadFeedList";
+import { WeeklyRecapModal } from "../components/recap/WeeklyRecapModal";
+import { Switch } from "../components/ui/Switch";
+import { motion } from "motion/react";
 import {
   Users,
   Copy,
@@ -24,6 +29,9 @@ import {
   Award,
   Radio,
   Plus,
+  MessageCircle,
+  Sparkles,
+  Settings2,
 } from "lucide-react";
 import { haptics } from "../motion/Haptics";
 import { toast } from "sonner";
@@ -46,6 +54,10 @@ export const GroupPage = () => {
   const [copied, setCopied] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showRecapModal, setShowRecapModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [stakesEnabled, setStakesEnabled] = useState(false);
+  const [forfeitText, setForfeitText] = useState("");
   const [inviteCodeInput, setInviteCodeInput] = useState("");
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDesc, setNewGroupDesc] = useState("");
@@ -120,22 +132,24 @@ export const GroupPage = () => {
   const copyInviteCode = () => {
     if (!activeGroup?.inviteCode) return;
     haptics.tick();
-    navigator.clipboard.writeText(activeGroup.inviteCode);
+    const joinLink = `https://fit.rohitdevstack.online/join/${activeGroup.inviteCode}`;
+    navigator.clipboard.writeText(joinLink);
     setCopied(true);
-    toast.success("Invite code copied to clipboard!");
+    toast.success("Squad invite link copied!");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleShareInvite = async () => {
     if (!activeGroup?.inviteCode) return;
     haptics.tick();
-    const shareText = `Join my FitTogether squad "${activeGroup.name}" and compete with us! Use invite code: ${activeGroup.inviteCode}`;
+    const joinUrl = `https://fit.rohitdevstack.online/join/${activeGroup.inviteCode}`;
+    const shareText = `Join my FitTogether squad "${activeGroup.name}" and keep our daily streak alive! 🔥 ${joinUrl}`;
     if (navigator.share) {
       try {
         await navigator.share({
           title: `Join ${activeGroup.name} on FitTogether`,
           text: shareText,
-          url: window.location.origin,
+          url: joinUrl,
         });
         return;
       } catch (err) {
@@ -143,8 +157,33 @@ export const GroupPage = () => {
       }
     }
     navigator.clipboard.writeText(shareText);
-    toast.success("Squad invite copied — paste to share with friends!");
+    toast.success("Squad invite link copied — paste to share with friends!");
   };
+
+  const handleWhatsAppInvite = () => {
+    if (!activeGroup?.inviteCode) return;
+    haptics.tick();
+    const joinUrl = `https://fit.rohitdevstack.online/join/${activeGroup.inviteCode}`;
+    const msg = encodeURIComponent(
+      `Hey! Join my fitness squad "${activeGroup.name}" on FitTogether so we keep each other consistent daily 💪🔥\nTap here to join in 30s: ${joinUrl}`
+    );
+    window.open(`https://wa.me/?text=${msg}`, "_blank", "noopener,noreferrer");
+  };
+
+  const updateStakesMutation = useMutation({
+    mutationFn: (payload) => groupApi.update(groupId, payload),
+    onSuccess: () => {
+      haptics.goal();
+      toast.success("Squad fun stakes updated!");
+      setShowSettingsModal(false);
+      queryClient.invalidateQueries({ queryKey: ["group-dashboard", groupId] });
+      queryClient.invalidateQueries({ queryKey: ["group-leaderboard", groupId] });
+      refreshGroups();
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Could not update squad settings");
+    },
+  });
 
   const joinGroupMutation = useMutation({
     mutationFn: (code) => groupApi.join({ inviteCode: code }),
@@ -480,6 +519,17 @@ export const GroupPage = () => {
 
               <button
                 type="button"
+                aria-label="Share on WhatsApp"
+                onClick={handleWhatsAppInvite}
+                className="min-w-[44px] min-h-[44px] px-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                title="Invite on WhatsApp"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">WhatsApp</span>
+              </button>
+
+              <button
+                type="button"
                 aria-label="Share squad invite"
                 onClick={handleShareInvite}
                 className="min-w-[44px] min-h-[44px] px-2.5 rounded-xl bg-lime-400 hover:bg-lime-300 text-slate-950 text-xs font-extrabold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
@@ -488,27 +538,70 @@ export const GroupPage = () => {
                 <span className="hidden sm:inline">Invite</span>
               </button>
 
+              <button
+                type="button"
+                aria-label="Weekly Recap Card"
+                onClick={() => {
+                  haptics.tick();
+                  setShowRecapModal(true);
+                }}
+                className="min-w-[44px] min-h-[44px] px-2.5 rounded-xl bg-indigo-500/80 hover:bg-indigo-400 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                title="Weekly Recap Card"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Recap</span>
+              </button>
+
               {isAdmin && (
-                <button
-                  type="button"
-                  aria-label="Regenerate invite code"
-                  onClick={() => {
-                    haptics.tick();
-                    regenerateMutation.mutate();
-                  }}
-                  disabled={regenerateMutation.isPending}
-                  className="min-w-[44px] min-h-[44px] rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
-                  title="Regenerate invite code"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${regenerateMutation.isPending ? "animate-spin" : ""}`} />
-                </button>
+                <>
+                  <button
+                    type="button"
+                    aria-label="Squad fun stakes & settings"
+                    onClick={() => {
+                      haptics.tick();
+                      setStakesEnabled(Boolean(dashboardData?.group?.weeklyStakes?.enabled ?? activeGroup?.weeklyStakes?.enabled));
+                      setForfeitText(dashboardData?.group?.weeklyStakes?.forfeitText ?? activeGroup?.weeklyStakes?.forfeitText ?? "");
+                      setShowSettingsModal(true);
+                    }}
+                    className="min-w-[44px] min-h-[44px] rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+                    title="Weekly Fun Stakes & Settings"
+                  >
+                    <Settings2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Regenerate invite code"
+                    onClick={() => {
+                      haptics.tick();
+                      regenerateMutation.mutate();
+                    }}
+                    disabled={regenerateMutation.isPending}
+                    className="min-w-[44px] min-h-[44px] rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+                    title="Regenerate invite code"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${regenerateMutation.isPending ? "animate-spin" : ""}`} />
+                  </button>
+                </>
               )}
             </div>
           </div>
         </div>
 
-        {/* 3-Column Competitive KPI Strip */}
-        <div className="relative z-10 grid grid-cols-3 gap-2 pt-1">
+        {/* 4-Column Competitive KPI Strip with Big Animated Squad Streak Flame */}
+        <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="rounded-2xl bg-gradient-to-br from-orange-500/25 to-amber-500/20 border border-orange-400/35 px-3 py-2.5 text-center backdrop-blur-sm"
+          >
+            <span className="text-[10px] font-bold uppercase tracking-wider text-orange-200 flex items-center justify-center gap-1">
+              <Flame className="w-3.5 h-3.5 fill-orange-400 text-orange-400 animate-pulse" />
+              Squad Streak
+            </span>
+            <p className="text-lg sm:text-xl font-black text-white tabular-nums mt-0.5">
+              <AnimatedNumber value={dashboardData?.group?.currentStreak || activeGroup?.currentStreak || 0} />d
+            </p>
+          </motion.div>
+
           <div className="rounded-2xl bg-white/10 border border-white/15 px-3 py-2.5 text-center backdrop-blur-sm">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300 block">
               Your Rank
@@ -537,6 +630,9 @@ export const GroupPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Phase 3: "Who hasn't logged today?" Live Polling Strip + Nudge */}
+      <SquadCheckInStrip groupId={groupId} currentUserId={user?._id} />
 
       {/* 2. MOBILE-FIRST 4-TAB NAVIGATION BAR */}
       <div
@@ -620,14 +716,17 @@ export const GroupPage = () => {
       )}
 
       {activeTab === "activities" && (
-        <SquadActivityTab
-          dashboardData={dashboardData}
-          isLoading={isDashboardLoading}
-          recentEvents={recentEvents}
-          sharedPhotoSets={sharedPhotoSets}
-          challenges={challenges}
-          currentUserId={user?._id}
-        />
+        <div className="space-y-4">
+          <SquadFeedList groupId={groupId} currentUserId={user?._id} />
+          <SquadActivityTab
+            dashboardData={dashboardData}
+            isLoading={isDashboardLoading}
+            recentEvents={recentEvents}
+            sharedPhotoSets={sharedPhotoSets}
+            challenges={challenges}
+            currentUserId={user?._id}
+          />
+        </div>
       )}
 
       {activeTab === "challenges" && (
@@ -635,6 +734,7 @@ export const GroupPage = () => {
           groupId={groupId}
           challenges={challenges}
           isLoading={isChallengesLoading}
+          isAdmin={isAdmin}
         />
       )}
 
@@ -664,6 +764,63 @@ export const GroupPage = () => {
       )}
 
       {sharedModals}
+
+      <WeeklyRecapModal
+        isOpen={showRecapModal}
+        onClose={() => setShowRecapModal(false)}
+      />
+
+      <Sheet
+        open={showSettingsModal}
+        onOpenChange={setShowSettingsModal}
+        title="Weekly Playful Stakes (Optional)"
+        description="Purely cosmetic friendly forfeit shown on Sunday weekly recaps for the lowest weekly points. No money involved."
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            updateStakesMutation.mutate({
+              weeklyStakes: {
+                enabled: stakesEnabled,
+                forfeitText: forfeitText.trim(),
+              },
+            });
+          }}
+          className="space-y-4 pt-2 pb-2"
+        >
+          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+            <div>
+              <p className="text-sm font-extrabold text-slate-900">Enable Weekly Fun Forfeit</p>
+              <p className="text-xs text-slate-500">Disabled by default · Purely playful</p>
+            </div>
+            <Switch checked={stakesEnabled} onCheckedChange={setStakesEnabled} />
+          </div>
+
+          {stakesEnabled && (
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1 uppercase">
+                Playful Forfeit Text
+              </label>
+              <input
+                type="text"
+                maxLength={140}
+                placeholder='e.g. "Lowest XP buys chai on Sunday!"'
+                value={forfeitText}
+                onChange={(e) => setForfeitText(e.target.value)}
+                className="w-full min-h-[46px] px-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-base font-semibold text-slate-900"
+              />
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full min-h-[46px]"
+            isLoading={updateStakesMutation.isPending}
+          >
+            Save Squad Stakes
+          </Button>
+        </form>
+      </Sheet>
     </div>
   );
 };

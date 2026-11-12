@@ -513,6 +513,22 @@ export const DailyTrackerPage = () => {
                       Today
                     </button>
                   )}
+                  <button
+                    type="button"
+                    disabled={copyChartMutation.isPending}
+                    onClick={() => {
+                      haptics.tick();
+                      const yesterday = shiftIsoDate(selectedDate, -1);
+                      copyChartMutation.mutate({
+                        sourceDate: yesterday,
+                        targetDates: [selectedDate],
+                      });
+                    }}
+                    className="text-[11px] font-extrabold text-slate-700 hover:text-slate-900 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 cursor-pointer"
+                  >
+                    <Copy className="w-2.5 h-2.5 text-lime-600" />
+                    Same as yesterday
+                  </button>
                 </div>
               </div>
 

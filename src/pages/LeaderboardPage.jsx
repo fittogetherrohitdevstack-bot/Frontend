@@ -24,16 +24,19 @@ export const LeaderboardPage = () => {
   const { activeGroup } = useGroup();
   const [period, setPeriod] = useState("week"); // week, month, all
 
-  const { data: leaderboardData, isLoading } = useQuery({
+  const { data: boardResponse, isLoading } = useQuery({
     queryKey: ["group-leaderboard", activeGroup?._id, period],
     queryFn: async () => {
-      if (!activeGroup?._id) return [];
+      if (!activeGroup?._id) return { leaderboard: [], weeklyStakes: null };
       const res = await groupApi.getLeaderboard(activeGroup._id, period);
-      return res.data?.data?.leaderboard || [];
+      return res.data?.data || { leaderboard: [], weeklyStakes: null };
     },
     enabled: !!activeGroup?._id,
     refetchOnMount: "always",
   });
+
+  const leaderboardData = boardResponse?.leaderboard || [];
+  const weeklyStakes = boardResponse?.weeklyStakes;
 
   if (!activeGroup) {
     return (
@@ -242,13 +245,39 @@ export const LeaderboardPage = () => {
                     </div>
 
                     <div>
-                      <h4 className="font-extrabold text-slate-900 text-sm leading-tight">
-                        {item.name}
-                      </h4>
-                      <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className="font-extrabold text-slate-900 text-sm leading-tight">
+                          {item.name}
+                        </h4>
+                        {item.rankDelta > 0 && (
+                          <motion.span
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700"
+                          >
+                            ▲ +{item.rankDelta}
+                          </motion.span>
+                        )}
+                        {item.rankDelta < 0 && (
+                          <motion.span
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-rose-100 text-rose-700"
+                          >
+                            ▼ {item.rankDelta}
+                          </motion.span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         <span className="text-[10px] font-bold text-lime-800 bg-lime-100 px-2 py-0.2 rounded-full border border-lime-300">
                           {item.consistencyPercent}% Consistency
                         </span>
+                        {item.currentStreak > 0 && (
+                          <span className="text-[10px] font-bold text-orange-700 bg-orange-50 px-1.5 py-0.2 rounded-full border border-orange-200 inline-flex items-center gap-0.5">
+                            <Flame className="w-2.5 h-2.5 fill-orange-500 text-orange-500" />
+                            {item.currentStreak}d
+                          </span>
+                        )}
                         <span className="text-[10px] font-medium text-slate-500">
                           {item.loggedDays} days logged
                         </span>
@@ -283,6 +312,19 @@ export const LeaderboardPage = () => {
               );
             })}
           </div>
+
+          {period === "week" && weeklyStakes?.enabled && weeklyStakes?.forfeitText && (
+            <GlassCard className="p-4 bg-gradient-to-r from-rose-50 to-amber-50 border-rose-200">
+              <p className="text-[11px] font-black uppercase tracking-wider text-rose-700">
+                Playful Weekly Squad Forfeit
+              </p>
+              <p className="text-sm font-bold text-slate-900 mt-1">
+                Currently in last place:{" "}
+                <span className="text-rose-700 font-black">{weeklyStakes.lowestUserName}</span> (
+                {weeklyStakes.lowestPoints} pts) → &ldquo;{weeklyStakes.forfeitText}&rdquo;
+              </p>
+            </GlassCard>
+          )}
         </>
       )}
     </div>

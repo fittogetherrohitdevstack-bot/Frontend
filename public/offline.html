@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline · FitTogether</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f4f6fb;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .card {
+        max-width: 380px;
+        width: 100%;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 28px 24px;
+        text-align: center;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+      }
+      .icon {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 14px;
+        border-radius: 18px;
+        background: #0f172a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+      }
+      .icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 20px;
+        font-weight: 800;
+      }
+      p {
+        margin: 0 0 20px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #64748b;
+      }
+      button {
+        border: none;
+        width: 100%;
+        min-height: 44px;
+        border-radius: 14px;
+        background: #65a30d;
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="icon">
+        <img src="/apple-touch-icon.png" alt="FitTogether" />
+      </div>
+      <h1>You’re offline</h1>
+      <p>
+        FitTogether needs a quick connection to sync your logs, squad streak, and live check-ins.
+      </p>
+      <button onclick="window.location.reload()">Try Again</button>
+    </div>
+  </body>
+</html>

@@ -52,7 +52,10 @@ export const AuthPage = () => {
       }
     } catch (err) {
       setError(
-        err.response?.data?.message || "Authentication failed. Please check your inputs."
+        err.response?.data?.message ||
+          (!err.response
+            ? "Cannot reach server. Please ensure the backend server is running."
+            : "Authentication failed. Please check your inputs.")
       );
     } finally {
       setIsLoading(false);

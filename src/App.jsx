@@ -5,6 +5,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { GroupProvider } from "./context/GroupContext";
 import { SocketProvider } from "./context/SocketContext";
 import { AppRoutes } from "./routes/AppRoutes";
+import { InstallBanner } from "./components/pwa/InstallBanner";
 import { Toaster } from "sonner";
 
 const queryClient = new QueryClient({
@@ -25,6 +26,7 @@ export const App = () => {
           <GroupProvider>
             <SocketProvider>
               <AppRoutes />
+              <InstallBanner />
               <Toaster
                 position="top-center"
                 theme="dark"

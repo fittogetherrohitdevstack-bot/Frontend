@@ -467,6 +467,77 @@ export const ProfilePage = () => {
           </div>
         </GlassCard>
 
+        {/* Social Feed Privacy & Nudges (Phases 2, 3, 6) */}
+        <GlassCard className="p-5 sm:p-6 bg-white/95 border-slate-200 shadow-sm space-y-4">
+          <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center">
+                <Shield className="w-4 h-4 stroke-[2.5]" />
+              </div>
+              <div>
+                <h2 className="text-base font-extrabold text-slate-900 tracking-tight">
+                  Squad Privacy &amp; Nudges
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Control whether weight numbers appear in feed or share cards
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/badges"
+              className="text-xs font-extrabold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full hover:bg-amber-100 transition-colors"
+            >
+              View Badges 🏅
+            </Link>
+          </div>
+
+          <div className="space-y-3">
+            {[
+              {
+                key: "showWeightInFeed",
+                title: "Show exact weight in Squad Feed",
+                desc: "Off by default — squadmates only see \"logged weight ✅\" unless enabled.",
+                checked: Boolean(user?.socialPrivacy?.showWeightInFeed),
+              },
+              {
+                key: "showWeightInRecap",
+                title: "Show weight delta on Weekly Recap Story Card",
+                desc: "Off by default — include weekly weight shift on your shareable Sunday card.",
+                checked: Boolean(user?.socialPrivacy?.showWeightInRecap),
+              },
+              {
+                key: "allowNudges",
+                title: "Allow friendly nudges from squadmates",
+                desc: "Mute to stop receiving nudge pings when you haven't logged yet.",
+                checked: user?.socialPrivacy?.allowNudges !== false,
+              },
+            ].map((item) => (
+              <div
+                key={item.key}
+                className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/80"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-900">{item.title}</p>
+                  <p className="text-xs text-slate-500">{item.desc}</p>
+                </div>
+                <Switch
+                  checked={item.checked}
+                  onCheckedChange={async (val) => {
+                    haptics.tick();
+                    try {
+                      await authApi.updateSocialSettings({ [item.key]: val });
+                      await refreshUser();
+                      toast.success("Privacy setting updated");
+                    } catch (err) {
+                      toast.error(err.response?.data?.message || "Failed to update setting");
+                    }
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+
         {/* Physical Stats */}
         <GlassCard className="p-5 sm:p-6 bg-white/95 border-slate-200 shadow-sm space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">

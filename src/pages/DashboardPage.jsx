@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { dietApi, progressApi, workoutApi, groupApi, weightApi, measurementApi } from "../api/endpoints";
+import { dietApi, progressApi, workoutApi, groupApi, weightApi, measurementApi, authApi, mealChartApi } from "../api/endpoints";
+import { getLocalDateString } from "../utils/date";
 import { useGroup } from "../context/GroupContext";
 import { useAuth } from "../context/AuthContext";
 import { GlassCard } from "../components/ui/GlassCard";
@@ -34,6 +35,8 @@ import {
   Zap,
   Scale,
   Ruler,
+  Snowflake,
+  Copy,
 } from "lucide-react";
 
 export const DashboardPage = () => {
@@ -172,6 +175,41 @@ export const DashboardPage = () => {
     },
   });
 
+  // Phase 1: Use weekly streak freeze
+  const freezeMutation = useMutation({
+    mutationFn: () => authApi.activateStreakFreeze(),
+    onSuccess: (res) => {
+      haptics.goal();
+      toast.success(res.data?.message || "Streak freeze activated! ❄️");
+      queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
+      invalidateSquadQueries();
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Streak freeze already used this week");
+    },
+  });
+
+  // Phase 7: One-tap "Same as yesterday" for meals
+  const copyYesterdayMealsMutation = useMutation({
+    mutationFn: async () => {
+      const tz = user?.timezone || "Asia/Kolkata";
+      const today = getLocalDateString(new Date(), tz);
+      const yDate = new Date(Date.now() - 86400000);
+      const yesterday = getLocalDateString(yDate, tz);
+      return mealChartApi.copyChart({ sourceDate: yesterday, targetDates: [today] });
+    },
+    onSuccess: () => {
+      haptics.goal();
+      toast.success("Copied yesterday's meals into today! 🍽️");
+      queryClient.invalidateQueries({ queryKey: ["today-meal-log"] });
+      queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
+      invalidateSquadQueries();
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "No meal log found from yesterday to copy");
+    },
+  });
+
   // Extract nutrition stats
   const nutrition = summary?.nutrition || {};
   const targets = nutrition.targets || { calories: 2200, protein: 140, carbs: 250, fats: 60 };
@@ -246,12 +284,15 @@ export const DashboardPage = () => {
             </p>
           </div>
 
-          {/* Quick Streak Flame Hero Card */}
-          <div className="flex items-center justify-between sm:justify-start gap-3 bg-white/90 backdrop-blur-xl border border-slate-200/90 px-4 py-2.5 rounded-2xl shadow-[0_2px_12px_rgba(15,23,42,0.05)] w-full sm:w-auto">
+          {/* Quick Streak Flame + Squad Streak + Freeze Card */}
+          <div className="flex flex-wrap items-center justify-between sm:justify-start gap-2.5 bg-white/90 backdrop-blur-xl border border-slate-200/90 px-4 py-2.5 rounded-2xl shadow-[0_2px_12px_rgba(15,23,42,0.05)] w-full sm:w-auto">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-100 border border-orange-200 flex items-center justify-center text-orange-600 shadow-xs shrink-0">
+              <motion.div
+                whileTap={{ scale: 0.9 }}
+                className="w-10 h-10 rounded-xl bg-orange-100 border border-orange-200 flex items-center justify-center text-orange-600 shadow-xs shrink-0"
+              >
                 <Flame className="w-5 h-5 fill-orange-500 text-orange-500 animate-pulse" />
-              </div>
+              </motion.div>
               <div>
                 <div className="flex items-baseline gap-1">
                   <AnimatedNumber
@@ -261,13 +302,40 @@ export const DashboardPage = () => {
                   <span className="text-xs font-bold text-orange-600">Days</span>
                 </div>
                 <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                  Active Streak
+                  Your Streak {summary?.streakDetails?.longestStreak > 0 ? `· Best ${summary.streakDetails.longestStreak}d` : ""}
                 </p>
               </div>
             </div>
-            <span className="sm:hidden text-[11px] font-bold text-orange-700 bg-orange-50 px-2.5 py-1 rounded-full border border-orange-200/80">
-              Keep going
-            </span>
+
+            {activeGroup && (
+              <Link
+                to="/group"
+                className="flex items-center gap-1.5 pl-3 border-l border-slate-200 hover:opacity-80 transition-opacity"
+              >
+                <Flame className="w-4 h-4 text-lime-600 fill-lime-500" />
+                <div>
+                  <p className="text-sm font-black text-slate-900 leading-none">
+                    <AnimatedNumber value={groupPulse?.group?.currentStreak || 0} />d
+                  </p>
+                  <p className="text-[9px] font-bold uppercase text-slate-400">Squad</p>
+                </div>
+              </Link>
+            )}
+
+            <button
+              type="button"
+              disabled={!summary?.streakDetails?.freezeAvailable || freezeMutation.isPending}
+              onClick={() => freezeMutation.mutate()}
+              title="Protect a missed day with 1 weekly streak freeze"
+              className={`min-h-[34px] px-2.5 py-1 rounded-xl text-[11px] font-extrabold inline-flex items-center gap-1 border transition-all cursor-pointer ${
+                summary?.streakDetails?.freezeAvailable
+                  ? "bg-cyan-50 border-cyan-200 text-cyan-800 hover:bg-cyan-100"
+                  : "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed"
+              }`}
+            >
+              <Snowflake className="w-3.5 h-3.5" />
+              {summary?.streakDetails?.freezeAvailable ? "Freeze" : "Used"}
+            </button>
           </div>
         </div>
       </FadeUp>
@@ -385,6 +453,16 @@ export const DashboardPage = () => {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                disabled={copyYesterdayMealsMutation.isPending}
+                onClick={() => copyYesterdayMealsMutation.mutate()}
+                className="min-h-[34px] px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 inline-flex items-center gap-1 cursor-pointer transition-colors"
+                title="Copy yesterday's meals in 1 tap"
+              >
+                <Copy className="w-3 h-3 text-lime-600" />
+                Same as Yesterday
+              </button>
               <span className="text-xs font-extrabold text-lime-800 bg-lime-100 px-3 py-1 rounded-full border border-lime-300 shadow-xs">
                 {eatenMealsCount} / {totalMealsCount} Done
               </span>

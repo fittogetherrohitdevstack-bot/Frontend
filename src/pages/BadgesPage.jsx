@@ -19,8 +19,11 @@ import {
   Trophy,
   Sun,
   Check,
+  Medal,
+  Star,
 } from "lucide-react";
 import { motion } from "motion/react";
+import confetti from "canvas-confetti";
 import { haptics } from "../motion/Haptics";
 import { toast } from "sonner";
 
@@ -87,10 +90,26 @@ export const BadgesPage = () => {
         return <Trophy className="w-6 h-6 text-amber-500 fill-amber-300" />;
       case "Sun":
         return <Sun className="w-6 h-6 text-amber-500 fill-amber-400" />;
+      case "Medal":
+        return <Medal className="w-6 h-6 text-indigo-600" />;
+      case "Star":
+        return <Star className="w-6 h-6 text-amber-500 fill-amber-400" />;
       default:
         return <Award className="w-6 h-6 text-lime-600" />;
     }
   };
+
+  useEffect(() => {
+    if (badgesData?.newlyEarned?.length > 0) {
+      haptics.goal();
+      confetti({
+        particleCount: 85,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+      toast.success(`🎉 Unlocked ${badgesData.newlyEarned.length} new badge!`);
+    }
+  }, [badgesData?.newlyEarned?.length]);
 
   const badges = badgesData?.badges || [];
   const notifications = notificationsData?.notifications || [];

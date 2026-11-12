@@ -18,6 +18,8 @@ import { WeightPage } from "../pages/WeightPage";
 import { MeasurementsPage } from "../pages/MeasurementsPage";
 import { PhotosPage } from "../pages/PhotosPage";
 import { ReminderSettingsPage } from "../pages/ReminderSettingsPage";
+import { JoinSquadPage } from "../pages/JoinSquadPage";
+import { QuickOnboardingModal } from "../components/onboarding/QuickOnboardingModal";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -34,7 +36,12 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return (
+    <>
+      {children}
+      <QuickOnboardingModal />
+    </>
+  );
 };
 
 export const AppRoutes = () => {
@@ -42,6 +49,9 @@ export const AppRoutes = () => {
 
   return (
     <Routes>
+      {/* Public Invite Join Link (Phase 7) */}
+      <Route path="/join/:code" element={<JoinSquadPage />} />
+
       {/* Public Route */}
       <Route
         path="/login"

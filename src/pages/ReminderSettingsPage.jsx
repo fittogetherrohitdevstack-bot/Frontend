@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { reminderApi, authApi } from "../api/endpoints";
+import { reminderApi, authApi, pushApi } from "../api/endpoints";
+import {
+  isPushSupported,
+  getCurrentPushSubscription,
+  subscribeToWebPush,
+  unsubscribeFromWebPush,
+} from "../utils/pwaPush";
 import { useAuth } from "../context/AuthContext";
 import { GlassCard } from "../components/ui/GlassCard";
 import { Button } from "../components/ui/Button";
@@ -47,6 +53,14 @@ export const ReminderSettingsPage = () => {
   });
 
   const [form, setForm] = useState(null);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+
+  useEffect(() => {
+    getCurrentPushSubscription()
+      .then((sub) => setPushSubscribed(Boolean(sub)))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (data?.settings) {
@@ -63,8 +77,22 @@ export const ReminderSettingsPage = () => {
         },
         weeklyTarget: { ...s.weeklyTarget },
         quietHours: { ...s.quietHours },
-        channels: { inApp: s.channels?.inApp ?? true, push: false },
+        channels: {
+          inApp: s.channels?.inApp ?? true,
+          push: s.channels?.push ?? true,
+        },
         snoozeMinutes: s.snoozeMinutes || 60,
+        dailyReminder: {
+          enabled: s.dailyReminder?.enabled ?? true,
+          time: s.dailyReminder?.time || "20:00",
+        },
+        squadStreakAtRisk: {
+          enabled: s.squadStreakAtRisk?.enabled ?? true,
+          time: s.squadStreakAtRisk?.time || "20:30",
+        },
+        nudges: { enabled: s.nudges?.enabled ?? true },
+        challengeUpdates: { enabled: s.challengeUpdates?.enabled ?? true },
+        weeklyRecapReady: { enabled: s.weeklyRecapReady?.enabled ?? true },
       });
     }
   }, [data, user?.timezone]);
@@ -622,6 +650,181 @@ export const ReminderSettingsPage = () => {
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <Info className="w-4 h-4 text-slate-400 shrink-0" />
             <span>Timezone: <strong className="text-slate-700">{form.timezone}</strong> (change anytime in Profile)</span>
+          </div>
+        </GlassCard>
+
+        {/* 6. Phase 4: Web Push & Squad Social Notifications */}
+        <GlassCard className="p-5 bg-white/95 border-slate-200 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center shrink-0">
+                <Send className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900">
+                  Web Push &amp; Squad Alerts
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Instant alerts for daily streak check-ins, squad streak at risk, nudges, and Sunday recaps.
+                </p>
+              </div>
+            </div>
+
+            {isPushSupported() && (
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={pushSubscribed ? "secondary" : "cyan"}
+                  isLoading={pushBusy}
+                  onClick={async () => {
+                    setPushBusy(true);
+                    try {
+                      if (pushSubscribed) {
+                        await unsubscribeFromWebPush(pushApi);
+                        setPushSubscribed(false);
+                        setForm((p) => ({ ...p, channels: { ...p.channels, push: false } }));
+                        toast.info("Device push alerts turned off");
+                      } else {
+                        await subscribeToWebPush(pushApi);
+                        setPushSubscribed(true);
+                        setForm((p) => ({ ...p, channels: { ...p.channels, push: true } }));
+                        toast.success("Web Push enabled on this device! 🔔");
+                      }
+                    } catch (err) {
+                      toast.error(err.message || "Could not update push subscription");
+                    } finally {
+                      setPushBusy(false);
+                    }
+                  }}
+                >
+                  {pushSubscribed ? "Disable Push" : "Enable Device Push"}
+                </Button>
+                {pushSubscribed && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={async () => {
+                      try {
+                        await pushApi.sendTest();
+                        toast.success("Test push sent to your device!");
+                      } catch (err) {
+                        toast.error(err.response?.data?.message || "Test push failed");
+                      }
+                    }}
+                  >
+                    Test Push
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3 pt-2 border-t border-slate-100">
+            {/* Daily Streak Reminder + time */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-extrabold text-slate-900">
+                  Daily Habit Reminder
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  Reminds you if you haven&apos;t logged weight, water, or a meal yet today.
+                </p>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <input
+                  type="time"
+                  value={form.dailyReminder?.time || "20:00"}
+                  disabled={!form.dailyReminder?.enabled}
+                  onChange={(e) =>
+                    setForm((p) => ({
+                      ...p,
+                      dailyReminder: { ...p.dailyReminder, time: e.target.value },
+                    }))
+                  }
+                  className="min-h-[38px] px-2.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-900"
+                />
+                <Switch
+                  checked={form.dailyReminder?.enabled ?? true}
+                  onCheckedChange={(val) =>
+                    setForm((p) => ({
+                      ...p,
+                      dailyReminder: { ...p.dailyReminder, enabled: val },
+                    }))
+                  }
+                />
+              </div>
+            </div>
+
+            {/* Squad Streak at Risk (Evening) */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-extrabold text-slate-900">
+                  Squad Streak at Risk (Evening)
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  Evening heads-up when a squad member hasn&apos;t logged yet today.
+                </p>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <input
+                  type="time"
+                  value={form.squadStreakAtRisk?.time || "20:30"}
+                  disabled={!form.squadStreakAtRisk?.enabled}
+                  onChange={(e) =>
+                    setForm((p) => ({
+                      ...p,
+                      squadStreakAtRisk: { ...p.squadStreakAtRisk, time: e.target.value },
+                    }))
+                  }
+                  className="min-h-[38px] px-2.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-900"
+                />
+                <Switch
+                  checked={form.squadStreakAtRisk?.enabled ?? true}
+                  onCheckedChange={(val) =>
+                    setForm((p) => ({
+                      ...p,
+                      squadStreakAtRisk: { ...p.squadStreakAtRisk, enabled: val },
+                    }))
+                  }
+                />
+              </div>
+            </div>
+
+            {[
+              {
+                key: "nudges",
+                title: "Friend Nudges",
+                desc: "Receive push notifications when a squadmate nudges you.",
+              },
+              {
+                key: "challengeUpdates",
+                title: "Challenge Updates & Wins",
+                desc: "Alerts for weekly squad challenges and podium victories.",
+              },
+              {
+                key: "weeklyRecapReady",
+                title: "Weekly Recap Ready (Sunday Evening)",
+                desc: "Alert when your shareable Sunday Recap story card is ready.",
+              },
+            ].map((item) => (
+              <div
+                key={item.key}
+                className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3"
+              >
+                <div>
+                  <p className="text-xs font-extrabold text-slate-900">{item.title}</p>
+                  <p className="text-[11px] text-slate-500">{item.desc}</p>
+                </div>
+                <Switch
+                  checked={form[item.key]?.enabled ?? true}
+                  onCheckedChange={(val) =>
+                    setForm((p) => ({ ...p, [item.key]: { enabled: val } }))
+                  }
+                />
+              </div>
+            ))}
           </div>
         </GlassCard>
 

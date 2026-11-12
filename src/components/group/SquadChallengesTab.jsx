@@ -42,11 +42,34 @@ export const SquadChallengesTab = ({
   groupId,
   challenges = [],
   isLoading,
+  isAdmin = false,
 }) => {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedChallengeId, setSelectedChallengeId] = useState(null);
+
+  const { data: templatesData = [] } = useQuery({
+    queryKey: ["challenge-templates", groupId],
+    queryFn: async () => {
+      const res = await groupApi.getChallengeTemplates(groupId);
+      return res.data?.data?.templates || [];
+    },
+    enabled: !!groupId && isAdmin,
+  });
+
+  const selectTemplateMutation = useMutation({
+    mutationFn: (templateKey) => groupApi.selectWeeklyTemplate(groupId, templateKey),
+    onSuccess: (res) => {
+      haptics.goal();
+      toast.success(res.data?.message || "Weekly squad challenge activated!");
+      queryClient.invalidateQueries({ queryKey: ["group-challenges", groupId] });
+      queryClient.invalidateQueries({ queryKey: ["group-dashboard", groupId] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Could not set weekly template");
+    },
+  });
 
   const [form, setForm] = useState({
     title: "",
@@ -145,6 +168,34 @@ export const SquadChallengesTab = ({
           <Plus className="w-4 h-4 mr-1 stroke-[2.8]" /> Launch Challenge
         </Button>
       </div>
+
+      {/* Admin Weekly Challenge Template Quick Switcher (Mon–Sun auto-rotating) */}
+      {isAdmin && templatesData.length > 0 && (
+        <GlassCard className="p-3.5 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 border-indigo-200/80 space-y-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-black uppercase tracking-wider text-indigo-800">
+              Weekly Squad Challenge Templates (Mon–Sun)
+            </span>
+            <span className="text-[10px] font-bold text-indigo-600">
+              Auto-rotates Mondays
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {templatesData.map((tpl) => (
+              <button
+                key={tpl.templateKey}
+                type="button"
+                disabled={selectTemplateMutation.isPending}
+                onClick={() => selectTemplateMutation.mutate(tpl.templateKey)}
+                className="text-left p-2.5 rounded-xl bg-white hover:bg-indigo-50/70 border border-indigo-200/80 transition-colors cursor-pointer"
+              >
+                <p className="text-xs font-black text-slate-900">{tpl.title}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">{tpl.description}</p>
+              </button>
+            ))}
+          </div>
+        </GlassCard>
+      )}
 
       {/* Filter Pills */}
       {challenges.length > 0 && (

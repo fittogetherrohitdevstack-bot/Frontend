@@ -9,6 +9,8 @@ export const authApi = {
   getMe: () => api.get("/users/me"),
   updateProfile: (data) => api.put("/users/profile", data),
   updateFeatures: (data) => api.put("/users/features", data),
+  updateSocialSettings: (data) => api.put("/users/me/social-settings", data),
+  activateStreakFreeze: (data) => api.post("/users/me/streak-freeze", data || {}),
   uploadAvatar: (data) =>
     data instanceof FormData
       ? api.post("/users/avatar", data, {
@@ -22,6 +24,7 @@ export const authApi = {
 export const groupApi = {
   create: (data) => api.post("/groups", data),
   join: (data) => api.post("/groups/join", data),
+  getInvitePreview: (code) => api.get(`/groups/invite/${code}`),
   getMyGroups: () => api.get("/groups/mine"),
   getById: (id) => api.get(`/groups/${id}`),
   update: (id, data) => api.put(`/groups/${id}`, data),
@@ -33,6 +36,15 @@ export const groupApi = {
   getLeaderboard: (id, period = "week") => api.get(`/groups/${id}/leaderboard?period=${period}`),
   createChallenge: (id, data) => api.post(`/groups/${id}/challenges`, data),
   getChallenges: (id) => api.get(`/groups/${id}/challenges`),
+  getChallengeTemplates: (id) => api.get(`/groups/${id}/challenges/templates`),
+  selectWeeklyTemplate: (id, templateKey) =>
+    api.post(`/groups/${id}/challenges/weekly`, { templateKey }),
+  getFeed: (id, cursor = null, limit = 15) =>
+    api.get(`/groups/${id}/feed`, { params: { ...(cursor ? { cursor } : {}), limit } }),
+  reactFeedEvent: (eventId, emoji) => api.post(`/feed/${eventId}/react`, { emoji }),
+  getTodayStatus: (id) => api.get(`/groups/${id}/today-status`),
+  nudgeMember: (id, targetUserId, message = "") =>
+    api.post(`/groups/${id}/nudge`, { targetUserId, message }),
 };
 
 // Diet & Daily Tracker
@@ -156,4 +168,18 @@ export const photoSetApi = {
   updateAnchor: (anchorDate) =>
     api.put("/progress/photo-sets/anchor", { anchorDate }),
   getGroupShared: (groupId) => api.get(`/groups/${groupId}/shared-photos`),
+};
+
+// Web Push Notifications (Phase 4)
+export const pushApi = {
+  getVapidKey: () => api.get("/push/vapid-key"),
+  subscribe: (payload) => api.post("/push/subscribe", payload),
+  unsubscribe: (payload) => api.post("/push/unsubscribe", payload || {}),
+  sendTest: () => api.post("/push/test"),
+};
+
+// Sunday Weekly Recap Story Card (Phase 6)
+export const recapApi = {
+  getWeeklyRecap: (weekStart = null) =>
+    api.get("/recap/weekly", { params: weekStart ? { weekStart } : {} }),
 };

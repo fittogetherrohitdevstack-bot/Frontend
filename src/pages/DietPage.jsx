@@ -660,22 +660,19 @@ export const DietPage = () => {
     {
       id: "simple",
       label: "Simple Daily",
-      shortLabel: "Simple",
-      sub: "Same every day",
+      sub: "Same meals every day",
       icon: Sparkles,
     },
     {
       id: "alternating",
       label: "2-Diet Alternate",
-      shortLabel: "2-Diet A/B",
-      sub: "Today A · Tom B",
+      sub: "Today Diet A · Tomorrow Diet B",
       icon: ArrowLeftRight,
     },
     {
       id: "weekly",
       label: "7-Day Weekly",
-      shortLabel: "7-Day",
-      sub: "Custom Mon–Sun",
+      sub: "Custom schedule Mon–Sun",
       icon: CalendarDays,
     },
   ];
@@ -740,18 +737,18 @@ export const DietPage = () => {
         </div>
       </div>
 
-      {/* Plan Mode Switcher */}
-      <GlassCard className="p-2.5 sm:p-3 bg-white/95 border border-slate-200/90 rounded-2xl shadow-xs space-y-2.5">
-        <div className="flex items-center justify-between gap-2 px-1">
+      {/* Plan Mode Switcher (Mobile-First Stacked Radio Cards -> 3-Col Desktop) */}
+      <GlassCard className="!p-3 sm:!p-4 bg-white/95 border border-slate-200/90 rounded-2xl shadow-xs space-y-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-1.5 px-0.5">
           <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
             Diet Rotation Mode
           </span>
-          <span className="text-[11px] font-semibold text-emerald-700 shrink-0">
+          <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/70">
             Earlier data preserved
           </span>
         </div>
 
-        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {scheduleModeOptions.map((opt) => {
             const Icon = opt.icon;
             const isActiveMode = currentMode === opt.id;
@@ -759,31 +756,47 @@ export const DietPage = () => {
               <button
                 key={opt.id}
                 type="button"
+                aria-pressed={isActiveMode}
                 disabled={updatePlanMutation.isPending}
                 onClick={() => handleSwitchMode(opt.id)}
-                className={`min-h-[60px] px-2 sm:px-3 py-2 rounded-xl border text-center sm:text-left transition-all flex flex-col items-center sm:items-start justify-center cursor-pointer ${
+                className={`w-full min-h-[54px] sm:min-h-[68px] px-3.5 py-2.5 rounded-xl border text-left transition-all flex sm:flex-col items-center sm:items-start justify-between sm:justify-center gap-3 sm:gap-1 cursor-pointer ${
                   isActiveMode
-                    ? "bg-lime-50 border-lime-400 shadow-xs"
+                    ? "bg-lime-50 border-lime-400 shadow-xs ring-1 ring-lime-300/60"
                     : "bg-slate-50/70 border-slate-200 hover:bg-slate-100/80"
                 }`}
               >
-                <div className="flex items-center gap-1 sm:gap-1.5">
-                  <Icon
-                    className={`w-3.5 h-3.5 shrink-0 ${
-                      isActiveMode ? "text-lime-700" : "text-slate-500"
-                    }`}
-                  />
-                  <span
-                    className={`text-xs sm:text-sm font-extrabold leading-tight ${
-                      isActiveMode ? "text-slate-900" : "text-slate-700"
+                <div className="flex items-center gap-2.5 sm:gap-1.5 min-w-0">
+                  <div
+                    className={`w-8 h-8 sm:w-auto sm:h-auto rounded-lg sm:rounded-none flex items-center justify-center shrink-0 ${
+                      isActiveMode
+                        ? "bg-lime-500/20 text-lime-800 sm:bg-transparent sm:text-lime-700"
+                        : "bg-slate-200/60 text-slate-500 sm:bg-transparent"
                     }`}
                   >
-                    <span className="sm:hidden">{opt.shortLabel}</span>
-                    <span className="hidden sm:inline">{opt.label}</span>
-                  </span>
+                    <Icon className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <span
+                      className={`text-sm font-extrabold block leading-tight ${
+                        isActiveMode ? "text-slate-900" : "text-slate-700"
+                      }`}
+                    >
+                      {opt.label}
+                    </span>
+                    <span className="text-[11px] text-slate-500 font-medium block leading-tight mt-0.5">
+                      {opt.sub}
+                    </span>
+                  </div>
                 </div>
-                <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-tight mt-0.5">
-                  {opt.sub}
+
+                <span
+                  className={`sm:hidden shrink-0 w-5 h-5 rounded-full flex items-center justify-center border ${
+                    isActiveMode
+                      ? "bg-lime-500 border-lime-600 text-black"
+                      : "bg-white border-slate-300"
+                  }`}
+                >
+                  {isActiveMode && <Check className="w-3 h-3 stroke-[3]" />}
                 </span>
               </button>
             );

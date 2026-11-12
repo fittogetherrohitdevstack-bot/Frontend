@@ -8,6 +8,7 @@ import {
   addDaysToDateString,
   getSignedDaysDiff,
 } from "../utils/date";
+import { formatDietPlanText, copyTextToClipboard } from "../utils/dietFormat";
 import { GlassCard } from "../components/ui/GlassCard";
 import { Button } from "../components/ui/Button";
 import { DaySelector } from "../components/ui/DaySelector";
@@ -26,6 +27,7 @@ import {
   Repeat,
   CalendarDays,
   Sparkles,
+  ClipboardCheck,
 } from "lucide-react";
 import { haptics } from "../motion/Haptics";
 import { toast } from "sonner";
@@ -55,6 +57,10 @@ export const DietPage = () => {
   const [altNameDraft, setAltNameDraft] = useState({});
   const [showMealModal, setShowMealModal] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [showCopyFormatModal, setShowCopyFormatModal] = useState(false);
+  const [copyScope, setCopyScope] = useState("current"); // "current" | "all"
+  const [copyStyle, setCopyStyle] = useState("share"); // "share" | "compact" | "markdown"
+  const [copiedRecently, setCopiedRecently] = useState(false);
   const [targetDuplicateDay, setTargetDuplicateDay] = useState(1);
   const [duplicateToAll, setDuplicateToAll] = useState(false);
   const [editingMealIndex, setEditingMealIndex] = useState(-1);
@@ -685,14 +691,10 @@ export const DietPage = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto shrink-0">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto shrink-0">
           <Link
             to="/tracker"
-            className={
-              currentMode === "weekly" && activePlan && mealsForDay.length > 0
-                ? "w-full sm:w-auto"
-                : "col-span-2 sm:col-span-1 w-full sm:w-auto"
-            }
+            className="flex-1 sm:flex-initial"
           >
             <Button
               size="sm"
@@ -701,6 +703,21 @@ export const DietPage = () => {
               Today's Checklist <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Button>
           </Link>
+
+          {activePlan && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setCopiedRecently(false);
+                setCopyScope(currentMode === "simple" ? "current" : "current");
+                setShowCopyFormatModal(true);
+              }}
+              className="flex-1 sm:flex-initial min-h-[44px] text-xs font-bold"
+            >
+              <ClipboardCheck className="w-3.5 h-3.5 mr-1 text-lime-700" /> Copy Diet
+            </Button>
+          )}
 
           {currentMode === "weekly" && activePlan && mealsForDay.length > 0 && (
             <Button
@@ -1516,6 +1533,137 @@ export const DietPage = () => {
             </div>
           </div>
         </div>
+      </Sheet>
+
+      {/* Copy Diet in Best Format Drawer */}
+      <Sheet
+        open={showCopyFormatModal}
+        onOpenChange={setShowCopyFormatModal}
+        title="Copy Diet Plan"
+        description="Choose a clean format to paste into WhatsApp, Notes, or Docs"
+      >
+        {(() => {
+          const formattedText = formatDietPlanText({
+            planName: activePlan?.name || "My Ongoing Meal Plan",
+            mode: currentMode,
+            scope: copyScope,
+            style: copyStyle,
+            simpleMeals: activePlan?.simpleMeals || [],
+            alternating: altConfig,
+            altSlot,
+            isTodayDietA,
+            days: activePlan?.days || [],
+            selectedDay,
+          });
+
+          const handleCopyFormatted = async () => {
+            try {
+              await copyTextToClipboard(formattedText);
+              setCopiedRecently(true);
+              haptics.goal();
+              toast.success("Formatted diet copied to clipboard! 📋");
+              setTimeout(() => setCopiedRecently(false), 2500);
+            } catch (_) {
+              toast.error("Could not access clipboard automatically");
+            }
+          };
+
+          return (
+            <div className="space-y-4 pt-1 pb-3">
+              {currentMode !== "simple" && (
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-500">
+                    What to Copy
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCopyScope("current")}
+                      className={`min-h-[44px] px-3 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                        copyScope === "current"
+                          ? "bg-lime-50 border-lime-400 text-slate-900"
+                          : "bg-slate-50 border-slate-200 text-slate-600"
+                      }`}
+                    >
+                      {currentMode === "alternating"
+                        ? `Only ${altSlot === "A" ? dietAName : dietBName}`
+                        : `Only ${dayNames[selectedDay]}`}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCopyScope("all")}
+                      className={`min-h-[44px] px-3 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                        copyScope === "all"
+                          ? "bg-lime-50 border-lime-400 text-slate-900"
+                          : "bg-slate-50 border-slate-200 text-slate-600"
+                      }`}
+                    >
+                      {currentMode === "alternating"
+                        ? "Both Diets (A & B)"
+                        : "Full Weekly Plan"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-500">
+                  Format Style
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { id: "share", label: "WhatsApp / Notes" },
+                    { id: "compact", label: "Compact" },
+                    { id: "markdown", label: "Markdown" },
+                  ].map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setCopyStyle(s.id)}
+                      className={`min-h-[44px] px-2 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                        copyStyle === s.id
+                          ? "bg-slate-900 border-slate-900 text-white"
+                          : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+                    Preview
+                  </label>
+                  <span className="text-[11px] font-medium text-slate-400">
+                    Sorted by meal time
+                  </span>
+                </div>
+                <pre className="w-full max-h-64 overflow-y-auto p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-800 whitespace-pre-wrap font-sans leading-relaxed select-all">
+                  {formattedText}
+                </pre>
+              </div>
+
+              <Button
+                type="button"
+                onClick={handleCopyFormatted}
+                className="w-full min-h-[48px] bg-lime-500 hover:bg-lime-600 text-black font-extrabold text-sm shadow-md"
+              >
+                {copiedRecently ? (
+                  <>
+                    <Check className="w-4 h-4 mr-1.5 stroke-[3]" /> Copied to Clipboard!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 mr-1.5" /> Copy Formatted Diet
+                  </>
+                )}
+              </Button>
+            </div>
+          );
+        })()}
       </Sheet>
     </div>
   );

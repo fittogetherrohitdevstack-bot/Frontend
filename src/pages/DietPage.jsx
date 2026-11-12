@@ -8,7 +8,12 @@ import {
   addDaysToDateString,
   getSignedDaysDiff,
 } from "../utils/date";
-import { formatDietPlanText, copyTextToClipboard } from "../utils/dietFormat";
+import {
+  formatDietPlanText,
+  copyTextToClipboard,
+  generateAiDietPrompt,
+  parseAiDietResponse,
+} from "../utils/dietFormat";
 import { GlassCard } from "../components/ui/GlassCard";
 import { Button } from "../components/ui/Button";
 import { DaySelector } from "../components/ui/DaySelector";
@@ -28,6 +33,8 @@ import {
   CalendarDays,
   Sparkles,
   ClipboardCheck,
+  Wand2,
+  AlertCircle,
 } from "lucide-react";
 import { haptics } from "../motion/Haptics";
 import { toast } from "sonner";
@@ -59,6 +66,12 @@ export const DietPage = () => {
   const [showMealModal, setShowMealModal] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [showCopyFormatModal, setShowCopyFormatModal] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [aiTemplateType, setAiTemplateType] = useState("single"); // "single" | "alternating" | "weekly"
+  const [aiGoalNotes, setAiGoalNotes] = useState("");
+  const [aiPasteText, setAiPasteText] = useState("");
+  const [aiApplyMode, setAiApplyMode] = useState("replace"); // "replace" | "append"
+  const [aiPromptCopied, setAiPromptCopied] = useState(false);
   const [copyScope, setCopyScope] = useState("current"); // "current" | "all"
   const [copyStyle, setCopyStyle] = useState("share"); // "share" | "compact" | "markdown"
   const [copiedRecently, setCopiedRecently] = useState(false);
@@ -92,13 +105,22 @@ export const DietPage = () => {
     haptics.tick();
   };
 
-  // Form State for Adding / Editing a Meal
+  const emptyDish = () => ({
+    name: "",
+    quantity: 100,
+    unit: "g",
+    calories: "",
+    protein: "",
+    carbs: "",
+    fats: "",
+  });
+
+  // Form State for Adding / Editing a Meal (nutrients live per individual dish and sum automatically)
   const [mealForm, setMealForm] = useState({
     name: "",
     scheduledTime: "08:30",
     notes: "",
-    totalNutrients: { calories: 350, protein: 25, carbs: 40, fats: 10 },
-    foodItems: [{ name: "", quantity: 100, unit: "g" }],
+    foodItems: [emptyDish()],
   });
 
   // Fetch active diet plan
@@ -159,6 +181,7 @@ export const DietPage = () => {
       haptics.goal();
       toast.success("Continuous meal plan created! 🥗");
       setShowMealModal(false);
+      setShowAiModal(false);
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || "Failed to create meal plan");
@@ -187,6 +210,7 @@ export const DietPage = () => {
             : "Diet plan updated! Your schedule is saved.")
       );
       setShowMealModal(false);
+      setShowAiModal(false);
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || "Failed to update diet plan");
@@ -374,32 +398,28 @@ export const DietPage = () => {
       name: "",
       scheduledTime: "08:30",
       notes: "",
-      totalNutrients: { calories: 350, protein: 25, carbs: 40, fats: 10 },
-      foodItems: [{ name: "", quantity: 100, unit: "g" }],
+      foodItems: [emptyDish()],
     });
     setShowMealModal(true);
   };
 
   const handleOpenEditMeal = (meal, idx) => {
     setEditingMealIndex(idx);
-    const totalCal = (meal.foodItems || []).reduce((s, f) => s + (Number(f.calories) || 0), 0);
-    const totalPro = (meal.foodItems || []).reduce((s, f) => s + (Number(f.protein) || 0), 0);
-    const totalCarb = (meal.foodItems || []).reduce((s, f) => s + (Number(f.carbs) || 0), 0);
-    const totalFat = (meal.foodItems || []).reduce((s, f) => s + (Number(f.fats) || 0), 0);
-
     setMealForm({
       name: meal.name,
       scheduledTime: meal.scheduledTime || "08:30",
       notes: meal.notes || "",
-      totalNutrients: {
-        calories: totalCal || 350,
-        protein: totalPro || 25,
-        carbs: totalCarb || 40,
-        fats: totalFat || 10,
-      },
       foodItems: meal.foodItems?.length
-        ? meal.foodItems.map((f) => ({ name: f.name, quantity: f.quantity, unit: f.unit }))
-        : [{ name: "", quantity: 100, unit: "g" }],
+        ? meal.foodItems.map((f) => ({
+            name: f.name,
+            quantity: f.quantity,
+            unit: f.unit || "g",
+            calories: Number(f.calories) || 0,
+            protein: Number(f.protein) || 0,
+            carbs: Number(f.carbs) || 0,
+            fats: Number(f.fats) || 0,
+          }))
+        : [emptyDish()],
     });
     setShowMealModal(true);
   };
@@ -437,60 +457,47 @@ export const DietPage = () => {
     updatePlanMutation.mutate(updatedDays);
   };
 
-  const handleTotalNutrientChange = (field, val) => {
-    setMealForm((prev) => ({
-      ...prev,
-      totalNutrients: {
-        ...prev.totalNutrients,
-        [field]: Math.max(0, Number(val) || 0),
-      },
-    }));
-  };
+  const roundOne = (n) => Math.round((Number(n) || 0) * 10) / 10;
+
+  // Auto-calculated meal total directly from individual dish rows (never manually entered)
+  const autoMealTotals = (mealForm.foodItems || []).reduce(
+    (acc, item) => {
+      acc.calories += Math.max(0, Number(item.calories) || 0);
+      acc.protein += Math.max(0, Number(item.protein) || 0);
+      acc.carbs += Math.max(0, Number(item.carbs) || 0);
+      acc.fats += Math.max(0, Number(item.fats) || 0);
+      return acc;
+    },
+    { calories: 0, protein: 0, carbs: 0, fats: 0 }
+  );
 
   const handleSaveMeal = (e) => {
     e.preventDefault();
 
-    const totCal = Number(mealForm.totalNutrients?.calories) || 0;
-    const totPro = Number(mealForm.totalNutrients?.protein) || 0;
-    const totCarb = Number(mealForm.totalNutrients?.carbs) || 0;
-    const totFat = Number(mealForm.totalNutrients?.fats) || 0;
-
     let validItems = (mealForm.foodItems || []).filter((it) => it.name && it.name.trim());
     if (validItems.length === 0) {
-      validItems = [{
-        name: mealForm.name.trim() || "Meal Portion",
-        quantity: 1,
-        unit: "serving",
-      }];
+      validItems = [
+        {
+          name: mealForm.name.trim() || "Meal Portion",
+          quantity: 1,
+          unit: "serving",
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fats: 0,
+        },
+      ];
     }
 
-    const count = validItems.length;
-    const formattedFoodItems = validItems.map((item, idx) => {
-      if (idx === count - 1) {
-        const prevCal = Math.floor(totCal / count) * (count - 1);
-        const prevPro = Math.floor(totPro / count) * (count - 1);
-        const prevCarb = Math.floor(totCarb / count) * (count - 1);
-        const prevFat = Math.floor(totFat / count) * (count - 1);
-        return {
-          name: item.name.trim(),
-          quantity: Number(item.quantity) || 1,
-          unit: item.unit || "g",
-          calories: totCal - prevCal,
-          protein: totPro - prevPro,
-          carbs: totCarb - prevCarb,
-          fats: totFat - prevFat,
-        };
-      }
-      return {
-        name: item.name.trim(),
-        quantity: Number(item.quantity) || 1,
-        unit: item.unit || "g",
-        calories: Math.floor(totCal / count),
-        protein: Math.floor(totPro / count),
-        carbs: Math.floor(totCarb / count),
-        fats: Math.floor(totFat / count),
-      };
-    });
+    const formattedFoodItems = validItems.map((item) => ({
+      name: item.name.trim(),
+      quantity: Math.max(0, Number(item.quantity) || 1),
+      unit: (item.unit || "g").trim() || "g",
+      calories: Math.round(Math.max(0, Number(item.calories) || 0)),
+      protein: roundOne(Math.max(0, Number(item.protein) || 0)),
+      carbs: roundOne(Math.max(0, Number(item.carbs) || 0)),
+      fats: roundOne(Math.max(0, Number(item.fats) || 0)),
+    }));
 
     const mealPayload = {
       name: mealForm.name.trim() || "Meal",
@@ -594,47 +601,199 @@ export const DietPage = () => {
   const handleAddFoodItem = () => {
     setMealForm((prev) => ({
       ...prev,
-      foodItems: [
-        ...prev.foodItems,
-        { name: "", quantity: 100, unit: "g" },
-      ],
+      foodItems: [...prev.foodItems, emptyDish()],
     }));
     haptics.tick();
   };
 
   const handleFoodItemChange = (idx, field, val) => {
+    const numericFields = ["quantity", "calories", "protein", "carbs", "fats"];
     setMealForm((prev) => {
       const items = [...prev.foodItems];
       items[idx] = {
         ...items[idx],
-        [field]: field === "quantity" ? Number(val) : val,
+        [field]: numericFields.includes(field)
+          ? val === ""
+            ? ""
+            : Math.max(0, Number(val))
+          : val,
       };
       return { ...prev, foodItems: items };
     });
   };
 
   const handleSelectQuickFood = (food) => {
+    const dishPayload = {
+      name: food.name,
+      quantity: food.quantity,
+      unit: food.unit,
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fats: food.fats,
+    };
     setMealForm((prev) => {
       const items = [...prev.foodItems];
       const lastIdx = items.length - 1;
       if (lastIdx >= 0 && !items[lastIdx].name) {
-        items[lastIdx] = { name: food.name, quantity: food.quantity, unit: food.unit };
+        items[lastIdx] = dishPayload;
       } else {
-        items.push({ name: food.name, quantity: food.quantity, unit: food.unit });
+        items.push(dishPayload);
       }
 
       return {
         ...prev,
         foodItems: items,
-        totalNutrients: {
-          calories: (Number(prev.totalNutrients?.calories) || 0) + (Number(food.calories) || 0),
-          protein: (Number(prev.totalNutrients?.protein) || 0) + (Number(food.protein) || 0),
-          carbs: (Number(prev.totalNutrients?.carbs) || 0) + (Number(food.carbs) || 0),
-          fats: (Number(prev.totalNutrients?.fats) || 0) + (Number(food.fats) || 0),
-        },
       };
     });
     haptics.tick();
+  };
+
+  const handleApplyAiImport = (parsed) => {
+    if (!parsed?.ok) return;
+
+    if (parsed.kind === "alternating") {
+      if (!activePlan) {
+        createPlanMutation.mutate({
+          name: "Alternating 2-Diet Plan",
+          scheduleMode: "alternating",
+          alternatingConfig: {
+            anchorDate: todayStr,
+            dietAName: parsed.dietAName,
+            dietBName: parsed.dietBName,
+            dietAMeals: parsed.dietAMeals,
+            dietBMeals: parsed.dietBMeals,
+          },
+        });
+        return;
+      }
+
+      updatePlanMutation.mutate({
+        scheduleMode: "alternating",
+        alternatingConfig: {
+          anchorDate: effectiveAnchor,
+          dietAName: parsed.dietAName,
+          dietBName: parsed.dietBName,
+          dietAMeals:
+            aiApplyMode === "append"
+              ? [...(altConfig.dietAMeals || []), ...parsed.dietAMeals]
+              : parsed.dietAMeals,
+          dietBMeals:
+            aiApplyMode === "append"
+              ? [...(altConfig.dietBMeals || []), ...parsed.dietBMeals]
+              : parsed.dietBMeals,
+        },
+        _toastMessage: `Imported ${parsed.dietAName} & ${parsed.dietBName} from AI! ✨`,
+      });
+      return;
+    }
+
+    if (parsed.kind === "weekly") {
+      if (!activePlan) {
+        createPlanMutation.mutate({
+          name: "Weekly Meal Plan",
+          scheduleMode: "weekly",
+          days: parsed.days,
+        });
+        return;
+      }
+
+      const nextDaysMap = new Map((activePlan.days || []).map((d) => [Number(d.dayOfWeek), d.meals || []]));
+      parsed.days.forEach((d) => {
+        const existingMeals = nextDaysMap.get(d.dayOfWeek) || [];
+        nextDaysMap.set(
+          d.dayOfWeek,
+          aiApplyMode === "append" ? [...existingMeals, ...d.meals] : d.meals
+        );
+      });
+      const mergedDays = Array.from(nextDaysMap.entries()).map(([dayOfWeek, meals]) => ({
+        dayOfWeek,
+        meals,
+      }));
+      updatePlanMutation.mutate({
+        scheduleMode: "weekly",
+        days: mergedDays,
+        _toastMessage: `Imported ${parsed.daysCount} weekday schedule(s) from AI! ✨`,
+      });
+      return;
+    }
+
+    // Single meals list -> applies to active view (simple / altSlot A|B / selected weekly day)
+    const importedMeals = parsed.meals || [];
+    if (!activePlan) {
+      if (currentMode === "simple") {
+        createPlanMutation.mutate({
+          name: parsed.planName || "Simple Ongoing Meal Plan",
+          scheduleMode: "simple",
+          simpleMeals: importedMeals,
+        });
+      } else if (currentMode === "alternating") {
+        createPlanMutation.mutate({
+          name: parsed.planName || "Alternating 2-Diet Plan",
+          scheduleMode: "alternating",
+          alternatingConfig: {
+            anchorDate: todayStr,
+            dietAName,
+            dietBName,
+            dietAMeals: altSlot === "A" ? importedMeals : [],
+            dietBMeals: altSlot === "B" ? importedMeals : [],
+          },
+        });
+      } else {
+        createPlanMutation.mutate({
+          name: parsed.planName || "Ongoing Meal Plan",
+          scheduleMode: "weekly",
+          days: [{ dayOfWeek: selectedDay, meals: importedMeals }],
+        });
+      }
+      return;
+    }
+
+    if (currentMode === "simple") {
+      const nextSimple =
+        aiApplyMode === "append"
+          ? [...(activePlan.simpleMeals || []), ...importedMeals]
+          : importedMeals;
+      updatePlanMutation.mutate({
+        scheduleMode: "simple",
+        simpleMeals: nextSimple,
+        _toastMessage: `Imported ${importedMeals.length} meal(s) into Simple Daily Plan! ✨`,
+      });
+    } else if (currentMode === "alternating") {
+      const key = altSlot === "A" ? "dietAMeals" : "dietBMeals";
+      const nextSlotMeals =
+        aiApplyMode === "append"
+          ? [...(altConfig[key] || []), ...importedMeals]
+          : importedMeals;
+      updatePlanMutation.mutate({
+        scheduleMode: "alternating",
+        alternatingConfig: {
+          ...altConfig,
+          anchorDate: effectiveAnchor,
+          [key]: nextSlotMeals,
+        },
+        _toastMessage: `Imported ${importedMeals.length} meal(s) into ${altSlot === "A" ? dietAName : dietBName}! ✨`,
+      });
+    } else {
+      const updatedDays = [...(activePlan.days || [])];
+      const idx = updatedDays.findIndex((d) => Number(d.dayOfWeek) === Number(selectedDay));
+      if (idx === -1) {
+        updatedDays.push({ dayOfWeek: selectedDay, meals: importedMeals });
+      } else {
+        updatedDays[idx] = {
+          ...updatedDays[idx],
+          meals:
+            aiApplyMode === "append"
+              ? [...(updatedDays[idx].meals || []), ...importedMeals]
+              : importedMeals,
+        };
+      }
+      updatePlanMutation.mutate({
+        scheduleMode: "weekly",
+        days: updatedDays,
+        _toastMessage: `Imported ${importedMeals.length} meal(s) into ${dayNames[selectedDay]}! ✨`,
+      });
+    }
   };
 
   const handleRemoveFoodItem = (idx) => {
@@ -696,7 +855,7 @@ export const DietPage = () => {
         <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto shrink-0">
           <Link
             to="/tracker"
-            className={activePlan ? "w-full sm:w-auto" : "col-span-2 sm:col-span-1 w-full sm:w-auto"}
+            className="col-span-2 sm:col-span-1 w-full sm:w-auto"
           >
             <Button
               size="sm"
@@ -705,6 +864,29 @@ export const DietPage = () => {
               Today's Checklist <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Button>
           </Link>
+
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              setAiTemplateType(
+                currentMode === "alternating"
+                  ? "alternating"
+                  : currentMode === "weekly"
+                  ? "weekly"
+                  : "single"
+              );
+              setAiPromptCopied(false);
+              setShowAiModal(true);
+            }}
+            className={
+              activePlan
+                ? "w-full sm:w-auto min-h-[44px] text-xs font-bold bg-violet-50 hover:bg-violet-100 text-violet-800 border border-violet-200"
+                : "col-span-2 sm:col-span-1 w-full sm:w-auto min-h-[44px] text-xs font-bold bg-violet-50 hover:bg-violet-100 text-violet-800 border border-violet-200"
+            }
+          >
+            <Wand2 className="w-3.5 h-3.5 mr-1 text-violet-700" /> AI Template
+          </Button>
 
           {activePlan && (
             <Button
@@ -1091,6 +1273,25 @@ export const DietPage = () => {
                 <Plus className="w-4 h-4 mr-1" /> Add Meal to {currentScheduleTitle}
               </Button>
 
+              <Button
+                size="sm"
+                variant="secondary"
+                className="w-full sm:w-auto min-h-[44px] bg-violet-50 hover:bg-violet-100 text-violet-800 border border-violet-200"
+                onClick={() => {
+                  setAiTemplateType(
+                    currentMode === "alternating"
+                      ? "alternating"
+                      : currentMode === "weekly"
+                      ? "weekly"
+                      : "single"
+                  );
+                  setAiPromptCopied(false);
+                  setShowAiModal(true);
+                }}
+              >
+                <Wand2 className="w-3.5 h-3.5 mr-1 text-violet-700" /> AI Fill with Template
+              </Button>
+
               {currentMode === "weekly" && daysWithMeals.length > 0 && (
                 <Button
                   size="sm"
@@ -1321,96 +1522,13 @@ export const DietPage = () => {
             </div>
           </div>
 
-          {/* 1. Total Nutrients in this Meal (Highlight Bento Card) */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-lime-50/90 via-white to-slate-50 border border-lime-300/90 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-lime-500 animate-pulse" />
-                <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">
-                  Total Nutrients in this Meal
-                </h4>
-              </div>
-              <span className="text-[10px] font-extrabold text-lime-800 bg-lime-100 px-2 py-0.5 rounded-md border border-lime-200">
-                Meal-level totals
-              </span>
-            </div>
-
-            <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-              Enter the overall macros for this meal. You can list items below without calculating individual nutrients!
-            </p>
-
-            {/* 4 Nutrient Inputs Bento Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-              {/* Calories */}
-              <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
-                  Calories (kcal)
-                </span>
-                <input
-                  type="number"
-                  min="0"
-                  required
-                  value={mealForm.totalNutrients?.calories ?? 0}
-                  onChange={(e) => handleTotalNutrientChange("calories", e.target.value)}
-                  className="w-full text-base sm:text-lg font-black text-lime-700 bg-transparent focus:outline-none"
-                  placeholder="0"
-                />
-              </div>
-
-              {/* Protein */}
-              <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                <span className="text-[10px] font-black uppercase tracking-wider text-purple-600 block mb-1">
-                  Protein (g)
-                </span>
-                <input
-                  type="number"
-                  min="0"
-                  value={mealForm.totalNutrients?.protein ?? 0}
-                  onChange={(e) => handleTotalNutrientChange("protein", e.target.value)}
-                  className="w-full text-base sm:text-lg font-black text-purple-700 bg-transparent focus:outline-none"
-                  placeholder="0"
-                />
-              </div>
-
-              {/* Carbs */}
-              <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 block mb-1">
-                  Carbs (g)
-                </span>
-                <input
-                  type="number"
-                  min="0"
-                  value={mealForm.totalNutrients?.carbs ?? 0}
-                  onChange={(e) => handleTotalNutrientChange("carbs", e.target.value)}
-                  className="w-full text-base sm:text-lg font-black text-amber-600 bg-transparent focus:outline-none"
-                  placeholder="0"
-                />
-              </div>
-
-              {/* Fats */}
-              <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                <span className="text-[10px] font-black uppercase tracking-wider text-rose-600 block mb-1">
-                  Fats (g)
-                </span>
-                <input
-                  type="number"
-                  min="0"
-                  value={mealForm.totalNutrients?.fats ?? 0}
-                  onChange={(e) => handleTotalNutrientChange("fats", e.target.value)}
-                  className="w-full text-base sm:text-lg font-black text-rose-600 bg-transparent focus:outline-none"
-                  placeholder="0"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* 2. Instant Autocomplete Food Library Chips */}
+          {/* 1. Quick-Add Food Library Chips (with built-in per-dish macros) */}
           <div>
             <div className="flex items-center justify-between gap-2 mb-1.5">
               <label className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-                Quick-Add Food Suggestions
+                Quick-Add Dish Suggestions
               </label>
-              <span className="text-[10px] text-slate-400 font-medium shrink-0">Tap to add</span>
+              <span className="text-[10px] text-slate-400 font-medium shrink-0">Auto-fills macros</span>
             </div>
             <div className="flex sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-visible pb-1.5 sm:pb-0 scrollbar-none">
               {QUICK_FOOD_ITEMS.map((food, i) => (
@@ -1418,23 +1536,23 @@ export const DietPage = () => {
                   key={i}
                   type="button"
                   onClick={() => handleSelectQuickFood(food)}
-                  className="shrink-0 min-h-[38px] px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-lime-100 text-xs font-bold text-slate-700 transition-colors cursor-pointer shadow-2xs"
+                  className="shrink-0 min-h-[40px] px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-lime-100 text-xs font-bold text-slate-700 transition-colors cursor-pointer shadow-2xs"
                 >
-                  + {food.name} <span className="text-slate-400 font-normal">({food.calories} cal)</span>
+                  + {food.name} <span className="text-slate-400 font-normal">({food.calories} cal · {food.protein}g P)</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* 3. Food items rows (Names and quantities only - no per-item macro clutter!) */}
+          {/* 2. Individual Dishes with Per-Dish Nutrients */}
           <div className="space-y-2.5 pt-2 border-t border-slate-100">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <span className="text-xs font-black uppercase tracking-wider text-slate-900 block">
-                  Food Items in this Meal
+                  Dishes in this Meal
                 </span>
-                <p className="text-[10px] text-slate-500 font-medium">
-                  List items you eat (nutrients are tracked as meal total above)
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Enter nutrients per dish — meal total sums automatically below.
                 </p>
               </div>
               <button
@@ -1442,50 +1560,155 @@ export const DietPage = () => {
                 onClick={handleAddFoodItem}
                 className="min-h-[44px] px-3 rounded-xl bg-lime-50 hover:bg-lime-100 text-xs text-lime-800 font-bold border border-lime-200 inline-flex items-center gap-1 cursor-pointer shrink-0 transition-colors"
               >
-                <Plus className="w-3.5 h-3.5" /> Add Item
+                <Plus className="w-3.5 h-3.5" /> Add Dish
               </button>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {mealForm.foodItems.map((item, idx) => (
-                <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-50/90 border border-slate-200">
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Rolled Oats, 2 Eggs, Banana"
-                    value={item.name}
-                    onChange={(e) => handleFoodItemChange(idx, "name", e.target.value)}
-                    className="w-full sm:flex-1 min-h-[44px] px-3 rounded-xl bg-white border border-slate-200 text-base font-semibold text-slate-900 focus:outline-none focus:border-lime-500 shadow-2xs"
-                  />
-                  <div className="flex items-center gap-2 sm:contents">
-                    <input
-                      type="number"
-                      placeholder="Qty"
-                      value={item.quantity || ""}
-                      onChange={(e) => handleFoodItemChange(idx, "quantity", e.target.value)}
-                      className="flex-1 sm:w-20 min-h-[44px] px-2.5 rounded-xl bg-white border border-slate-200 text-base font-black text-slate-900 text-center shadow-2xs focus:outline-none focus:border-lime-500"
-                    />
+                <div
+                  key={idx}
+                  className="space-y-2 p-3 rounded-2xl bg-slate-50/90 border border-slate-200"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     <input
                       type="text"
-                      placeholder="unit"
-                      value={item.unit}
-                      onChange={(e) => handleFoodItemChange(idx, "unit", e.target.value)}
-                      className="w-20 sm:w-16 min-h-[44px] px-2 text-center rounded-xl bg-white border border-slate-200 text-base font-bold text-slate-900 shadow-2xs focus:outline-none focus:border-lime-500"
+                      required
+                      placeholder={`Dish ${idx + 1} (e.g. Rolled Oats, 2 Eggs)`}
+                      value={item.name}
+                      onChange={(e) => handleFoodItemChange(idx, "name", e.target.value)}
+                      className="w-full sm:flex-1 min-h-[44px] px-3 rounded-xl bg-white border border-slate-200 text-base font-semibold text-slate-900 focus:outline-none focus:border-lime-500 shadow-2xs"
                     />
-                    {mealForm.foodItems.length > 1 && (
-                      <button
-                        type="button"
-                        aria-label={`Remove food item ${idx + 1}`}
-                        onClick={() => handleRemoveFoodItem(idx)}
-                        className="min-w-[44px] min-h-[44px] rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center cursor-pointer transition-colors shrink-0"
-                        title="Remove item"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2 sm:contents">
+                      <input
+                        type="number"
+                        step="any"
+                        min="0"
+                        placeholder="Qty"
+                        value={item.quantity === "" ? "" : item.quantity}
+                        onChange={(e) => handleFoodItemChange(idx, "quantity", e.target.value)}
+                        className="flex-1 sm:w-20 min-h-[44px] px-2.5 rounded-xl bg-white border border-slate-200 text-base font-black text-slate-900 text-center shadow-2xs focus:outline-none focus:border-lime-500"
+                      />
+                      <input
+                        type="text"
+                        placeholder="unit"
+                        value={item.unit}
+                        onChange={(e) => handleFoodItemChange(idx, "unit", e.target.value)}
+                        className="w-20 sm:w-20 min-h-[44px] px-2 text-center rounded-xl bg-white border border-slate-200 text-base font-bold text-slate-900 shadow-2xs focus:outline-none focus:border-lime-500"
+                      />
+                      {mealForm.foodItems.length > 1 && (
+                        <button
+                          type="button"
+                          aria-label={`Remove dish ${idx + 1}`}
+                          onClick={() => handleRemoveFoodItem(idx)}
+                          className="min-w-[44px] min-h-[44px] rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center cursor-pointer transition-colors shrink-0"
+                          title="Remove dish"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Per-Dish Nutrients */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="px-2.5 py-1.5 rounded-xl bg-white border border-slate-200/90">
+                      <label className="block text-[10px] font-black uppercase tracking-wider text-lime-700">
+                        Calories (kcal)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="0"
+                        value={item.calories === "" ? "" : item.calories}
+                        onChange={(e) => handleFoodItemChange(idx, "calories", e.target.value)}
+                        className="w-full min-h-[34px] text-base sm:text-sm font-black text-slate-900 bg-transparent focus:outline-none tabular-nums"
+                      />
+                    </div>
+                    <div className="px-2.5 py-1.5 rounded-xl bg-white border border-slate-200/90">
+                      <label className="block text-[10px] font-black uppercase tracking-wider text-purple-700">
+                        Protein (g)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        placeholder="0"
+                        value={item.protein === "" ? "" : item.protein}
+                        onChange={(e) => handleFoodItemChange(idx, "protein", e.target.value)}
+                        className="w-full min-h-[34px] text-base sm:text-sm font-black text-purple-700 bg-transparent focus:outline-none tabular-nums"
+                      />
+                    </div>
+                    <div className="px-2.5 py-1.5 rounded-xl bg-white border border-slate-200/90">
+                      <label className="block text-[10px] font-black uppercase tracking-wider text-amber-600">
+                        Carbs (g)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        placeholder="0"
+                        value={item.carbs === "" ? "" : item.carbs}
+                        onChange={(e) => handleFoodItemChange(idx, "carbs", e.target.value)}
+                        className="w-full min-h-[34px] text-base sm:text-sm font-black text-amber-600 bg-transparent focus:outline-none tabular-nums"
+                      />
+                    </div>
+                    <div className="px-2.5 py-1.5 rounded-xl bg-white border border-slate-200/90">
+                      <label className="block text-[10px] font-black uppercase tracking-wider text-rose-600">
+                        Fats (g)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        placeholder="0"
+                        value={item.fats === "" ? "" : item.fats}
+                        onChange={(e) => handleFoodItemChange(idx, "fats", e.target.value)}
+                        className="w-full min-h-[34px] text-base sm:text-sm font-black text-rose-600 bg-transparent focus:outline-none tabular-nums"
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* 3. Read-Only Auto-Summed Meal Totals */}
+          <div className="p-3.5 rounded-2xl bg-gradient-to-br from-lime-50/90 via-white to-slate-50 border border-lime-300/90 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-700">
+                Auto-Summed Meal Total
+              </span>
+              <span className="text-[10px] font-extrabold text-lime-800 bg-lime-100 px-2 py-0.5 rounded-md border border-lime-200">
+                Sum of dishes
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-2 text-center">
+              <div className="p-2 rounded-xl bg-white border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-400 block">Kcal</span>
+                <span className="text-sm font-black text-lime-700 tabular-nums">
+                  {Math.round(autoMealTotals.calories)}
+                </span>
+              </div>
+              <div className="p-2 rounded-xl bg-white border border-slate-200">
+                <span className="text-[10px] font-bold text-purple-600 block">Protein</span>
+                <span className="text-sm font-black text-purple-700 tabular-nums">
+                  {roundOne(autoMealTotals.protein)}g
+                </span>
+              </div>
+              <div className="p-2 rounded-xl bg-white border border-slate-200">
+                <span className="text-[10px] font-bold text-amber-600 block">Carbs</span>
+                <span className="text-sm font-black text-amber-600 tabular-nums">
+                  {roundOne(autoMealTotals.carbs)}g
+                </span>
+              </div>
+              <div className="p-2 rounded-xl bg-white border border-slate-200">
+                <span className="text-[10px] font-bold text-rose-600 block">Fats</span>
+                <span className="text-sm font-black text-rose-600 tabular-nums">
+                  {roundOne(autoMealTotals.fats)}g
+                </span>
+              </div>
             </div>
           </div>
 
@@ -1694,6 +1917,220 @@ export const DietPage = () => {
                   </>
                 )}
               </Button>
+            </div>
+          );
+        })()}
+      </Sheet>
+
+      {/* AI Diet Template Copy & Smart Paste Drawer */}
+      <Sheet
+        open={showAiModal}
+        onOpenChange={setShowAiModal}
+        title="AI Diet Template & Paste"
+        description="Copy prompt for ChatGPT / Gemini / Claude, then paste JSON back to auto-fill"
+      >
+        {(() => {
+          const promptText = generateAiDietPrompt({
+            templateType: aiTemplateType,
+            targetLabel:
+              aiTemplateType === "alternating"
+                ? `${dietAName} & ${dietBName}`
+                : aiTemplateType === "weekly"
+                ? "7-Day Weekly Plan"
+                : currentScheduleTitle,
+            goalNotes: aiGoalNotes,
+          });
+          const parsedAi = aiPasteText.trim() ? parseAiDietResponse(aiPasteText) : null;
+
+          const handleCopyAiPrompt = async () => {
+            try {
+              await copyTextToClipboard(promptText);
+              setAiPromptCopied(true);
+              haptics.goal();
+              toast.success("AI prompt template copied! Send it to ChatGPT / Gemini / Claude.");
+              setTimeout(() => setAiPromptCopied(false), 2500);
+            } catch (_) {
+              toast.error("Could not access clipboard automatically");
+            }
+          };
+
+          return (
+            <div className="space-y-4 pt-1 pb-3">
+              {/* Step 1: Copy Prompt Template */}
+              <div className="p-3.5 rounded-2xl bg-violet-50/70 border border-violet-200/90 space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-violet-900">
+                    1. Copy Template for AI
+                  </span>
+                  <span className="text-[10px] font-bold text-violet-700 bg-white px-2 py-0.5 rounded-full border border-violet-200">
+                    ChatGPT · Gemini · Claude
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { id: "single", label: "Current Diet" },
+                    { id: "alternating", label: "2-Diet A/B" },
+                    { id: "weekly", label: "7-Day" },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setAiTemplateType(t.id)}
+                      className={`min-h-[42px] px-2 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                        aiTemplateType === t.id
+                          ? "bg-slate-900 border-slate-900 text-white"
+                          : "bg-white border-violet-200 text-slate-700 hover:bg-violet-100/50"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Optional Goal / Food Preference (included in prompt)
+                  </label>
+                  <input
+                    type="text"
+                    value={aiGoalNotes}
+                    onChange={(e) => setAiGoalNotes(e.target.value)}
+                    placeholder="e.g. 2000 kcal, 140g protein, veg + eggs, 4 meals"
+                    className="w-full min-h-[44px] px-3 rounded-xl bg-white border border-violet-200 text-base sm:text-sm font-medium text-slate-900 focus:outline-none focus:border-violet-500"
+                  />
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={handleCopyAiPrompt}
+                  className="w-full min-h-[46px] bg-violet-600 hover:bg-violet-700 text-white font-extrabold text-xs shadow-sm"
+                >
+                  {aiPromptCopied ? (
+                    <>
+                      <Check className="w-4 h-4 mr-1.5 stroke-[3]" /> Prompt Template Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4 mr-1.5" /> Copy AI Prompt Template
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {/* Step 2: Paste JSON Response */}
+              <div className="space-y-2 pt-1 border-t border-slate-100">
+                <div className="flex items-center justify-between gap-2">
+                  <label className="text-xs font-black uppercase tracking-wider text-slate-700">
+                    2. Paste AI JSON Reply Here
+                  </label>
+                  {aiPasteText && (
+                    <button
+                      type="button"
+                      onClick={() => setAiPasteText("")}
+                      className="text-xs font-bold text-slate-400 hover:text-slate-700 min-h-[32px] px-2 cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                <textarea
+                  rows={6}
+                  value={aiPasteText}
+                  onChange={(e) => setAiPasteText(e.target.value)}
+                  placeholder='Paste the AI response (```json { "meals": [...] } ```)'
+                  className="w-full p-3 rounded-2xl bg-slate-50 border border-slate-200 text-base sm:text-xs font-mono text-slate-900 focus:outline-none focus:border-lime-500 focus:bg-white"
+                />
+
+                {parsedAi && !parsedAi.ok && (
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{parsedAi.error}</span>
+                  </div>
+                )}
+
+                {parsedAi && parsedAi.ok && (
+                  <div className="p-3.5 rounded-2xl bg-lime-50/80 border border-lime-300 space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-black text-lime-900">
+                        Ready to Import
+                      </span>
+                      <span className="text-[11px] font-bold text-lime-800 bg-lime-200/70 px-2 py-0.5 rounded-full">
+                        {parsedAi.kind === "alternating"
+                          ? "2-Diet A & B"
+                          : parsedAi.kind === "weekly"
+                          ? `${parsedAi.daysCount} Days`
+                          : `${parsedAi.summary.mealsCount} Meals`}
+                      </span>
+                    </div>
+
+                    {parsedAi.kind === "meals" && (
+                      <p className="text-xs font-semibold text-slate-700 tabular-nums">
+                        {parsedAi.summary.mealsCount} meals · {parsedAi.summary.dishesCount} dishes ·{" "}
+                        {parsedAi.summary.calories} kcal ({parsedAi.summary.protein}g P ·{" "}
+                        {parsedAi.summary.carbs}g C · {parsedAi.summary.fats}g F)
+                      </p>
+                    )}
+
+                    {parsedAi.kind === "alternating" && (
+                      <div className="space-y-1 text-xs font-semibold text-slate-700 tabular-nums">
+                        <p>
+                          <strong>{parsedAi.dietAName}:</strong> {parsedAi.summaryA.mealsCount} meals ·{" "}
+                          {parsedAi.summaryA.calories} kcal ({parsedAi.summaryA.protein}g P)
+                        </p>
+                        <p>
+                          <strong>{parsedAi.dietBName}:</strong> {parsedAi.summaryB.mealsCount} meals ·{" "}
+                          {parsedAi.summaryB.calories} kcal ({parsedAi.summaryB.protein}g P)
+                        </p>
+                      </div>
+                    )}
+
+                    {parsedAi.kind === "weekly" && (
+                      <p className="text-xs font-semibold text-slate-700 tabular-nums">
+                        {parsedAi.daysCount} days · {parsedAi.summary.mealsCount} total meals ·{" "}
+                        {parsedAi.summary.dishesCount} dishes
+                      </p>
+                    )}
+
+                    {activePlan && (
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setAiApplyMode("replace")}
+                          className={`min-h-[40px] px-2.5 py-1.5 rounded-xl border text-xs font-bold cursor-pointer ${
+                            aiApplyMode === "replace"
+                              ? "bg-slate-900 text-white border-slate-900"
+                              : "bg-white text-slate-700 border-slate-200"
+                          }`}
+                        >
+                          Replace {parsedAi.kind === "meals" ? currentScheduleTitle : "Schedule"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAiApplyMode("append")}
+                          className={`min-h-[40px] px-2.5 py-1.5 rounded-xl border text-xs font-bold cursor-pointer ${
+                            aiApplyMode === "append"
+                              ? "bg-slate-900 text-white border-slate-900"
+                              : "bg-white text-slate-700 border-slate-200"
+                          }`}
+                        >
+                          Add to Existing
+                        </button>
+                      </div>
+                    )}
+
+                    <Button
+                      type="button"
+                      onClick={() => handleApplyAiImport(parsedAi)}
+                      isLoading={updatePlanMutation.isPending || createPlanMutation.isPending}
+                      className="w-full min-h-[48px] bg-lime-500 hover:bg-lime-600 text-black font-extrabold text-sm shadow-md"
+                    >
+                      <Check className="w-4 h-4 mr-1.5 stroke-[3]" /> Auto-Fill Diet Plan
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           );
         })()}

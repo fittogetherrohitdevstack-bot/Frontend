@@ -3,7 +3,11 @@ import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { dietApi } from "../api/endpoints";
 import { useAuth } from "../context/AuthContext";
-import { getLocalDateString } from "../utils/date";
+import {
+  getLocalDateString,
+  addDaysToDateString,
+  getSignedDaysDiff,
+} from "../utils/date";
 import { GlassCard } from "../components/ui/GlassCard";
 import { Button } from "../components/ui/Button";
 import { DaySelector } from "../components/ui/DaySelector";
@@ -18,11 +22,10 @@ import {
   Check,
   Utensils,
   ArrowRight,
-  Sparkles,
-  Layers,
+  ArrowLeftRight,
   Repeat,
-  CheckCircle2,
-  Info,
+  CalendarDays,
+  Sparkles,
 } from "lucide-react";
 import { haptics } from "../motion/Haptics";
 import { toast } from "sonner";
@@ -47,6 +50,9 @@ export const DietPage = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [selectedDay, setSelectedDay] = useState(new Date().getDay()); // 0-6 (0=Sun, 1=Mon, ...)
+  const [draftMode, setDraftMode] = useState("simple"); // Used before first plan is created
+  const [altSlot, setAltSlot] = useState("A"); // "A" | "B" for Alternating 2 Diets
+  const [altNameDraft, setAltNameDraft] = useState({});
   const [showMealModal, setShowMealModal] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [targetDuplicateDay, setTargetDuplicateDay] = useState(1);
@@ -99,13 +105,41 @@ export const DietPage = () => {
 
   const activePlan = plansData?.find((p) => p.isActive) || plansData?.[0];
 
+  const todayStr = getLocalDateString(new Date(), user?.timezone);
+  const tomorrowStr = addDaysToDateString(todayStr, 1);
+
+  const cloneMealsClean = (meals = []) =>
+    (meals || []).map((m) => ({
+      name: m.name,
+      scheduledTime: m.scheduledTime || "08:00",
+      notes: m.notes || "",
+      foodItems: (m.foodItems || []).map((f) => ({
+        name: f.name,
+        quantity: Number(f.quantity) || 1,
+        unit: f.unit || "g",
+        calories: Number(f.calories) || 0,
+        protein: Number(f.protein) || 0,
+        carbs: Number(f.carbs) || 0,
+        fats: Number(f.fats) || 0,
+      })),
+    }));
+
   // Mutation to create a fresh ongoing plan (repeats for months/years)
   const createPlanMutation = useMutation({
     mutationFn: (initialData) =>
       dietApi.createPlan({
         name: initialData?.name || "Ongoing Meal Plan",
-        startDate: getLocalDateString(new Date(), user?.timezone),
+        startDate: todayStr,
         endDate: "2035-12-31", // Continuous multi-year duration
+        scheduleMode: initialData?.scheduleMode || draftMode || "simple",
+        simpleMeals: initialData?.simpleMeals || [],
+        alternatingConfig: initialData?.alternatingConfig || {
+          anchorDate: todayStr,
+          dietAName: altNameDraft.A?.trim() || "Diet A",
+          dietBName: altNameDraft.B?.trim() || "Diet B",
+          dietAMeals: [],
+          dietBMeals: [],
+        },
         days: initialData?.days || [],
         isActive: true,
       }),
@@ -124,17 +158,27 @@ export const DietPage = () => {
     },
   });
 
-  // Mutation to update plan with new/modified meal
+  // Mutation to update any fields of the active plan while preserving earlier data
   const updatePlanMutation = useMutation({
-    mutationFn: (updatedDays) => dietApi.updatePlan(activePlan._id, { days: updatedDays }),
-    onSuccess: () => {
+    mutationFn: (payload) => {
+      const body = Array.isArray(payload) ? { days: payload } : payload;
+      return dietApi.updatePlan(activePlan._id, body);
+    },
+    onSuccess: (res, variables) => {
       queryClient.invalidateQueries({ queryKey: ["my-diet-plans"] });
       queryClient.invalidateQueries({ queryKey: ["my-dashboard-summary"] });
       queryClient.invalidateQueries({ queryKey: ["today-meal-log"] });
       queryClient.invalidateQueries({ queryKey: ["meal-day-chart"] });
       queryClient.invalidateQueries({ queryKey: ["group-dashboard"] });
       haptics.goal();
-      toast.success("Diet plan updated! Future days will use this schedule.");
+      const customToast = !Array.isArray(variables) && variables?._toastMessage;
+      const preserved = res?.data?.data?.preserved;
+      toast.success(
+        customToast ||
+          (preserved
+            ? "Plan saved! Today's logged meals were preserved; new plan starts tomorrow."
+            : "Diet plan updated! Your schedule is saved.")
+      );
       setShowMealModal(false);
     },
     onError: (err) => {
@@ -170,26 +214,151 @@ export const DietPage = () => {
     );
   }
 
+  const currentMode = activePlan ? activePlan.scheduleMode || "weekly" : draftMode;
+  const altConfig = activePlan?.alternatingConfig || {
+    anchorDate: todayStr,
+    dietAName: altNameDraft.A || "Diet A",
+    dietBName: altNameDraft.B || "Diet B",
+    dietAMeals: [],
+    dietBMeals: [],
+  };
+  const dietAName = altConfig.dietAName || "Diet A";
+  const dietBName = altConfig.dietBName || "Diet B";
+  const effectiveAnchor = altConfig.anchorDate || activePlan?.startDate || todayStr;
+  const isTodayDietA = Math.abs(getSignedDaysDiff(effectiveAnchor, todayStr)) % 2 === 0;
+  const todayVariantName = isTodayDietA ? dietAName : dietBName;
+  const tomorrowVariantName = isTodayDietA ? dietBName : dietAName;
+
   const currentDaySchedule = activePlan?.days?.find((d) => d.dayOfWeek === selectedDay);
-  const mealsForDay = currentDaySchedule?.meals || [];
+  const mealsForDay =
+    currentMode === "simple"
+      ? activePlan?.simpleMeals || []
+      : currentMode === "alternating"
+      ? altSlot === "A"
+        ? altConfig.dietAMeals || []
+        : altConfig.dietBMeals || []
+      : currentDaySchedule?.meals || [];
+
+  const getFirstPopulatedWeeklyMeals = () =>
+    (activePlan?.days || []).find((d) => (d.meals || []).length > 0)?.meals || [];
 
   // Calculate day totals
-  const dayTotals = mealsForDay.reduce(
-    (acc, meal) => {
-      (meal.foodItems || []).forEach((item) => {
-        acc.calories += Number(item.calories) || 0;
-        acc.protein += Number(item.protein) || 0;
-        acc.carbs += Number(item.carbs) || 0;
-        acc.fats += Number(item.fats) || 0;
-      });
-      return acc;
-    },
-    { calories: 0, protein: 0, carbs: 0, fats: 0 }
-  );
+  const computeMealsTotals = (mealsList = []) =>
+    mealsList.reduce(
+      (acc, meal) => {
+        (meal.foodItems || []).forEach((item) => {
+          acc.calories += Number(item.calories) || 0;
+          acc.protein += Number(item.protein) || 0;
+          acc.carbs += Number(item.carbs) || 0;
+          acc.fats += Number(item.fats) || 0;
+        });
+        return acc;
+      },
+      { calories: 0, protein: 0, carbs: 0, fats: 0 }
+    );
+
+  const dayTotals = computeMealsTotals(mealsForDay);
+  const dietATotals = computeMealsTotals(altConfig.dietAMeals || []);
+  const dietBTotals = computeMealsTotals(altConfig.dietBMeals || []);
 
   const daysWithMeals = (activePlan?.days || [])
     .filter((d) => (d.meals || []).length > 0)
     .map((d) => d.dayOfWeek);
+
+  const handleSwitchMode = (nextMode) => {
+    haptics.tick();
+    if (!activePlan) {
+      setDraftMode(nextMode);
+      return;
+    }
+    if (nextMode === currentMode) return;
+
+    const existingSampleMeals =
+      (activePlan.simpleMeals?.length ? activePlan.simpleMeals : null) ||
+      (altConfig.dietAMeals?.length ? altConfig.dietAMeals : null) ||
+      (currentDaySchedule?.meals?.length ? currentDaySchedule.meals : null) ||
+      getFirstPopulatedWeeklyMeals();
+
+    if (nextMode === "simple") {
+      const nextSimple =
+        activePlan.simpleMeals?.length > 0
+          ? activePlan.simpleMeals
+          : cloneMealsClean(existingSampleMeals);
+      updatePlanMutation.mutate({
+        scheduleMode: "simple",
+        simpleMeals: nextSimple,
+        _toastMessage:
+          "Switched to Simple Daily Plan! Earlier weekly & alternating plans remain saved.",
+      });
+    } else if (nextMode === "alternating") {
+      const nextDietA =
+        altConfig.dietAMeals?.length > 0
+          ? altConfig.dietAMeals
+          : cloneMealsClean(existingSampleMeals);
+      updatePlanMutation.mutate({
+        scheduleMode: "alternating",
+        alternatingConfig: {
+          anchorDate: altConfig.anchorDate || todayStr,
+          dietAName,
+          dietBName,
+          dietAMeals: nextDietA,
+          dietBMeals: altConfig.dietBMeals || [],
+        },
+        _toastMessage:
+          "Switched to Alternating 2-Diet Days! Earlier meals & weekly data preserved.",
+      });
+    } else {
+      updatePlanMutation.mutate({
+        scheduleMode: "weekly",
+        _toastMessage: "Switched to 7-Day Weekly Planner!",
+      });
+    }
+  };
+
+  const handleSwapTodayDiet = () => {
+    if (!activePlan) return;
+    haptics.tick();
+    const yesterdayStr = addDaysToDateString(todayStr, -1);
+    const nextAnchor = isTodayDietA ? yesterdayStr : todayStr;
+    updatePlanMutation.mutate({
+      alternatingConfig: {
+        ...altConfig,
+        anchorDate: nextAnchor,
+      },
+      _toastMessage: isTodayDietA
+        ? `Today is now ${dietBName} · Tomorrow is ${dietAName}`
+        : `Today is now ${dietAName} · Tomorrow is ${dietBName}`,
+    });
+  };
+
+  const handleSaveAltNames = () => {
+    if (!activePlan) return;
+    const nextA = (altNameDraft.A ?? dietAName).trim() || "Diet A";
+    const nextB = (altNameDraft.B ?? dietBName).trim() || "Diet B";
+    updatePlanMutation.mutate({
+      alternatingConfig: {
+        ...altConfig,
+        anchorDate: effectiveAnchor,
+        dietAName: nextA,
+        dietBName: nextB,
+      },
+      _toastMessage: "Saved Diet A & Diet B names!",
+    });
+  };
+
+  const handleCopyMealsIntoAltSlot = (targetSlot, sourceMeals) => {
+    if (!activePlan || !sourceMeals?.length) return;
+    haptics.tick();
+    const cloned = cloneMealsClean(sourceMeals);
+    updatePlanMutation.mutate({
+      alternatingConfig: {
+        ...altConfig,
+        anchorDate: effectiveAnchor,
+        [targetSlot === "A" ? "dietAMeals" : "dietBMeals"]: cloned,
+      },
+      _toastMessage: `Copied meals into ${targetSlot === "A" ? dietAName : dietBName}!`,
+    });
+  };
 
   const handleOpenAddMeal = () => {
     setEditingMealIndex(-1);
@@ -229,6 +398,25 @@ export const DietPage = () => {
 
   const handleDeleteMeal = (idx) => {
     if (!activePlan) return;
+    if (currentMode === "simple") {
+      const updatedSimple = (activePlan.simpleMeals || []).filter((_, i) => i !== idx);
+      updatePlanMutation.mutate({ simpleMeals: updatedSimple });
+      return;
+    }
+
+    if (currentMode === "alternating") {
+      const key = altSlot === "A" ? "dietAMeals" : "dietBMeals";
+      const updatedSlotMeals = (altConfig[key] || []).filter((_, i) => i !== idx);
+      updatePlanMutation.mutate({
+        alternatingConfig: {
+          ...altConfig,
+          anchorDate: effectiveAnchor,
+          [key]: updatedSlotMeals,
+        },
+      });
+      return;
+    }
+
     const updatedDays = (activePlan.days || []).map((d) => {
       if (d.dayOfWeek === selectedDay) {
         return {
@@ -304,9 +492,66 @@ export const DietPage = () => {
     };
 
     if (!activePlan) {
-      createPlanMutation.mutate({
-        name: "Ongoing Meal Plan",
-        days: [{ dayOfWeek: selectedDay, meals: [mealPayload] }],
+      if (currentMode === "simple") {
+        createPlanMutation.mutate({
+          name: "Simple Ongoing Meal Plan",
+          scheduleMode: "simple",
+          simpleMeals: [mealPayload],
+        });
+      } else if (currentMode === "alternating") {
+        createPlanMutation.mutate({
+          name: "Alternating 2-Diet Plan",
+          scheduleMode: "alternating",
+          alternatingConfig: {
+            anchorDate: todayStr,
+            dietAName: altNameDraft.A?.trim() || "Diet A",
+            dietBName: altNameDraft.B?.trim() || "Diet B",
+            dietAMeals: altSlot === "A" ? [mealPayload] : [],
+            dietBMeals: altSlot === "B" ? [mealPayload] : [],
+          },
+        });
+      } else {
+        createPlanMutation.mutate({
+          name: "Ongoing Meal Plan",
+          scheduleMode: "weekly",
+          days: [{ dayOfWeek: selectedDay, meals: [mealPayload] }],
+        });
+      }
+      return;
+    }
+
+    if (currentMode === "simple") {
+      const updatedSimple = [...(activePlan.simpleMeals || [])];
+      if (editingMealIndex >= 0) {
+        updatedSimple[editingMealIndex] = {
+          ...updatedSimple[editingMealIndex],
+          ...mealPayload,
+        };
+      } else {
+        updatedSimple.push(mealPayload);
+      }
+      updatePlanMutation.mutate({ scheduleMode: "simple", simpleMeals: updatedSimple });
+      return;
+    }
+
+    if (currentMode === "alternating") {
+      const key = altSlot === "A" ? "dietAMeals" : "dietBMeals";
+      const updatedSlotMeals = [...(altConfig[key] || [])];
+      if (editingMealIndex >= 0) {
+        updatedSlotMeals[editingMealIndex] = {
+          ...updatedSlotMeals[editingMealIndex],
+          ...mealPayload,
+        };
+      } else {
+        updatedSlotMeals.push(mealPayload);
+      }
+      updatePlanMutation.mutate({
+        scheduleMode: "alternating",
+        alternatingConfig: {
+          ...altConfig,
+          anchorDate: effectiveAnchor,
+          [key]: updatedSlotMeals,
+        },
       });
       return;
     }
@@ -394,6 +639,36 @@ export const DietPage = () => {
 
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
+  const currentScheduleTitle =
+    currentMode === "simple"
+      ? "Daily Meals"
+      : currentMode === "alternating"
+      ? altSlot === "A"
+        ? dietAName
+        : dietBName
+      : dayNames[selectedDay];
+
+  const scheduleModeOptions = [
+    {
+      id: "simple",
+      label: "Simple Daily",
+      sub: "Same every day",
+      icon: Sparkles,
+    },
+    {
+      id: "alternating",
+      label: "2-Diet Alternate",
+      sub: "Today A · Tomorrow B",
+      icon: ArrowLeftRight,
+    },
+    {
+      id: "weekly",
+      label: "7-Day Weekly",
+      sub: "Custom Mon–Sun",
+      icon: CalendarDays,
+    },
+  ];
+
   return (
     <div className="space-y-4 sm:space-y-6 max-w-4xl mx-auto text-slate-900">
       {/* Top Header & Overview */}
@@ -406,14 +681,18 @@ export const DietPage = () => {
             {activePlan?.name || "My Ongoing Meal Plan"}
           </h1>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Repeats continuously for all months ahead. Edit anytime to update future days.
+            Switch between Simple, Alternating (2 Diets), or 7-Day Weekly anytime — earlier plans and past logs are always preserved.
           </p>
         </div>
 
         <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto shrink-0">
           <Link
             to="/tracker"
-            className={activePlan && mealsForDay.length > 0 ? "w-full sm:w-auto" : "col-span-2 sm:col-span-1 w-full sm:w-auto"}
+            className={
+              currentMode === "weekly" && activePlan && mealsForDay.length > 0
+                ? "w-full sm:w-auto"
+                : "col-span-2 sm:col-span-1 w-full sm:w-auto"
+            }
           >
             <Button
               size="sm"
@@ -423,7 +702,7 @@ export const DietPage = () => {
             </Button>
           </Link>
 
-          {activePlan && mealsForDay.length > 0 && (
+          {currentMode === "weekly" && activePlan && mealsForDay.length > 0 && (
             <Button
               size="sm"
               variant="secondary"
@@ -439,35 +718,231 @@ export const DietPage = () => {
         </div>
       </div>
 
-      {/* Info Card Explaining Continuous / Ongoing Mode */}
-      <GlassCard className="p-3.5 sm:p-4 bg-gradient-to-r from-lime-50/70 via-emerald-50/50 to-teal-50/70 border border-lime-200/80 rounded-2xl shadow-xs">
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-xl bg-lime-500 text-black flex items-center justify-center shrink-0 font-bold shadow-xs">
-            <Repeat className="w-4 h-4" />
-          </div>
-          <div className="space-y-1">
-            <h4 className="text-xs sm:text-sm font-bold text-slate-900">
-              One Plan · Auto-repeats for months · Change whenever you want
-            </h4>
-            <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-              You don't need to rebuild diet plans every week. Set up your weekly meals once; they will automatically generate on your{" "}
-              <Link to="/tracker" className="text-lime-800 font-bold underline">
-                Daily Tracker
-              </Link>{" "}
-              for today, tomorrow, and every month ahead. Whenever you want to switch foods or change portion sizes, edit the meal here and your future days update instantly!
-            </p>
-          </div>
+      {/* Plan Mode Switcher */}
+      <GlassCard className="p-2.5 sm:p-3 bg-white/95 border border-slate-200/90 rounded-2xl shadow-xs space-y-2.5">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+            Diet Rotation Mode
+          </span>
+          <span className="text-[11px] font-semibold text-emerald-700">
+            Earlier data preserved
+          </span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+          {scheduleModeOptions.map((opt) => {
+            const Icon = opt.icon;
+            const isActiveMode = currentMode === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                disabled={updatePlanMutation.isPending}
+                onClick={() => handleSwitchMode(opt.id)}
+                className={`min-h-[54px] px-2 sm:px-3 py-2 rounded-xl border text-left transition-all flex flex-col justify-center cursor-pointer ${
+                  isActiveMode
+                    ? "bg-lime-50 border-lime-400 shadow-xs"
+                    : "bg-slate-50/70 border-slate-200 hover:bg-slate-100/80"
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <Icon
+                    className={`w-3.5 h-3.5 shrink-0 ${
+                      isActiveMode ? "text-lime-700" : "text-slate-500"
+                    }`}
+                  />
+                  <span
+                    className={`text-xs sm:text-sm font-extrabold truncate ${
+                      isActiveMode ? "text-slate-900" : "text-slate-700"
+                    }`}
+                  >
+                    {opt.label}
+                  </span>
+                </div>
+                <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                  {opt.sub}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </GlassCard>
 
-      {/* Day Selector */}
-      <GlassCard className="p-2 sm:p-3 bg-white/95">
-        <DaySelector
-          selectedDay={selectedDay}
-          onSelectDay={setSelectedDay}
-          activeDaysWithMeals={daysWithMeals}
-        />
-      </GlassCard>
+      {/* Mode-Specific Schedule Selector */}
+      {currentMode === "simple" && (
+        <GlassCard className="p-3.5 sm:p-4 bg-gradient-to-r from-lime-50/70 via-emerald-50/50 to-teal-50/70 border border-lime-200/80 rounded-2xl shadow-xs">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-lime-500 text-black flex items-center justify-center shrink-0 font-bold shadow-xs">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div className="space-y-0.5">
+              <h4 className="text-xs sm:text-sm font-extrabold text-slate-900">
+                Simple Daily Diet — Same Plan Every Day
+              </h4>
+              <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                Build your core daily meal list once. Every day on your{" "}
+                <Link to="/tracker" className="text-lime-800 font-bold underline">
+                  Daily Tracker
+                </Link>{" "}
+                automatically uses these meals.
+              </p>
+            </div>
+          </div>
+        </GlassCard>
+      )}
+
+      {currentMode === "alternating" && (
+        <GlassCard className="p-3.5 sm:p-4 bg-white/95 border border-slate-200/90 rounded-2xl shadow-xs space-y-3">
+          {/* Today vs Tomorrow Rotation Preview + Swap Button */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-gradient-to-r from-lime-50/80 via-emerald-50/60 to-violet-50/60 border border-lime-200/80 rounded-xl p-3">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-1.5 text-xs font-extrabold text-slate-900">
+                <span className="px-2 py-0.5 rounded-full bg-lime-500 text-black text-[11px]">
+                  Today: {todayVariantName}
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 border border-violet-200 text-[11px]">
+                  Tomorrow: {tomorrowVariantName}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600 font-medium">
+                Automatically alternates every day between your two diets. Past days keep their logged data.
+              </p>
+            </div>
+
+            {activePlan && (
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={handleSwapTodayDiet}
+                isLoading={updatePlanMutation.isPending}
+                className="w-full sm:w-auto min-h-[44px] text-xs font-bold shrink-0"
+              >
+                <ArrowLeftRight className="w-3.5 h-3.5 mr-1.5" />
+                Swap Today's Diet
+              </Button>
+            )}
+          </div>
+
+          {/* Diet A & Diet B Selector Cards */}
+          <div className="grid grid-cols-2 gap-2.5">
+            {[
+              {
+                slot: "A",
+                name: dietAName,
+                mealsCount: (altConfig.dietAMeals || []).length,
+                kcal: dietATotals.calories,
+                runsToday: isTodayDietA,
+              },
+              {
+                slot: "B",
+                name: dietBName,
+                mealsCount: (altConfig.dietBMeals || []).length,
+                kcal: dietBTotals.calories,
+                runsToday: !isTodayDietA,
+              },
+            ].map((item) => {
+              const isSelectedSlot = altSlot === item.slot;
+              return (
+                <button
+                  key={item.slot}
+                  type="button"
+                  onClick={() => {
+                    haptics.tick();
+                    setAltSlot(item.slot);
+                  }}
+                  className={`min-h-[76px] p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    isSelectedSlot
+                      ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                      : "bg-slate-50/80 text-slate-900 border-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1.5 w-full">
+                    <span className="text-xs sm:text-sm font-black truncate">
+                      {item.name}
+                    </span>
+                    <span
+                      className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${
+                        item.runsToday
+                          ? isSelectedSlot
+                            ? "bg-lime-400 text-black"
+                            : "bg-lime-100 text-lime-800"
+                          : isSelectedSlot
+                          ? "bg-white/15 text-slate-200"
+                          : "bg-slate-200/80 text-slate-600"
+                      }`}
+                    >
+                      {item.runsToday ? "TODAY" : "TOMORROW"}
+                    </span>
+                  </div>
+                  <div
+                    className={`text-[11px] font-semibold mt-1 tabular-nums ${
+                      isSelectedSlot ? "text-slate-300" : "text-slate-500"
+                    }`}
+                  >
+                    {item.mealsCount} meals · {item.kcal} kcal
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Optional Custom Names for Diet A / Diet B */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-slate-100 items-end">
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                Diet A Label
+              </label>
+              <input
+                type="text"
+                value={altNameDraft.A ?? dietAName}
+                onChange={(e) =>
+                  setAltNameDraft((prev) => ({ ...prev, A: e.target.value }))
+                }
+                placeholder="e.g. High-Carb / Veg Day"
+                className="w-full min-h-[44px] px-3 rounded-xl bg-slate-50 border border-slate-200 text-base sm:text-xs font-semibold text-slate-900 focus:outline-none focus:border-lime-500"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                Diet B Label
+              </label>
+              <input
+                type="text"
+                value={altNameDraft.B ?? dietBName}
+                onChange={(e) =>
+                  setAltNameDraft((prev) => ({ ...prev, B: e.target.value }))
+                }
+                placeholder="e.g. Low-Carb / Eggs Day"
+                className="w-full min-h-[44px] px-3 rounded-xl bg-slate-50 border border-slate-200 text-base sm:text-xs font-semibold text-slate-900 focus:outline-none focus:border-lime-500"
+              />
+            </div>
+            {activePlan && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleSaveAltNames}
+                isLoading={updatePlanMutation.isPending}
+                className="w-full min-h-[44px] text-xs font-bold"
+              >
+                Save Diet Names
+              </Button>
+            )}
+          </div>
+        </GlassCard>
+      )}
+
+      {currentMode === "weekly" && (
+        <GlassCard className="p-2 sm:p-3 bg-white/95">
+          <DaySelector
+            selectedDay={selectedDay}
+            onSelectDay={setSelectedDay}
+            activeDaysWithMeals={daysWithMeals}
+          />
+        </GlassCard>
+      )}
 
       {/* Day Totals Banner */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 bg-white/95 border border-slate-200/90 rounded-2xl p-3 sm:p-3.5 text-center shadow-xs">
@@ -489,17 +964,17 @@ export const DietPage = () => {
         </div>
       </div>
 
-      {/* Meals List for Selected Day */}
+      {/* Meals List for Selected Schedule */}
       <div className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div className="flex items-center gap-2">
             <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">
-              {dayNames[selectedDay]} Schedule ({mealsForDay.length} Meals)
+              {currentScheduleTitle} ({mealsForDay.length} Meals)
             </h3>
           </div>
 
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
-            {mealsForDay.length > 0 && (
+            {currentMode === "weekly" && mealsForDay.length > 0 && (
               <button
                 type="button"
                 onClick={() => {
@@ -517,6 +992,24 @@ export const DietPage = () => {
               </button>
             )}
 
+            {currentMode === "alternating" &&
+              activePlan &&
+              (altSlot === "B" ? (altConfig.dietAMeals || []).length > 0 : (altConfig.dietBMeals || []).length > 0) && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleCopyMealsIntoAltSlot(
+                      altSlot,
+                      altSlot === "B" ? altConfig.dietAMeals : altConfig.dietBMeals
+                    )
+                  }
+                  className="flex-1 sm:flex-initial min-h-[44px] text-xs font-bold text-violet-700 bg-violet-50 hover:bg-violet-100 px-3 py-2 rounded-xl border border-violet-200 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <Copy className="w-3.5 h-3.5 shrink-0" />
+                  <span>Copy {altSlot === "B" ? dietAName : dietBName}</span>
+                </button>
+              )}
+
             <Button
               size="sm"
               onClick={handleOpenAddMeal}
@@ -532,19 +1025,23 @@ export const DietPage = () => {
             <Utensils className="w-10 h-10 text-slate-400 mx-auto" />
             <div className="space-y-1">
               <h4 className="font-bold text-slate-800 text-sm">
-                No meals planned for {dayNames[selectedDay]}
+                No meals planned for {currentScheduleTitle}
               </h4>
               <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
-                Add your Breakfast, Lunch, Snacks, or Dinner below. Once added, it will repeat every {dayNames[selectedDay]} continuously!
+                {currentMode === "simple"
+                  ? "Add your daily Breakfast, Lunch, Snacks, or Dinner below to repeat effortlessly every day."
+                  : currentMode === "alternating"
+                  ? `Add meals for ${currentScheduleTitle}, or copy your other diet and tweak a couple items.`
+                  : `Add your Breakfast, Lunch, Snacks, or Dinner below. Once added, it will repeat every ${dayNames[selectedDay]} continuously!`}
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row justify-center gap-2.5 pt-1">
               <Button size="sm" onClick={handleOpenAddMeal} className="w-full sm:w-auto min-h-[44px]">
-                <Plus className="w-4 h-4 mr-1" /> Add Meal to {dayNames[selectedDay]}
+                <Plus className="w-4 h-4 mr-1" /> Add Meal to {currentScheduleTitle}
               </Button>
 
-              {daysWithMeals.length > 0 && (
+              {currentMode === "weekly" && daysWithMeals.length > 0 && (
                 <Button
                   size="sm"
                   variant="secondary"
@@ -558,6 +1055,27 @@ export const DietPage = () => {
                   <Copy className="w-3.5 h-3.5 mr-1" /> Copy From Another Day
                 </Button>
               )}
+
+              {currentMode === "alternating" &&
+                activePlan &&
+                (altSlot === "B"
+                  ? (altConfig.dietAMeals || []).length > 0
+                  : (altConfig.dietBMeals || []).length > 0) && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="w-full sm:w-auto min-h-[44px]"
+                    onClick={() =>
+                      handleCopyMealsIntoAltSlot(
+                        altSlot,
+                        altSlot === "B" ? altConfig.dietAMeals : altConfig.dietBMeals
+                      )
+                    }
+                  >
+                    <Copy className="w-3.5 h-3.5 mr-1" /> Copy{" "}
+                    {altSlot === "B" ? dietAName : dietBName} Meals
+                  </Button>
+                )}
             </div>
           </GlassCard>
         ) : (
@@ -639,7 +1157,7 @@ export const DietPage = () => {
       <Sheet
         open={showMealModal}
         onOpenChange={setShowMealModal}
-        title={editingMealIndex >= 0 ? "Edit Meal" : `Add Meal to ${dayNames[selectedDay]}`}
+        title={editingMealIndex >= 0 ? "Edit Meal" : `Add Meal to ${currentScheduleTitle}`}
         description="Configure meal name, time, and food items"
       >
         <form onSubmit={handleSaveMeal} className="space-y-4 pt-1 pb-3">

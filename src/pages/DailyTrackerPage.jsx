@@ -709,6 +709,23 @@ export const DailyTrackerPage = () => {
             </GlassCard>
           ) : (
             <div className="space-y-4">
+              {chartData?.planVariant?.variantLabel &&
+                chartData?.planVariant?.mode !== "weekly" && (
+                  <div className="flex items-center justify-between gap-2 px-3.5 py-2 rounded-2xl bg-lime-50/80 border border-lime-200/90 text-xs">
+                    <span className="font-bold text-slate-700">
+                      Active Plan:{" "}
+                      <span className="text-lime-800 font-black">
+                        {chartData.planVariant.variantLabel}
+                      </span>
+                    </span>
+                    <Link
+                      to="/diet"
+                      className="text-[11px] font-bold text-violet-700 hover:underline shrink-0"
+                    >
+                      Edit Rotation
+                    </Link>
+                  </div>
+                )}
               {meals.map((meal) => {
                 const mealId = meal.mealId || meal._id;
                 const items = meal.plannedFoodItems || [];

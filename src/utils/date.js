@@ -16,6 +16,21 @@ export const getLocalDateString = (date = new Date(), timezone = "Asia/Kolkata")
   }
 };
 
+export const addDaysToDateString = (dateString, deltaDays = 0) => {
+  const [y, m, d] = dateString.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + deltaDays);
+  return dt.toISOString().split("T")[0];
+};
+
+export const getSignedDaysDiff = (fromDateStr, toDateStr) => {
+  const [y1, m1, d1] = fromDateStr.split("-").map(Number);
+  const [y2, m2, d2] = toDateStr.split("-").map(Number);
+  const t1 = Date.UTC(y1, m1 - 1, d1);
+  const t2 = Date.UTC(y2, m2 - 1, d2);
+  return Math.round((t2 - t1) / (1000 * 60 * 60 * 24));
+};
+
 export const formatShortDateRange = (weekStart, weekEnd) => {
   if (!weekStart || !weekEnd) return "";
   try {

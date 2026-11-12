@@ -496,46 +496,82 @@ export const GroupPage = () => {
           </div>
 
           {/* Invite Code & Share Strip */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-2.5 shrink-0">
-            <div className="min-w-0 pl-1">
-              <span className="text-[9px] font-black uppercase tracking-widest text-slate-300 block">
-                Invite Code
-              </span>
-              <span className="text-sm sm:text-base font-mono font-black text-lime-300 tracking-wider">
-                {activeGroup.inviteCode}
-              </span>
+          <div className="w-full md:w-auto md:max-w-md bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-3 flex flex-col gap-2.5">
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <div className="min-w-0 pl-0.5">
+                <span className="text-[9px] font-black uppercase tracking-widest text-slate-300 block">
+                  Invite Code
+                </span>
+                <span className="text-sm sm:text-base font-mono font-black text-lime-300 tracking-wider truncate block">
+                  {activeGroup.inviteCode}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  aria-label="Copy invite code"
+                  onClick={copyInviteCode}
+                  className="min-h-[40px] px-2.5 sm:px-3 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5 text-lime-300" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copied ? "Copied" : "Copy"}</span>
+                </button>
+
+                {isAdmin && (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Squad fun stakes & settings"
+                      onClick={() => {
+                        haptics.tick();
+                        setStakesEnabled(Boolean(dashboardData?.group?.weeklyStakes?.enabled ?? activeGroup?.weeklyStakes?.enabled));
+                        setForfeitText(dashboardData?.group?.weeklyStakes?.forfeitText ?? activeGroup?.weeklyStakes?.forfeitText ?? "");
+                        setShowSettingsModal(true);
+                      }}
+                      className="min-w-[40px] min-h-[40px] rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+                      title="Weekly Fun Stakes & Settings"
+                    >
+                      <Settings2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Regenerate invite code"
+                      onClick={() => {
+                        haptics.tick();
+                        regenerateMutation.mutate();
+                      }}
+                      disabled={regenerateMutation.isPending}
+                      className="min-w-[40px] min-h-[40px] rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+                      title="Regenerate invite code"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${regenerateMutation.isPending ? "animate-spin" : ""}`} />
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
 
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                type="button"
-                aria-label="Copy invite code"
-                onClick={copyInviteCode}
-                className="min-w-[44px] min-h-[44px] px-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
-              >
-                {copied ? <Check className="w-3.5 h-3.5 text-lime-300" /> : <Copy className="w-3.5 h-3.5" />}
-                <span className="hidden sm:inline">{copied ? "Copied" : "Copy"}</span>
-              </button>
-
+            <div className="grid grid-cols-3 gap-1.5 w-full">
               <button
                 type="button"
                 aria-label="Share on WhatsApp"
                 onClick={handleWhatsAppInvite}
-                className="min-w-[44px] min-h-[44px] px-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                className="min-h-[40px] px-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[11px] sm:text-xs font-extrabold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
                 title="Invite on WhatsApp"
               >
-                <MessageCircle className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">WhatsApp</span>
+                <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">WhatsApp</span>
               </button>
 
               <button
                 type="button"
                 aria-label="Share squad invite"
                 onClick={handleShareInvite}
-                className="min-w-[44px] min-h-[44px] px-2.5 rounded-xl bg-lime-400 hover:bg-lime-300 text-slate-950 text-xs font-extrabold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                className="min-h-[40px] px-2 rounded-xl bg-lime-400 hover:bg-lime-300 text-slate-950 text-[11px] sm:text-xs font-extrabold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
               >
-                <Share2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Invite</span>
+                <Share2 className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Invite</span>
               </button>
 
               <button
@@ -545,44 +581,12 @@ export const GroupPage = () => {
                   haptics.tick();
                   setShowRecapModal(true);
                 }}
-                className="min-w-[44px] min-h-[44px] px-2.5 rounded-xl bg-indigo-500/80 hover:bg-indigo-400 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                className="min-h-[40px] px-2 rounded-xl bg-indigo-500/85 hover:bg-indigo-400 text-white text-[11px] sm:text-xs font-extrabold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
                 title="Weekly Recap Card"
               >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Recap</span>
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Recap</span>
               </button>
-
-              {isAdmin && (
-                <>
-                  <button
-                    type="button"
-                    aria-label="Squad fun stakes & settings"
-                    onClick={() => {
-                      haptics.tick();
-                      setStakesEnabled(Boolean(dashboardData?.group?.weeklyStakes?.enabled ?? activeGroup?.weeklyStakes?.enabled));
-                      setForfeitText(dashboardData?.group?.weeklyStakes?.forfeitText ?? activeGroup?.weeklyStakes?.forfeitText ?? "");
-                      setShowSettingsModal(true);
-                    }}
-                    className="min-w-[44px] min-h-[44px] rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
-                    title="Weekly Fun Stakes & Settings"
-                  >
-                    <Settings2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Regenerate invite code"
-                    onClick={() => {
-                      haptics.tick();
-                      regenerateMutation.mutate();
-                    }}
-                    disabled={regenerateMutation.isPending}
-                    className="min-w-[44px] min-h-[44px] rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
-                    title="Regenerate invite code"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${regenerateMutation.isPending ? "animate-spin" : ""}`} />
-                  </button>
-                </>
-              )}
             </div>
           </div>
         </div>

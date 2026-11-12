@@ -110,11 +110,11 @@ export const ProfilePage = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-4xl mx-auto pb-6 sm:pb-8">
       {/* Top Banner Hero */}
-      <GlassCard className="p-5 sm:p-7 relative overflow-hidden bg-white/95 border-slate-200 shadow-[0_8px_30px_rgba(15,23,42,0.06)]">
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-          <div className="flex items-center gap-4">
+      <GlassCard className="p-4 sm:p-7 relative overflow-hidden bg-white/95 border-slate-200 shadow-[0_8px_30px_rgba(15,23,42,0.06)]">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5">
+          <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
             <button
               type="button"
               onClick={() => {
@@ -175,7 +175,7 @@ export const ProfilePage = () => {
                 logout();
               }
             }}
-            className="text-xs text-rose-600 hover:text-rose-700 font-bold self-start sm:self-auto cursor-pointer"
+            className="w-full sm:w-auto min-h-[44px] text-xs text-rose-600 hover:text-rose-700 font-bold cursor-pointer justify-center"
           >
             <LogOut className="w-4 h-4 mr-1.5" /> Sign Out
           </Button>
@@ -313,8 +313,8 @@ export const ProfilePage = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-              <div>
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 min-w-0">
+              <div className="min-w-0">
                 <span className="text-xs font-bold text-slate-800 block">Body Weight</span>
                 <span className="text-[11px] text-slate-500 capitalize">{form.privacy.weight}</span>
               </div>
@@ -323,15 +323,15 @@ export const ProfilePage = () => {
                 onChange={(e) =>
                   setForm({ ...form, privacy: { ...form.privacy, weight: e.target.value } })
                 }
-                className="text-xs font-bold bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-lime-400"
+                className="shrink-0 min-h-[40px] text-xs font-bold bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-lime-400"
               >
                 <option value="private">Private</option>
                 <option value="group">Share with Squad</option>
               </select>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-              <div>
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 min-w-0">
+              <div className="min-w-0">
                 <span className="text-xs font-bold text-slate-800 block">Measurements</span>
                 <span className="text-[11px] text-slate-500 capitalize">
                   {form.privacy.measurements}
@@ -342,15 +342,15 @@ export const ProfilePage = () => {
                 onChange={(e) =>
                   setForm({ ...form, privacy: { ...form.privacy, measurements: e.target.value } })
                 }
-                className="text-xs font-bold bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-lime-400"
+                className="shrink-0 min-h-[40px] text-xs font-bold bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-lime-400"
               >
                 <option value="private">Private</option>
                 <option value="group">Share with Squad</option>
               </select>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-              <div>
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 min-w-0">
+              <div className="min-w-0">
                 <span className="text-xs font-bold text-slate-800 block">Progress Photos</span>
                 <span className="text-[11px] text-slate-500 capitalize">{form.privacy.photos}</span>
               </div>
@@ -359,7 +359,7 @@ export const ProfilePage = () => {
                 onChange={(e) =>
                   setForm({ ...form, privacy: { ...form.privacy, photos: e.target.value } })
                 }
-                className="text-xs font-bold bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-lime-400"
+                className="shrink-0 min-h-[40px] text-xs font-bold bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-lime-400"
               >
                 <option value="private">Private</option>
                 <option value="group">Share with Squad</option>
@@ -468,13 +468,13 @@ export const ProfilePage = () => {
         </GlassCard>
 
         {/* Social Feed Privacy & Nudges (Phases 2, 3, 6) */}
-        <GlassCard className="p-5 sm:p-6 bg-white/95 border-slate-200 shadow-sm space-y-4">
-          <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center">
+        <GlassCard className="p-4 sm:p-6 bg-white/95 border-slate-200 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center shrink-0">
                 <Shield className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h2 className="text-base font-extrabold text-slate-900 tracking-tight">
                   Squad Privacy &amp; Nudges
                 </h2>
@@ -485,7 +485,7 @@ export const ProfilePage = () => {
             </div>
             <Link
               to="/badges"
-              className="text-xs font-extrabold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full hover:bg-amber-100 transition-colors"
+              className="shrink-0 self-start sm:self-auto whitespace-nowrap inline-flex items-center text-xs font-extrabold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full hover:bg-amber-100 transition-colors"
             >
               View Badges 🏅
             </Link>
@@ -516,23 +516,25 @@ export const ProfilePage = () => {
                 key={item.key}
                 className="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/80"
               >
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold text-slate-900">{item.title}</p>
-                  <p className="text-xs text-slate-500">{item.desc}</p>
+                  <p className="text-xs text-slate-500 leading-relaxed">{item.desc}</p>
                 </div>
-                <Switch
-                  checked={item.checked}
-                  onCheckedChange={async (val) => {
-                    haptics.tick();
-                    try {
-                      await authApi.updateSocialSettings({ [item.key]: val });
-                      await refreshUser();
-                      toast.success("Privacy setting updated");
-                    } catch (err) {
-                      toast.error(err.response?.data?.message || "Failed to update setting");
-                    }
-                  }}
-                />
+                <div className="shrink-0">
+                  <Switch
+                    checked={item.checked}
+                    onCheckedChange={async (val) => {
+                      haptics.tick();
+                      try {
+                        await authApi.updateSocialSettings({ [item.key]: val });
+                        await refreshUser();
+                        toast.success("Privacy setting updated");
+                      } catch (err) {
+                        toast.error(err.response?.data?.message || "Failed to update setting");
+                      }
+                    }}
+                  />
+                </div>
               </div>
             ))}
           </div>

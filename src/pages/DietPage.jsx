@@ -55,6 +55,7 @@ export const DietPage = () => {
   const [draftMode, setDraftMode] = useState("simple"); // Used before first plan is created
   const [altSlot, setAltSlot] = useState("A"); // "A" | "B" for Alternating 2 Diets
   const [altNameDraft, setAltNameDraft] = useState({});
+  const [showRenameAlt, setShowRenameAlt] = useState(false);
   const [showMealModal, setShowMealModal] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [showCopyFormatModal, setShowCopyFormatModal] = useState(false);
@@ -341,6 +342,7 @@ export const DietPage = () => {
     if (!activePlan) return;
     const nextA = (altNameDraft.A ?? dietAName).trim() || "Diet A";
     const nextB = (altNameDraft.B ?? dietBName).trim() || "Diet B";
+    setShowRenameAlt(false);
     updatePlanMutation.mutate({
       alternatingConfig: {
         ...altConfig,
@@ -658,43 +660,46 @@ export const DietPage = () => {
     {
       id: "simple",
       label: "Simple Daily",
+      shortLabel: "Simple",
       sub: "Same every day",
       icon: Sparkles,
     },
     {
       id: "alternating",
       label: "2-Diet Alternate",
-      sub: "Today A · Tomorrow B",
+      shortLabel: "2-Diet A/B",
+      sub: "Today A · Tom B",
       icon: ArrowLeftRight,
     },
     {
       id: "weekly",
       label: "7-Day Weekly",
+      shortLabel: "7-Day",
       sub: "Custom Mon–Sun",
       icon: CalendarDays,
     },
   ];
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-4xl mx-auto text-slate-900">
+    <div className="space-y-4 sm:space-y-6 max-w-4xl mx-auto text-slate-900 overflow-x-hidden pb-6">
       {/* Top Header & Overview */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <span className="text-xs font-black text-lime-700 uppercase tracking-widest bg-lime-100/70 px-2.5 py-0.5 rounded-full border border-lime-200">
+        <div className="min-w-0">
+          <span className="inline-block text-[11px] font-black text-lime-700 uppercase tracking-widest bg-lime-100/70 px-2.5 py-0.5 rounded-full border border-lime-200">
             Ongoing Recurring Meal Plan
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5 break-words">
             {activePlan?.name || "My Ongoing Meal Plan"}
           </h1>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
+          <p className="text-xs text-slate-500 font-medium mt-0.5 leading-relaxed">
             Switch between Simple, Alternating (2 Diets), or 7-Day Weekly anytime — earlier plans and past logs are always preserved.
           </p>
         </div>
 
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto shrink-0">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto shrink-0">
           <Link
             to="/tracker"
-            className="flex-1 sm:flex-initial"
+            className={activePlan ? "w-full sm:w-auto" : "col-span-2 sm:col-span-1 w-full sm:w-auto"}
           >
             <Button
               size="sm"
@@ -710,10 +715,10 @@ export const DietPage = () => {
               variant="outline"
               onClick={() => {
                 setCopiedRecently(false);
-                setCopyScope(currentMode === "simple" ? "current" : "current");
+                setCopyScope("current");
                 setShowCopyFormatModal(true);
               }}
-              className="flex-1 sm:flex-initial min-h-[44px] text-xs font-bold"
+              className="w-full sm:w-auto min-h-[44px] text-xs font-bold"
             >
               <ClipboardCheck className="w-3.5 h-3.5 mr-1 text-lime-700" /> Copy Diet
             </Button>
@@ -727,7 +732,7 @@ export const DietPage = () => {
                 setDuplicateToAll(false);
                 setShowDuplicateModal(true);
               }}
-              className="w-full sm:w-auto min-h-[44px] text-xs"
+              className="col-span-2 sm:col-span-1 w-full sm:w-auto min-h-[44px] text-xs"
             >
               <Copy className="w-3.5 h-3.5 mr-1" /> Duplicate Day
             </Button>
@@ -737,11 +742,11 @@ export const DietPage = () => {
 
       {/* Plan Mode Switcher */}
       <GlassCard className="p-2.5 sm:p-3 bg-white/95 border border-slate-200/90 rounded-2xl shadow-xs space-y-2.5">
-        <div className="flex items-center justify-between px-1">
+        <div className="flex items-center justify-between gap-2 px-1">
           <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
             Diet Rotation Mode
           </span>
-          <span className="text-[11px] font-semibold text-emerald-700">
+          <span className="text-[11px] font-semibold text-emerald-700 shrink-0">
             Earlier data preserved
           </span>
         </div>
@@ -756,27 +761,28 @@ export const DietPage = () => {
                 type="button"
                 disabled={updatePlanMutation.isPending}
                 onClick={() => handleSwitchMode(opt.id)}
-                className={`min-h-[54px] px-2 sm:px-3 py-2 rounded-xl border text-left transition-all flex flex-col justify-center cursor-pointer ${
+                className={`min-h-[60px] px-2 sm:px-3 py-2 rounded-xl border text-center sm:text-left transition-all flex flex-col items-center sm:items-start justify-center cursor-pointer ${
                   isActiveMode
                     ? "bg-lime-50 border-lime-400 shadow-xs"
                     : "bg-slate-50/70 border-slate-200 hover:bg-slate-100/80"
                 }`}
               >
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1 sm:gap-1.5">
                   <Icon
                     className={`w-3.5 h-3.5 shrink-0 ${
                       isActiveMode ? "text-lime-700" : "text-slate-500"
                     }`}
                   />
                   <span
-                    className={`text-xs sm:text-sm font-extrabold truncate ${
+                    className={`text-xs sm:text-sm font-extrabold leading-tight ${
                       isActiveMode ? "text-slate-900" : "text-slate-700"
                     }`}
                   >
-                    {opt.label}
+                    <span className="sm:hidden">{opt.shortLabel}</span>
+                    <span className="hidden sm:inline">{opt.label}</span>
                   </span>
                 </div>
-                <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-tight mt-0.5">
                   {opt.sub}
                 </span>
               </button>
@@ -809,41 +815,53 @@ export const DietPage = () => {
       )}
 
       {currentMode === "alternating" && (
-        <GlassCard className="p-3.5 sm:p-4 bg-white/95 border border-slate-200/90 rounded-2xl shadow-xs space-y-3">
-          {/* Today vs Tomorrow Rotation Preview + Swap Button */}
+        <GlassCard className="p-3 sm:p-4 bg-white/95 border border-slate-200/90 rounded-2xl shadow-xs space-y-3">
+          {/* Today vs Tomorrow Rotation Preview + Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-gradient-to-r from-lime-50/80 via-emerald-50/60 to-violet-50/60 border border-lime-200/80 rounded-xl p-3">
-            <div className="space-y-1">
+            <div className="space-y-1 min-w-0">
               <div className="flex flex-wrap items-center gap-1.5 text-xs font-extrabold text-slate-900">
                 <span className="px-2 py-0.5 rounded-full bg-lime-500 text-black text-[11px]">
                   Today: {todayVariantName}
                 </span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 border border-violet-200 text-[11px]">
                   Tomorrow: {tomorrowVariantName}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-600 font-medium">
-                Automatically alternates every day between your two diets. Past days keep their logged data.
+              <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                Alternates every day between your 2 diets while keeping past logs intact.
               </p>
             </div>
 
             {activePlan && (
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                onClick={handleSwapTodayDiet}
-                isLoading={updatePlanMutation.isPending}
-                className="w-full sm:w-auto min-h-[44px] text-xs font-bold shrink-0"
-              >
-                <ArrowLeftRight className="w-3.5 h-3.5 mr-1.5" />
-                Swap Today's Diet
-              </Button>
+              <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto shrink-0">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={handleSwapTodayDiet}
+                  isLoading={updatePlanMutation.isPending}
+                  className="w-full sm:w-auto min-h-[44px] text-xs font-bold"
+                >
+                  <ArrowLeftRight className="w-3.5 h-3.5 mr-1" />
+                  Swap Today
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowRenameAlt((v) => !v)}
+                  className="w-full sm:w-auto min-h-[44px] text-xs font-bold"
+                >
+                  <Edit2 className="w-3.5 h-3.5 mr-1" />
+                  {showRenameAlt ? "Close" : "Rename A/B"}
+                </Button>
+              </div>
             )}
           </div>
 
           {/* Diet A & Diet B Selector Cards */}
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
             {[
               {
                 slot: "A",
@@ -869,18 +887,15 @@ export const DietPage = () => {
                     haptics.tick();
                     setAltSlot(item.slot);
                   }}
-                  className={`min-h-[76px] p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                  className={`min-h-[86px] p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
                     isSelectedSlot
                       ? "bg-slate-900 text-white border-slate-900 shadow-sm"
                       : "bg-slate-50/80 text-slate-900 border-slate-200 hover:bg-slate-100"
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-1.5 w-full">
-                    <span className="text-xs sm:text-sm font-black truncate">
-                      {item.name}
-                    </span>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 w-full min-w-0">
                     <span
-                      className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${
+                      className={`self-start sm:order-2 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${
                         item.runsToday
                           ? isSelectedSlot
                             ? "bg-lime-400 text-black"
@@ -892,9 +907,12 @@ export const DietPage = () => {
                     >
                       {item.runsToday ? "TODAY" : "TOMORROW"}
                     </span>
+                    <span className="text-sm font-black break-words leading-tight sm:order-1">
+                      {item.name}
+                    </span>
                   </div>
                   <div
-                    className={`text-[11px] font-semibold mt-1 tabular-nums ${
+                    className={`text-[11px] font-semibold tabular-nums ${
                       isSelectedSlot ? "text-slate-300" : "text-slate-500"
                     }`}
                   >
@@ -905,49 +923,51 @@ export const DietPage = () => {
             })}
           </div>
 
-          {/* Optional Custom Names for Diet A / Diet B */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-slate-100 items-end">
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                Diet A Label
-              </label>
-              <input
-                type="text"
-                value={altNameDraft.A ?? dietAName}
-                onChange={(e) =>
-                  setAltNameDraft((prev) => ({ ...prev, A: e.target.value }))
-                }
-                placeholder="e.g. High-Carb / Veg Day"
-                className="w-full min-h-[44px] px-3 rounded-xl bg-slate-50 border border-slate-200 text-base sm:text-xs font-semibold text-slate-900 focus:outline-none focus:border-lime-500"
-              />
+          {/* Collapsible Custom Names for Diet A / Diet B */}
+          {showRenameAlt && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2.5 border-t border-slate-100 items-end">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                  Diet A Label
+                </label>
+                <input
+                  type="text"
+                  value={altNameDraft.A ?? dietAName}
+                  onChange={(e) =>
+                    setAltNameDraft((prev) => ({ ...prev, A: e.target.value }))
+                  }
+                  placeholder="e.g. High-Carb / Veg Day"
+                  className="w-full min-h-[44px] px-3 rounded-xl bg-slate-50 border border-slate-200 text-base sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-lime-500"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                  Diet B Label
+                </label>
+                <input
+                  type="text"
+                  value={altNameDraft.B ?? dietBName}
+                  onChange={(e) =>
+                    setAltNameDraft((prev) => ({ ...prev, B: e.target.value }))
+                  }
+                  placeholder="e.g. Low-Carb / Eggs Day"
+                  className="w-full min-h-[44px] px-3 rounded-xl bg-slate-50 border border-slate-200 text-base sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-lime-500"
+                />
+              </div>
+              {activePlan && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleSaveAltNames}
+                  isLoading={updatePlanMutation.isPending}
+                  className="w-full min-h-[44px] text-xs font-bold"
+                >
+                  Save Diet Names
+                </Button>
+              )}
             </div>
-            <div>
-              <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                Diet B Label
-              </label>
-              <input
-                type="text"
-                value={altNameDraft.B ?? dietBName}
-                onChange={(e) =>
-                  setAltNameDraft((prev) => ({ ...prev, B: e.target.value }))
-                }
-                placeholder="e.g. Low-Carb / Eggs Day"
-                className="w-full min-h-[44px] px-3 rounded-xl bg-slate-50 border border-slate-200 text-base sm:text-xs font-semibold text-slate-900 focus:outline-none focus:border-lime-500"
-              />
-            </div>
-            {activePlan && (
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={handleSaveAltNames}
-                isLoading={updatePlanMutation.isPending}
-                className="w-full min-h-[44px] text-xs font-bold"
-              >
-                Save Diet Names
-              </Button>
-            )}
-          </div>
+          )}
         </GlassCard>
       )}
 
@@ -1262,7 +1282,7 @@ export const DietPage = () => {
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">
                   1-Tap Time Presets
                 </span>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-visible pb-1 sm:pb-0 scrollbar-none">
                   {MEAL_TIME_PRESETS.map((preset) => {
                     const isSelected = mealForm.scheduledTime === preset.time;
                     return (
@@ -1273,7 +1293,7 @@ export const DietPage = () => {
                           setMealForm({ ...mealForm, scheduledTime: preset.time });
                           haptics.tick();
                         }}
-                        className={`min-h-[38px] px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        className={`shrink-0 min-h-[40px] px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                           isSelected
                             ? "bg-lime-500 text-slate-950 shadow-xs ring-1 ring-lime-600"
                             : "bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/90 shadow-2xs"

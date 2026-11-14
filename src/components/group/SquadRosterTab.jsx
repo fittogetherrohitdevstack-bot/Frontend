@@ -4,6 +4,7 @@ import { Button } from "../ui/Button";
 import { Avatar } from "../ui/Avatar";
 import { Skeleton } from "../ui/Skeleton";
 import { Sheet } from "../ui/Sheet";
+import { MemberProfileSheet } from "./MemberProfileSheet";
 import { haptics } from "../../motion/Haptics";
 import {
   Shield,
@@ -14,6 +15,8 @@ import {
   Copy,
   Check,
   RefreshCw,
+  ChevronRight,
+  Flame,
 } from "lucide-react";
 
 export const SquadRosterTab = ({
@@ -36,6 +39,7 @@ export const SquadRosterTab = ({
 }) => {
   const [confirmRemoveTarget, setConfirmRemoveTarget] = useState(null);
   const [confirmLeaveOpen, setConfirmLeaveOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState(null);
 
   return (
     <div className="space-y-4">
@@ -87,10 +91,23 @@ export const SquadRosterTab = ({
           <div className="space-y-2.5">
             {members.map((m) => {
               const isSelf = String(m.userId) === String(currentUserId);
+              const streak = m.currentStreak ?? 0;
               return (
                 <div
                   key={m.userId}
-                  className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-2.5 ${
+                  onClick={() => {
+                    haptics.selection();
+                    setSelectedMember(m);
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelectedMember(m);
+                    }
+                  }}
+                  className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-2.5 cursor-pointer hover:shadow-md hover:border-slate-300 active:scale-[0.99] group ${
                     isSelf
                       ? "bg-lime-50/55 border-lime-300/80 shadow-xs"
                       : "bg-slate-50/75 border-slate-200/80"
@@ -105,7 +122,7 @@ export const SquadRosterTab = ({
                     />
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="font-extrabold text-slate-900 text-sm truncate">
+                        <span className="font-extrabold text-slate-900 text-sm truncate group-hover:text-emerald-900 transition-colors">
                           {m.name}
                         </span>
                         {isSelf && (
@@ -116,6 +133,11 @@ export const SquadRosterTab = ({
                         {m.role === "admin" && (
                           <span className="text-[10px] font-black text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-full border border-amber-300 inline-flex items-center gap-0.5">
                             <Shield className="w-2.5 h-2.5" /> Leader
+                          </span>
+                        )}
+                        {streak > 0 && (
+                          <span className="text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5">
+                            <Flame className="w-2.5 h-2.5 fill-amber-500 text-amber-500" /> {streak}d
                           </span>
                         )}
                       </div>
@@ -129,19 +151,25 @@ export const SquadRosterTab = ({
                     </div>
                   </div>
 
-                  {isAdmin && !isSelf && (
-                    <button
-                      type="button"
-                      aria-label={`Remove ${m.name}`}
-                      onClick={() => {
-                        haptics.tick();
-                        setConfirmRemoveTarget(m);
-                      }}
-                      className="min-w-[44px] min-h-[44px] rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {isAdmin && !isSelf && (
+                      <button
+                        type="button"
+                        aria-label={`Remove ${m.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          haptics.tick();
+                          setConfirmRemoveTarget(m);
+                        }}
+                        className="min-w-[40px] min-h-[40px] rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                    <div className="w-8 h-8 rounded-full bg-white/70 border border-slate-200/60 flex items-center justify-center text-slate-400 group-hover:text-slate-700 group-hover:border-slate-300 transition-colors">
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
+                  </div>
                 </div>
               );
             })}
@@ -271,6 +299,15 @@ export const SquadRosterTab = ({
           </Button>
         </div>
       </Sheet>
+
+      {/* Member Detailed Profile Sheet (Daily achievements, badges, stats & privacy-gated metrics) */}
+      <MemberProfileSheet
+        isOpen={!!selectedMember}
+        onClose={() => setSelectedMember(null)}
+        groupId={activeGroup?._id}
+        member={selectedMember}
+        currentUserId={currentUserId}
+      />
     </div>
   );
 };

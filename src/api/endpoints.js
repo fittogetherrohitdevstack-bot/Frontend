@@ -29,6 +29,7 @@ export const groupApi = {
   getById: (id) => api.get(`/groups/${id}`),
   update: (id, data) => api.put(`/groups/${id}`, data),
   getMembers: (id) => api.get(`/groups/${id}/members`),
+  getMemberProfile: (groupId, userId) => api.get(`/groups/${groupId}/members/${userId}/profile`),
   regenerateInvite: (id) => api.post(`/groups/${id}/invite/regenerate`),
   leave: (id) => api.post(`/groups/${id}/leave`),
   removeMember: (groupId, userId) => api.delete(`/groups/${groupId}/members/${userId}`),

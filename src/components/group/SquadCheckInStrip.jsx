@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { toast } from "sonner";
@@ -6,11 +6,13 @@ import { groupApi } from "../../api/endpoints";
 import { Avatar } from "../ui/Avatar";
 import { GlassCard } from "../ui/GlassCard";
 import { Skeleton } from "../ui/Skeleton";
+import { MemberProfileSheet } from "./MemberProfileSheet";
 import { haptics } from "../../motion/Haptics";
 import { Check, Clock, BellRing, Flame, VolumeX } from "lucide-react";
 
 export const SquadCheckInStrip = ({ groupId, currentUserId }) => {
   const queryClient = useQueryClient();
+  const [selectedMember, setSelectedMember] = useState(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["squad-today-status", groupId],
@@ -65,7 +67,13 @@ export const SquadCheckInStrip = ({ groupId, currentUserId }) => {
               key={m.userId}
               layout
               whileTap={{ scale: 0.97 }}
-              className={`shrink-0 w-28 sm:w-32 p-2.5 rounded-2xl border flex flex-col items-center text-center gap-1.5 transition-colors ${
+              onClick={() => {
+                haptics.selection();
+                setSelectedMember(m);
+              }}
+              role="button"
+              tabIndex={0}
+              className={`shrink-0 w-28 sm:w-32 p-2.5 rounded-2xl border flex flex-col items-center text-center gap-1.5 transition-all cursor-pointer hover:shadow-sm hover:border-slate-300 ${
                 m.loggedToday
                   ? "bg-lime-50/70 border-lime-300/80"
                   : "bg-amber-50/60 border-amber-200"
@@ -121,7 +129,10 @@ export const SquadCheckInStrip = ({ groupId, currentUserId }) => {
                   type="button"
                   whileTap={{ scale: 0.9 }}
                   disabled={nudgeMutation.isPending}
-                  onClick={() => nudgeMutation.mutate({ targetUserId: m.userId })}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    nudgeMutation.mutate({ targetUserId: m.userId });
+                  }}
                   className="mt-auto min-h-[34px] w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-lime-300 text-[11px] font-black inline-flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-2xs"
                 >
                   <BellRing className="w-3 h-3" />
@@ -132,6 +143,15 @@ export const SquadCheckInStrip = ({ groupId, currentUserId }) => {
           );
         })}
       </div>
+
+      {/* Member Profile Sheet */}
+      <MemberProfileSheet
+        isOpen={!!selectedMember}
+        onClose={() => setSelectedMember(null)}
+        groupId={groupId}
+        member={selectedMember}
+        currentUserId={currentUserId}
+      />
     </GlassCard>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Send, Trash2, MessageSquare } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -92,13 +93,13 @@ export const CommentsSheet = ({
     inputRef.current?.focus();
   };
 
-  if (!isOpen || !moment) return null;
+  if (!isOpen || !moment || typeof document === "undefined") return null;
 
   const isPostAuthor = moment.authorId?._id?.toString() === user?._id?.toString();
 
-  return (
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -114,7 +115,7 @@ export const CommentsSheet = ({
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 30, stiffness: 320 }}
-          className="relative w-full sm:max-w-lg bg-white border border-slate-200/90 rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 max-h-[88dvh] h-[85dvh] flex flex-col overflow-hidden safe-bottom"
+          className="relative w-full sm:max-w-lg bg-white border border-slate-200/90 rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 max-h-[88dvh] h-[85dvh] flex flex-col overflow-hidden"
         >
           {/* Top Drag Indicator */}
           <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
@@ -229,8 +230,8 @@ export const CommentsSheet = ({
             )}
           </div>
 
-          {/* Sticky Quick Emojis & Input Footer */}
-          <div className="p-3 bg-white border-t border-slate-200/80 space-y-2 shrink-0">
+          {/* Sticky Quick Emojis & Input Footer (Safely above Mobile Nav Bar) */}
+          <div className="p-3 pb-8 sm:pb-3.5 bg-white border-t border-slate-200/80 space-y-2 shrink-0">
             {/* Quick Emojis Row */}
             <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
               <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider shrink-0 px-1">
@@ -281,6 +282,7 @@ export const CommentsSheet = ({
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

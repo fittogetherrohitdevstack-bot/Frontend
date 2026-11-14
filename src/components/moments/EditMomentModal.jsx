@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Check } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -44,11 +45,11 @@ export const EditMomentModal = ({
     editMutation.mutate();
   };
 
-  if (!isOpen || !moment) return null;
+  if (!isOpen || !moment || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -64,7 +65,7 @@ export const EditMomentModal = ({
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 30, stiffness: 320 }}
-          className="relative w-full sm:max-w-md bg-white border border-slate-200/90 rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 overflow-hidden safe-bottom"
+          className="relative w-full sm:max-w-md bg-white border border-slate-200/90 rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 overflow-hidden"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
@@ -126,7 +127,7 @@ export const EditMomentModal = ({
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2 pt-2">
+            <div className="flex items-center gap-2 pt-2 pb-6 sm:pb-1">
               <button
                 type="button"
                 onClick={onClose}
@@ -145,6 +146,7 @@ export const EditMomentModal = ({
           </form>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

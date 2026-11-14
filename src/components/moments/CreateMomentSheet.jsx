@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Camera,
@@ -146,11 +147,11 @@ export const CreateMomentSheet = ({ isOpen, onClose, groupId }) => {
     setCaption(idea);
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -166,7 +167,7 @@ export const CreateMomentSheet = ({ isOpen, onClose, groupId }) => {
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 30, stiffness: 320 }}
-          className="relative w-full sm:max-w-xl bg-white border border-slate-200/90 rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 max-h-[92dvh] flex flex-col overflow-hidden safe-bottom"
+          className="relative w-full sm:max-w-xl bg-white border border-slate-200/90 rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 max-h-[92dvh] h-[90dvh] flex flex-col overflow-hidden"
         >
           {/* Mobile Top Drag Indicator */}
           <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
@@ -199,9 +200,11 @@ export const CreateMomentSheet = ({ isOpen, onClose, groupId }) => {
             </button>
           </div>
 
-          {/* Form Body */}
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-            {/* Hidden File Inputs */}
+          {/* Form with Scrollable Body and Docked Mobile Footer */}
+          <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+              {/* Hidden File Inputs */}
             <input
               type="file"
               ref={fileInputRef}
@@ -397,38 +400,41 @@ export const CreateMomentSheet = ({ isOpen, onClose, groupId }) => {
               </div>
             )}
 
-            {/* Bottom Actions */}
-            <div className="pt-2 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleClose}
-                disabled={createMutation.isPending}
-                className="flex-1 min-h-[46px] rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
+              </div>
 
-              <button
-                type="submit"
-                disabled={selectedFiles.length === 0 || createMutation.isPending || isProcessingImages}
-                className="flex-2 min-h-[46px] rounded-2xl bg-lime-500 hover:bg-lime-400 text-slate-950 text-xs font-black tracking-wide shadow-md shadow-lime-500/25 active:scale-98 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
-              >
-                {createMutation.isPending ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                    <span>Publishing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    <span>Share Moment</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </motion.div>
-      </div>
-    </AnimatePresence>
-  );
+              {/* Docked Mobile-First Bottom Actions */}
+              <div className="px-5 py-3.5 pb-8 sm:pb-3.5 border-t border-slate-100 bg-white/95 backdrop-blur-md flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  disabled={createMutation.isPending}
+                  className="flex-1 min-h-[48px] rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={selectedFiles.length === 0 || createMutation.isPending || isProcessingImages}
+                  className="flex-2 min-h-[48px] rounded-2xl bg-lime-500 hover:bg-lime-400 text-slate-950 text-xs font-black tracking-wide shadow-md shadow-lime-500/25 active:scale-98 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                >
+                  {createMutation.isPending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                      <span>Publishing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Share Moment</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      </AnimatePresence>,
+      document.body
+    );
 };

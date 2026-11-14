@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -75,7 +76,7 @@ export const MemberProfileSheet = ({
     },
   });
 
-  if (!isOpen || !member) return null;
+  if (!isOpen || !member || typeof document === "undefined") return null;
 
   const user = profileData?.user;
   const today = profileData?.today;
@@ -103,9 +104,9 @@ export const MemberProfileSheet = ({
   const waterTarget = today?.water?.targetMl || 3000;
   const waterPercent = Math.min(100, Math.round((waterLogged / waterTarget) * 100));
 
-  return (
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -121,7 +122,7 @@ export const MemberProfileSheet = ({
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 30, stiffness: 320 }}
-          className="relative w-full sm:max-w-xl bg-white border border-slate-200/90 rounded-t-[32px] sm:rounded-3xl shadow-2xl z-10 max-h-[92dvh] h-[90dvh] flex flex-col overflow-hidden safe-bottom"
+          className="relative w-full sm:max-w-xl bg-white border border-slate-200/90 rounded-t-[32px] sm:rounded-3xl shadow-2xl z-10 max-h-[92dvh] h-[90dvh] flex flex-col overflow-hidden"
         >
           {/* Top Drag Indicator for mobile */}
           <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
@@ -155,7 +156,7 @@ export const MemberProfileSheet = ({
           </div>
 
           {/* Scrollable Body */}
-          <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-6">
+          <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 pb-20 sm:pb-8 space-y-6">
             {isLoading ? (
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
@@ -661,7 +662,8 @@ export const MemberProfileSheet = ({
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

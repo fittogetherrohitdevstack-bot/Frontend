@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { X, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { Avatar } from "../ui/Avatar";
@@ -36,7 +37,7 @@ export const ImageViewerModal = ({
     };
   }, [isOpen, currentIndex, images.length]);
 
-  if (!isOpen || images.length === 0) return null;
+  if (!isOpen || images.length === 0 || typeof document === "undefined") return null;
 
   const currentImage = images[currentIndex] || images[0];
   const imageUrl = typeof currentImage === "string" ? currentImage : currentImage.url;
@@ -51,9 +52,9 @@ export const ImageViewerModal = ({
     setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-xl select-none">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/95 backdrop-blur-xl select-none">
         {/* Top Header Controls */}
         <div className="absolute top-0 left-0 right-0 z-50 p-4 sm:p-6 flex items-center justify-between text-white safe-top">
           <div className="flex items-center gap-3">
@@ -168,6 +169,7 @@ export const ImageViewerModal = ({
           </div>
         )}
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

@@ -32,12 +32,15 @@ import {
   MessageCircle,
   Sparkles,
   Settings2,
+  Camera,
 } from "lucide-react";
+import { SquadMomentsTab } from "../components/group/SquadMomentsTab";
 import { haptics } from "../motion/Haptics";
 import { toast } from "sonner";
 
 const GROUP_TABS = [
   { id: "arena", label: "Arena", icon: Trophy },
+  { id: "moments", label: "Moments", icon: Camera },
   { id: "activities", label: "Activities", icon: Flame },
   { id: "challenges", label: "Challenges", icon: Award },
   { id: "roster", label: "Roster", icon: Users },
@@ -638,11 +641,11 @@ export const GroupPage = () => {
       {/* Phase 3: "Who hasn't logged today?" Live Polling Strip + Nudge */}
       <SquadCheckInStrip groupId={groupId} currentUserId={user?._id} />
 
-      {/* 2. MOBILE-FIRST 4-TAB NAVIGATION BAR */}
+      {/* 2. MOBILE-FIRST 5-TAB NAVIGATION BAR */}
       <div
         role="tablist"
         aria-label="Squad Hub Sections"
-        className="grid grid-cols-4 gap-1 bg-white/95 p-1.5 rounded-2xl border border-slate-200/90 shadow-xs"
+        className="grid grid-cols-5 gap-1 bg-white/95 p-1.5 rounded-2xl border border-slate-200/90 shadow-xs"
       >
         {GROUP_TABS.map((tab) => {
           const Icon = tab.icon;
@@ -716,6 +719,14 @@ export const GroupPage = () => {
           totalMembers={memberCount}
           openChallengesCount={activeChallengesCount}
           onJumpTab={setActiveTab}
+        />
+      )}
+
+      {activeTab === "moments" && (
+        <SquadMomentsTab
+          groupId={groupId}
+          currentUserId={user?._id}
+          isAdmin={isAdmin}
         />
       )}
 

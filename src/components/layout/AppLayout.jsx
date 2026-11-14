@@ -84,12 +84,13 @@ export const AppLayout = () => {
       label: "Squad",
       to: "/group",
       icon: Users,
-      matchPaths: ["/group", "/leaderboard", "/challenges", "/badges"],
+      matchPaths: ["/group", "/leaderboard", "/challenges", "/badges", "/moments"],
     },
   ];
 
   const sidebarNavItems = [
     { label: "Home", to: "/", icon: Home },
+    { label: "Moments", to: "/moments", icon: Camera },
     { label: "Diet Plan", to: "/diet", icon: UtensilsCrossed },
     { label: "Workouts", to: "/workouts", icon: Dumbbell },
     { label: "Squad", to: "/group", icon: Users },
@@ -97,6 +98,7 @@ export const AppLayout = () => {
   ];
 
   const subNavItems = [
+    { label: "Squad Moments", to: "/moments", icon: Camera, color: "text-lime-600" },
     { label: "Daily Tracker", to: "/tracker", icon: UtensilsCrossed, color: "text-lime-600" },
     { label: "Weight", to: "/weight", icon: Scale, color: "text-lime-600" },
     { label: "Measurements", to: "/measurements", icon: Ruler, color: "text-violet-600" },
@@ -264,6 +266,27 @@ export const AppLayout = () => {
                 ✕
               </button>
             </div>
+
+            {/* Squad Moments Fast Shortcut */}
+            <button
+              onClick={() => {
+                haptics.tick();
+                setQuickMenuOpen(false);
+                navigate("/moments");
+              }}
+              className="w-full flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-slate-900 to-emerald-950 text-white shadow-md active:scale-98 transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-lime-400 text-slate-950 flex items-center justify-center font-bold">
+                  <Camera className="w-4 h-4 stroke-[2.5]" />
+                </div>
+                <div className="text-left">
+                  <h4 className="text-xs font-black text-white leading-tight">Squad Moments</h4>
+                  <span className="text-[10px] text-lime-300 font-bold">Share gym selfies & cheat meals</span>
+                </div>
+              </div>
+              <Sparkles className="w-4 h-4 text-lime-400" />
+            </button>
 
             {/* Quick Actions Grid */}
             <div className="grid grid-cols-2 gap-2">

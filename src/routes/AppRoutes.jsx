@@ -19,6 +19,7 @@ import { MeasurementsPage } from "../pages/MeasurementsPage";
 import { PhotosPage } from "../pages/PhotosPage";
 import { ReminderSettingsPage } from "../pages/ReminderSettingsPage";
 import { JoinSquadPage } from "../pages/JoinSquadPage";
+import { SquadMomentsPage } from "../pages/SquadMomentsPage";
 import { QuickOnboardingModal } from "../components/onboarding/QuickOnboardingModal";
 
 const ProtectedRoute = ({ children }) => {
@@ -86,6 +87,7 @@ export const AppRoutes = () => {
         <Route path="photos" element={<PhotosPage />} />
         <Route path="weight" element={<WeightPage />} />
         <Route path="measurements" element={<MeasurementsPage />} />
+        <Route path="moments" element={<SquadMomentsPage />} />
         <Route path="group" element={<GroupPage />} />
         <Route path="leaderboard" element={<LeaderboardPage />} />
         <Route path="challenges" element={<ChallengesPage />} />

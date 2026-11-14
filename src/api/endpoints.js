@@ -183,3 +183,28 @@ export const recapApi = {
   getWeeklyRecap: (weekStart = null) =>
     api.get("/recap/weekly", { params: weekStart ? { weekStart } : {} }),
 };
+
+// Squad Moments Social Network Experience
+export const momentApi = {
+  getMoments: (groupId, params = {}) =>
+    api.get(`/groups/${groupId}/moments`, { params }),
+  getById: (groupId, momentId) =>
+    api.get(`/groups/${groupId}/moments/${momentId}`),
+  create: (groupId, formData, onUploadProgress) =>
+    api.post(`/groups/${groupId}/moments`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress,
+    }),
+  update: (groupId, momentId, data) =>
+    api.put(`/groups/${groupId}/moments/${momentId}`, data),
+  delete: (groupId, momentId) =>
+    api.delete(`/groups/${groupId}/moments/${momentId}`),
+  react: (groupId, momentId, emoji) =>
+    api.post(`/groups/${groupId}/moments/${momentId}/react`, { emoji }),
+  getComments: (groupId, momentId, params = {}) =>
+    api.get(`/groups/${groupId}/moments/${momentId}/comments`, { params }),
+  addComment: (groupId, momentId, text) =>
+    api.post(`/groups/${groupId}/moments/${momentId}/comments`, { text }),
+  deleteComment: (groupId, momentId, commentId) =>
+    api.delete(`/groups/${groupId}/moments/${momentId}/comments/${commentId}`),
+};

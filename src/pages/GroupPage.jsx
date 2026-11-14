@@ -641,69 +641,58 @@ export const GroupPage = () => {
       {/* Phase 3: "Who hasn't logged today?" Live Polling Strip + Nudge */}
       <SquadCheckInStrip groupId={groupId} currentUserId={user?._id} />
 
-      {/* 2. MOBILE-FIRST 5-TAB NAVIGATION BAR */}
-      <div
-        role="tablist"
-        aria-label="Squad Hub Sections"
-        className="grid grid-cols-5 gap-1 bg-white/95 p-1.5 rounded-2xl border border-slate-200/90 shadow-xs"
-      >
-        {GROUP_TABS.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          const badge =
-            tab.id === "activities" && activeCountToday > 0
-              ? activeCountToday
-              : tab.id === "challenges" && activeChallengesCount > 0
-              ? activeChallengesCount
-              : tab.id === "roster" && memberCount > 0
-              ? memberCount
-              : null;
+      {/* 2. MOBILE-FIRST RESPONSIVE SQUAD TAB BAR */}
+      <div className="w-full overflow-x-auto scrollbar-none -mx-1 px-1 sm:mx-0 sm:px-0">
+        <div
+          role="tablist"
+          aria-label="Squad Hub Sections"
+          className="flex sm:grid sm:grid-cols-5 min-w-max sm:min-w-full gap-1.5 sm:gap-1 bg-white/95 p-1.5 rounded-2xl border border-slate-200/90 shadow-xs"
+        >
+          {GROUP_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            const badge =
+              tab.id === "activities" && activeCountToday > 0
+                ? activeCountToday
+                : tab.id === "challenges" && activeChallengesCount > 0
+                ? activeChallengesCount
+                : tab.id === "roster" && memberCount > 0
+                ? memberCount
+                : null;
 
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              onClick={() => {
-                haptics.tick();
-                setActiveTab(tab.id);
-              }}
-              className={`relative min-h-[48px] sm:min-h-[44px] px-1.5 sm:px-3 py-1.5 rounded-xl flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer ${
-                isActive
-                  ? "bg-slate-900 text-lime-300 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-              }`}
-            >
-              <div className="relative flex items-center">
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => {
+                  haptics.tick();
+                  setActiveTab(tab.id);
+                }}
+                className={`relative min-h-[42px] sm:min-h-[44px] px-3.5 sm:px-3 py-2 sm:py-1.5 rounded-xl flex items-center justify-center gap-1.5 text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap select-none shrink-0 sm:shrink ${
+                  isActive
+                    ? "bg-slate-900 text-lime-300 shadow-xs"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
+                }`}
+              >
                 <Icon className="w-4 h-4 shrink-0" />
+                <span>{tab.label}</span>
                 {badge !== null && (
                   <span
-                    className={`sm:hidden -top-1.5 -right-2.5 absolute min-w-[16px] h-4 px-1 rounded-full text-[9px] font-black flex items-center justify-center ${
+                    className={`min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black inline-flex items-center justify-center ${
                       isActive
                         ? "bg-lime-400 text-slate-950"
-                        : "bg-slate-200 text-slate-700"
+                        : "bg-slate-200/80 text-slate-700"
                     }`}
                   >
                     {badge}
                   </span>
                 )}
-              </div>
-              <span className="truncate max-w-full">{tab.label}</span>
-              {badge !== null && (
-                <span
-                  className={`hidden sm:inline-flex min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black items-center justify-center ${
-                    isActive
-                      ? "bg-lime-400 text-slate-950"
-                      : "bg-slate-200/80 text-slate-700"
-                  }`}
-                >
-                  {badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* 3. ACTIVE TAB CONTENT */}

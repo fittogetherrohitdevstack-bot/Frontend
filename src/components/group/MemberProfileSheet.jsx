@@ -38,12 +38,16 @@ export const MemberProfileSheet = ({
   currentUserId,
 }) => {
   const queryClient = useQueryClient();
-  const targetUserId = member?.userId || member?._id;
+  const targetUserId =
+    typeof member?.userId === "object" && member?.userId !== null
+      ? member.userId._id
+      : member?.userId || member?._id;
 
   const {
     data: profileData,
     isLoading,
     isError,
+    error,
     refetch,
   } = useQuery({
     queryKey: ["squad-member-profile", groupId, targetUserId],
@@ -168,7 +172,7 @@ export const MemberProfileSheet = ({
             ) : isError ? (
               <div className="text-center py-12 space-y-3">
                 <p className="text-sm font-semibold text-slate-600">
-                  Could not load member details.
+                  {error?.response?.data?.message || "Could not load member details."}
                 </p>
                 <Button size="sm" variant="secondary" onClick={() => refetch()}>
                   Try Again

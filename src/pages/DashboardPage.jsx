@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { dietApi, progressApi, workoutApi, groupApi, weightApi, measurementApi, authApi, mealChartApi } from "../api/endpoints";
@@ -15,6 +15,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { AnimatedNumber } from "../motion/AnimatedNumber";
 import { FadeUp } from "../motion";
 import { MealSwipeCard } from "../components/dashboard/MealSwipeCard";
+import { AiMealQuickLogModal } from "../components/dashboard/AiMealQuickLogModal";
 import { ThisWeekCard } from "../components/targets/ThisWeekCard";
 import { DueTodayStrip } from "../components/reminders/DueTodayStrip";
 import { haptics } from "../motion/Haptics";
@@ -46,6 +47,7 @@ export const DashboardPage = () => {
   const { activeGroup } = useGroup();
   const hideWeight = Boolean(profile?.hideWeightNumbers);
   const perfectDayCelebrated = useRef(false);
+  const [showAiMealModal, setShowAiMealModal] = useState(false);
 
   // 1. Fetch individual dashboard summary
   const { data: summary, isLoading: isSummaryLoading } = useQuery({
@@ -336,6 +338,19 @@ export const DashboardPage = () => {
               <Snowflake className="w-3.5 h-3.5" />
               {summary?.streakDetails?.freezeAvailable ? "Freeze" : "Used"}
             </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                haptics.tick();
+                setShowAiMealModal(true);
+              }}
+              title="Quickly log meals with AI"
+              className="min-h-[34px] px-2.5 py-1 rounded-xl text-[11px] font-extrabold inline-flex items-center gap-1 border border-lime-300 bg-lime-100/90 text-lime-900 hover:bg-lime-200 transition-all cursor-pointer shadow-2xs"
+            >
+              <Zap className="w-3.5 h-3.5 fill-lime-600 text-lime-600" />
+              <span>AI Log</span>
+            </button>
           </div>
         </div>
       </FadeUp>
@@ -452,7 +467,20 @@ export const DashboardPage = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  haptics.tick();
+                  setShowAiMealModal(true);
+                }}
+                className="min-h-[34px] px-3 py-1 rounded-full text-xs font-black bg-gradient-to-r from-lime-500 via-emerald-500 to-teal-500 text-slate-950 shadow-xs hover:opacity-95 inline-flex items-center gap-1.5 cursor-pointer transition-all border border-lime-300"
+                title="Type what you ate and let AI auto-calculate nutrients & log it"
+              >
+                <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
+                <span>AI Quick Log</span>
+              </button>
+
               <button
                 type="button"
                 disabled={copyYesterdayMealsMutation.isPending}
@@ -891,6 +919,12 @@ export const DashboardPage = () => {
           </GlassCard>
         </FadeUp>
       )}
+
+      {/* 8. AI MEAL QUICK-LOG MODAL */}
+      <AiMealQuickLogModal
+        isOpen={showAiMealModal}
+        onClose={() => setShowAiMealModal(false)}
+      />
     </div>
   );
 };

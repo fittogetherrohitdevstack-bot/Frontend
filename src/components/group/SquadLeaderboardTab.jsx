@@ -18,6 +18,8 @@ import {
   UserPlus,
   Zap,
   Award,
+  Info,
+  AlertTriangle,
 } from "lucide-react";
 
 const PERIOD_OPTIONS = [
@@ -37,6 +39,7 @@ export const SquadLeaderboardTab = ({
   totalMembers = 0,
   openChallengesCount = 0,
   onJumpTab,
+  onOpenPointsInfo,
 }) => {
   const maxPoints = Math.max(1, leaderboard[0]?.totalPoints || 1);
   const top3 = leaderboard.slice(0, 3);
@@ -68,41 +71,71 @@ export const SquadLeaderboardTab = ({
     <div className="space-y-4">
       {/* Period Switcher + Competitive Subhead */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 border border-amber-200 flex items-center justify-center shrink-0">
-            <Trophy className="w-4 h-4" />
+        <div className="flex items-center justify-between gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 border border-amber-200 flex items-center justify-center shrink-0">
+              <Trophy className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
+                Squad Standings
+              </h2>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Earn points daily from meals, workouts &amp; hydration
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
-              Squad Standings
-            </h2>
-            <p className="text-[11px] text-slate-500 font-medium">
-              Earn points daily from meals, workouts &amp; hydration
-            </p>
-          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              haptics.tick();
+              onOpenPointsInfo?.();
+            }}
+            className="sm:hidden min-h-[34px] px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-black inline-flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+            title="How Points Work"
+          >
+            <Info className="w-3.5 h-3.5 text-amber-600" />
+            <span>Rules</span>
+          </button>
         </div>
 
-        <div className="grid grid-cols-3 bg-white border border-slate-200 p-1 rounded-2xl shadow-2xs w-full sm:w-auto">
-          {PERIOD_OPTIONS.map((opt) => {
-            const active = period === opt.id;
-            return (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => {
-                  haptics.tick();
-                  onPeriodChange(opt.id);
-                }}
-                className={`min-h-[40px] px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                  active
-                    ? "bg-slate-900 text-white shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => {
+              haptics.tick();
+              onOpenPointsInfo?.();
+            }}
+            className="hidden sm:inline-flex min-h-[40px] px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-black items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+            title="How Points Work"
+          >
+            <Info className="w-3.5 h-3.5 text-amber-600" />
+            <span>How Points Work</span>
+          </button>
+
+          <div className="grid grid-cols-3 bg-white border border-slate-200 p-1 rounded-2xl shadow-2xs w-full sm:w-auto flex-1 sm:flex-initial">
+            {PERIOD_OPTIONS.map((opt) => {
+              const active = period === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => {
+                    haptics.tick();
+                    onPeriodChange(opt.id);
+                  }}
+                  className={`min-h-[40px] px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                    active
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -499,11 +532,22 @@ export const SquadLeaderboardTab = ({
                           {item.waterPoints}
                         </span>
                       </div>
-                      {item.bonusPoints > 0 && (
-                        <span className="text-[10px] font-extrabold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full">
-                          +{item.bonusPoints} bonus
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {item.bonusPoints > 0 && (
+                          <span className="text-[10px] font-extrabold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                            +{item.bonusPoints} bonus
+                          </span>
+                        )}
+                        {item.penaltyPoints < 0 && (
+                          <span
+                            className="text-[10px] font-extrabold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1"
+                            title="XP deducted for missed habits"
+                          >
+                            <AlertTriangle className="w-2.5 h-2.5 text-rose-500" />
+                            {item.penaltyPoints} penalty
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </GlassCard>

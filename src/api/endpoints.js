@@ -62,6 +62,8 @@ export const dietApi = {
   updateMealStatus: (logId, data) => api.patch(`/meals/log/${logId}`, data),
   getMealHistory: (params) => api.get("/meals/history", { params }),
   getMyDashboard: () => api.get("/dashboard/me"),
+  aiEstimateMeal: (data) => api.post("/meals/ai-estimate", data),
+  aiQuickLogMeal: (data) => api.post("/meals/ai-quick-log", data),
 };
 
 // Workouts

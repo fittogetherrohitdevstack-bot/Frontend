@@ -15,6 +15,7 @@ import { SquadRosterTab } from "../components/group/SquadRosterTab";
 import { SquadCheckInStrip } from "../components/group/SquadCheckInStrip";
 import { SquadFeedList } from "../components/group/SquadFeedList";
 import { WeeklyRecapModal } from "../components/recap/WeeklyRecapModal";
+import { SquadPointsInfoSheet } from "../components/group/SquadPointsInfoSheet";
 import { Switch } from "../components/ui/Switch";
 import { motion } from "motion/react";
 import {
@@ -33,6 +34,7 @@ import {
   Sparkles,
   Settings2,
   Camera,
+  Info,
 } from "lucide-react";
 import { SquadMomentsTab } from "../components/group/SquadMomentsTab";
 import { haptics } from "../motion/Haptics";
@@ -58,6 +60,7 @@ export const GroupPage = () => {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showRecapModal, setShowRecapModal] = useState(false);
+  const [showPointsSheet, setShowPointsSheet] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [stakesEnabled, setStakesEnabled] = useState(false);
   const [forfeitText, setForfeitText] = useState("");
@@ -590,6 +593,20 @@ export const GroupPage = () => {
                 <Sparkles className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">Recap</span>
               </button>
+
+              <button
+                type="button"
+                aria-label="How Points Work"
+                onClick={() => {
+                  haptics.tick();
+                  setShowPointsSheet(true);
+                }}
+                className="min-h-[40px] px-2 rounded-xl bg-amber-500/85 hover:bg-amber-400 text-white text-[11px] sm:text-xs font-extrabold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                title="Points Breakdown & Habit Deductions Info"
+              >
+                <Info className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Points Info</span>
+              </button>
             </div>
           </div>
         </div>
@@ -708,6 +725,7 @@ export const GroupPage = () => {
           totalMembers={memberCount}
           openChallengesCount={activeChallengesCount}
           onJumpTab={setActiveTab}
+          onOpenPointsInfo={() => setShowPointsSheet(true)}
         />
       )}
 
@@ -772,6 +790,11 @@ export const GroupPage = () => {
       <WeeklyRecapModal
         isOpen={showRecapModal}
         onClose={() => setShowRecapModal(false)}
+      />
+
+      <SquadPointsInfoSheet
+        isOpen={showPointsSheet}
+        onClose={() => setShowPointsSheet(false)}
       />
 
       <Sheet

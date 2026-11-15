@@ -186,7 +186,7 @@ export const SquadMomentsPage = () => {
   const isAdmin = activeGroup?.createdBy === user?._id;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4 pb-20 sm:pb-8">
+    <div className="max-w-2xl mx-auto space-y-4 pb-28 sm:pb-12">
       {/* 1. SQUAD MULTI-SELECTOR (when user belongs to >1 squad) */}
       {groups.length > 1 && (
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">

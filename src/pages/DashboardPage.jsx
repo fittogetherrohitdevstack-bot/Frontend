@@ -265,7 +265,7 @@ export const DashboardPage = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-4 sm:space-y-8 max-w-5xl mx-auto pb-8 sm:pb-12">
       {/* 1. HERO GREETING & STREAK HEADER */}
       <FadeUp>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 pt-1">
@@ -329,7 +329,7 @@ export const DashboardPage = () => {
               disabled={!summary?.streakDetails?.freezeAvailable || freezeMutation.isPending}
               onClick={() => freezeMutation.mutate()}
               title="Protect a missed day with 1 weekly streak freeze"
-              className={`min-h-[34px] px-2.5 py-1 rounded-xl text-[11px] font-extrabold inline-flex items-center gap-1 border transition-all cursor-pointer ${
+              className={`min-h-[40px] sm:min-h-[34px] px-3 py-1 rounded-xl text-xs sm:text-[11px] font-extrabold inline-flex items-center gap-1 border transition-all cursor-pointer ${
                 summary?.streakDetails?.freezeAvailable
                   ? "bg-cyan-50 border-cyan-200 text-cyan-800 hover:bg-cyan-100"
                   : "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed"
@@ -346,7 +346,7 @@ export const DashboardPage = () => {
                 setShowAiMealModal(true);
               }}
               title="Quickly log meals with AI"
-              className="min-h-[34px] px-2.5 py-1 rounded-xl text-[11px] font-extrabold inline-flex items-center gap-1 border border-lime-300 bg-lime-100/90 text-lime-900 hover:bg-lime-200 transition-all cursor-pointer shadow-2xs"
+              className="min-h-[40px] sm:min-h-[34px] px-3 py-1 rounded-xl text-xs sm:text-[11px] font-extrabold inline-flex items-center gap-1 border border-lime-300 bg-lime-100/90 text-lime-900 hover:bg-lime-200 transition-all cursor-pointer shadow-2xs"
             >
               <Zap className="w-3.5 h-3.5 fill-lime-600 text-lime-600" />
               <span>AI Log</span>

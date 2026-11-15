@@ -430,7 +430,7 @@ export const GroupPage = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5 max-w-4xl mx-auto">
+    <div className="space-y-4 sm:space-y-5 max-w-4xl mx-auto pb-8 sm:pb-12">
       {/* Multi-Squad Switcher Bar (shown if user is in multiple squads) */}
       {groups.length > 1 && (
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
@@ -558,12 +558,12 @@ export const GroupPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-1.5 w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 w-full">
               <button
                 type="button"
                 aria-label="Share on WhatsApp"
                 onClick={handleWhatsAppInvite}
-                className="min-h-[40px] px-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[11px] sm:text-xs font-extrabold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                className="min-h-[42px] px-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 title="Invite on WhatsApp"
               >
                 <MessageCircle className="w-3.5 h-3.5 shrink-0" />
@@ -574,7 +574,7 @@ export const GroupPage = () => {
                 type="button"
                 aria-label="Share squad invite"
                 onClick={handleShareInvite}
-                className="min-h-[40px] px-2 rounded-xl bg-lime-400 hover:bg-lime-300 text-slate-950 text-[11px] sm:text-xs font-extrabold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                className="min-h-[42px] px-2 rounded-xl bg-lime-400 hover:bg-lime-300 text-slate-950 text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <Share2 className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">Invite</span>
@@ -587,7 +587,7 @@ export const GroupPage = () => {
                   haptics.tick();
                   setShowRecapModal(true);
                 }}
-                className="min-h-[40px] px-2 rounded-xl bg-indigo-500/85 hover:bg-indigo-400 text-white text-[11px] sm:text-xs font-extrabold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                className="min-h-[42px] px-2 rounded-xl bg-indigo-500/85 hover:bg-indigo-400 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 title="Weekly Recap Card"
               >
                 <Sparkles className="w-3.5 h-3.5 shrink-0" />
@@ -601,7 +601,7 @@ export const GroupPage = () => {
                   haptics.tick();
                   setShowPointsSheet(true);
                 }}
-                className="min-h-[40px] px-2 rounded-xl bg-amber-500/85 hover:bg-amber-400 text-white text-[11px] sm:text-xs font-extrabold inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                className="min-h-[42px] px-2 rounded-xl bg-amber-500/85 hover:bg-amber-400 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 title="Points Breakdown & Habit Deductions Info"
               >
                 <Info className="w-3.5 h-3.5 shrink-0" />

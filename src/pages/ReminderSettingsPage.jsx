@@ -178,7 +178,7 @@ export const ReminderSettingsPage = () => {
   const descriptions = data?.descriptions || {};
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto pb-8">
+    <div className="space-y-6 max-w-3xl mx-auto pb-8 sm:pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -200,7 +200,7 @@ export const ReminderSettingsPage = () => {
           type="button"
           variant="secondary"
           size="sm"
-          className="min-h-[44px] px-4 self-start sm:self-auto"
+          className="min-h-[44px] px-4 w-full sm:w-auto"
           isLoading={testMutation.isPending}
           onClick={() => {
             haptics.tick();

@@ -56,7 +56,12 @@ export const LeaderboardPage = () => {
   const theRest = (leaderboardData || []).slice(3);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-5 max-w-4xl mx-auto pb-8 sm:pb-12"
+    >
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -66,7 +71,7 @@ export const LeaderboardPage = () => {
               Squad Leaderboard
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
+          <h1 className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
             Consistency Standings
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -74,8 +79,8 @@ export const LeaderboardPage = () => {
           </p>
         </div>
 
-        {/* Period Selector Tabs */}
-        <div className="flex bg-white/90 border border-slate-200 p-1.5 rounded-2xl shadow-xs self-start sm:self-auto">
+        {/* Period Selector Tabs - Mobile First Full Width */}
+        <div className="grid grid-cols-3 sm:flex w-full sm:w-auto bg-white/90 border border-slate-200 p-1.5 rounded-2xl shadow-xs">
           {[
             { id: "week", label: "This Week" },
             { id: "month", label: "This Month" },
@@ -90,7 +95,7 @@ export const LeaderboardPage = () => {
                   haptics.tick();
                   setPeriod(tab.id);
                 }}
-                className={`relative px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`relative min-h-[44px] px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center text-center ${
                   isActive
                     ? "bg-amber-500 text-white shadow-sm shadow-amber-500/30"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
@@ -327,7 +332,7 @@ export const LeaderboardPage = () => {
           )}
         </>
       )}
-    </div>
+    </motion.div>
   );
 };
 

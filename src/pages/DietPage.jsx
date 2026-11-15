@@ -837,7 +837,7 @@ export const DietPage = () => {
   ];
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-4xl mx-auto text-slate-900 overflow-x-hidden pb-6">
+    <div className="space-y-4 sm:space-y-6 max-w-4xl mx-auto text-slate-900 overflow-x-hidden pb-28 sm:pb-12">
       {/* Top Header & Overview */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="min-w-0">

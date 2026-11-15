@@ -116,7 +116,12 @@ export const BadgesPage = () => {
   const unreadCount = notificationsData?.unreadCount || 0;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6 max-w-4xl mx-auto pb-8 sm:pb-12"
+    >
       {/* Header and Toggle Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -126,7 +131,7 @@ export const BadgesPage = () => {
               Achievements
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
+          <h1 className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
             Milestones & Alerts
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -134,14 +139,14 @@ export const BadgesPage = () => {
           </p>
         </div>
 
-        <div className="flex bg-white/90 border border-slate-200 p-1.5 rounded-2xl shadow-xs self-start sm:self-auto">
+        <div className="grid grid-cols-2 sm:flex w-full sm:w-auto bg-white/90 border border-slate-200 p-1.5 rounded-2xl shadow-xs gap-1">
           <button
             type="button"
             onClick={() => {
               haptics.tick();
               setActiveTab("badges");
             }}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`min-h-[44px] flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === "badges"
                 ? "bg-amber-500 text-white shadow-sm shadow-amber-500/30"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
@@ -155,7 +160,7 @@ export const BadgesPage = () => {
               haptics.tick();
               setActiveTab("notifications");
             }}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer relative ${
+            className={`min-h-[44px] flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer relative ${
               activeTab === "notifications"
                 ? "bg-amber-500 text-white shadow-sm shadow-amber-500/30"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
@@ -329,7 +334,7 @@ export const BadgesPage = () => {
           )}
         </GlassCard>
       )}
-    </div>
+    </motion.div>
   );
 };
 

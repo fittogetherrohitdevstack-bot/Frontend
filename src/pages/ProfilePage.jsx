@@ -110,7 +110,7 @@ export const ProfilePage = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-6 sm:pb-8">
+    <div className="space-y-6 max-w-4xl mx-auto pb-8 sm:pb-12">
       {/* Top Banner Hero */}
       <GlassCard className="p-4 sm:p-7 relative overflow-hidden bg-white/95 border-slate-200 shadow-[0_8px_30px_rgba(15,23,42,0.06)]">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5">
@@ -323,7 +323,7 @@ export const ProfilePage = () => {
                 onChange={(e) =>
                   setForm({ ...form, privacy: { ...form.privacy, weight: e.target.value } })
                 }
-                className="shrink-0 min-h-[40px] text-xs font-bold bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-lime-400"
+                className="shrink-0 min-h-[44px] text-xs font-bold bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-lime-400"
               >
                 <option value="private">Private</option>
                 <option value="group">Share with Squad</option>
@@ -342,7 +342,7 @@ export const ProfilePage = () => {
                 onChange={(e) =>
                   setForm({ ...form, privacy: { ...form.privacy, measurements: e.target.value } })
                 }
-                className="shrink-0 min-h-[40px] text-xs font-bold bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-lime-400"
+                className="shrink-0 min-h-[44px] text-xs font-bold bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-lime-400"
               >
                 <option value="private">Private</option>
                 <option value="group">Share with Squad</option>
@@ -359,7 +359,7 @@ export const ProfilePage = () => {
                 onChange={(e) =>
                   setForm({ ...form, privacy: { ...form.privacy, photos: e.target.value } })
                 }
-                className="shrink-0 min-h-[40px] text-xs font-bold bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-lime-400"
+                className="shrink-0 min-h-[44px] text-xs font-bold bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-lime-400"
               >
                 <option value="private">Private</option>
                 <option value="group">Share with Squad</option>

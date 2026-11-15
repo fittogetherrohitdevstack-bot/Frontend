@@ -108,7 +108,12 @@ export const ChallengesPage = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6 max-w-4xl mx-auto pb-8 sm:pb-12"
+    >
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -118,7 +123,7 @@ export const ChallengesPage = () => {
               Squad Challenges
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
+          <h1 className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
             Collective Goals
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -132,7 +137,7 @@ export const ChallengesPage = () => {
             haptics.tick();
             setShowCreateModal(true);
           }}
-          className="text-xs font-bold shadow-md self-start sm:self-auto"
+          className="text-xs font-bold shadow-md w-full sm:w-auto min-h-[44px]"
         >
           <Plus className="w-3.5 h-3.5 mr-1 stroke-[3]" /> Create Challenge
         </Button>
@@ -160,7 +165,7 @@ export const ChallengesPage = () => {
             return (
               <GlassCard
                 key={c._id}
-                className="p-5 sm:p-6 bg-white/95 border-slate-200 shadow-[0_8px_30px_rgba(15,23,42,0.06)] space-y-4"
+                className="p-4 sm:p-6 bg-white/95 border-slate-200 shadow-[0_8px_30px_rgba(15,23,42,0.06)] space-y-4"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-1">
@@ -174,11 +179,11 @@ export const ChallengesPage = () => {
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-black text-slate-900 tracking-tight mt-1">{c.title}</h3>
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight mt-1">{c.title}</h3>
                     <p className="text-xs text-slate-500 leading-relaxed max-w-xl">{c.description}</p>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                     <Button
                       size="sm"
                       variant="secondary"
@@ -186,7 +191,7 @@ export const ChallengesPage = () => {
                         haptics.tick();
                         setSelectedChallengeId(c._id);
                       }}
-                      className="text-xs font-bold"
+                      className="text-xs font-bold flex-1 sm:flex-initial min-h-[44px]"
                     >
                       Standings
                     </Button>
@@ -195,12 +200,12 @@ export const ChallengesPage = () => {
                         size="sm"
                         isLoading={joinMutation.isPending}
                         onClick={() => joinMutation.mutate(c._id)}
-                        className="text-xs font-bold shadow-xs"
+                        className="text-xs font-bold shadow-xs flex-1 sm:flex-initial min-h-[44px]"
                       >
                         Join Challenge
                       </Button>
                     ) : (
-                      <span className="flex items-center gap-1.5 text-xs text-emerald-800 font-black bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-300">
+                      <span className="flex items-center justify-center gap-1.5 text-xs text-emerald-800 font-black bg-emerald-100 px-3.5 py-2.5 rounded-xl border border-emerald-300 flex-1 sm:flex-initial min-h-[44px]">
                         <CheckCircle2 className="w-4 h-4 text-emerald-600 stroke-[2.5]" /> Participating
                       </span>
                     )}
@@ -377,13 +382,13 @@ export const ChallengesPage = () => {
           <Button
             type="submit"
             isLoading={createChallengeMutation.isPending}
-            className="w-full min-h-[46px] shadow-md"
+            className="w-full min-h-[46px] shadow-md font-bold"
           >
             Launch Challenge
           </Button>
         </form>
       </Sheet>
-    </div>
+    </motion.div>
   );
 };
 

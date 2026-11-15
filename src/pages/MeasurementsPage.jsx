@@ -260,7 +260,7 @@ export const MeasurementsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6FB] pb-28 pt-4 px-3 sm:px-6 max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 pb-8 sm:pb-12">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -280,15 +280,15 @@ export const MeasurementsPage = () => {
         </div>
 
         {/* Controls: Unit toggle + Log Check-in CTA */}
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
           {/* Unit Toggle */}
-          <div className="flex items-center bg-white border border-gray-200/80 rounded-xl p-1 shadow-sm">
+          <div className="flex items-center bg-white border border-gray-200/80 rounded-2xl p-1 shadow-xs">
             <button
               type="button"
               onClick={() => setUnit("cm")}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+              className={`min-h-[40px] px-3.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 unit === "cm"
-                  ? "bg-violet-600 text-white shadow-sm"
+                  ? "bg-violet-600 text-white shadow-xs"
                   : "text-gray-500 hover:text-gray-900"
               }`}
             >
@@ -297,9 +297,9 @@ export const MeasurementsPage = () => {
             <button
               type="button"
               onClick={() => setUnit("in")}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+              className={`min-h-[40px] px-3.5 py-1 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 unit === "in"
-                  ? "bg-violet-600 text-white shadow-sm"
+                  ? "bg-violet-600 text-white shadow-xs"
                   : "text-gray-500 hover:text-gray-900"
               }`}
             >
@@ -309,7 +309,7 @@ export const MeasurementsPage = () => {
 
           <Button
             onClick={() => openEntrySheet()}
-            className="bg-violet-600 hover:bg-violet-700 text-white font-semibold text-xs px-3.5 py-2 rounded-xl shadow-md flex items-center gap-1.5"
+            className="bg-violet-600 hover:bg-violet-700 text-white font-extrabold text-xs px-4 min-h-[44px] rounded-2xl shadow-md flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             <span>Check-in</span>

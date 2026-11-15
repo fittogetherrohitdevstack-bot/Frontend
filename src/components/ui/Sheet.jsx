@@ -37,9 +37,9 @@ export const Sheet = ({
     >
       {trigger && <Drawer.Trigger asChild>{trigger}</Drawer.Trigger>}
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300" />
+        <Drawer.Overlay className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300" />
         <Drawer.Content
-          className={`fixed bottom-0 left-0 right-0 z-50 max-h-[92dvh] flex flex-col rounded-t-[32px] bg-white/95 backdrop-blur-2xl border-t border-x border-slate-200/90 shadow-[0_-10px_40px_rgba(15,23,42,0.12)] outline-none text-slate-900 ${className}`}
+          className={`fixed bottom-0 left-0 right-0 z-[100] max-h-[92dvh] flex flex-col rounded-t-[32px] bg-white/95 backdrop-blur-2xl border-t border-x border-slate-200/90 shadow-[0_-10px_40px_rgba(15,23,42,0.12)] outline-none text-slate-900 pb-safe ${className}`}
         >
           {/* Grab Handle */}
           <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-300 my-3" />

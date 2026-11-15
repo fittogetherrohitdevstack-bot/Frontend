@@ -412,7 +412,7 @@ export const DailyTrackerPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5">
+    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5 pb-8 sm:pb-12">
       {/* Header & Mobile-First Segmented Tab Control */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">

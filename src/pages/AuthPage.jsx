@@ -154,7 +154,7 @@ export const AuthPage = () => {
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 flex items-center justify-center cursor-pointer"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] rounded-xl text-slate-400 hover:text-slate-700 flex items-center justify-center cursor-pointer transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -201,7 +201,7 @@ export const AuthPage = () => {
               variant="primary"
               size="lg"
               isLoading={isLoading}
-              className="w-full mt-2"
+              className="w-full mt-2 min-h-[48px] font-extrabold text-sm shadow-md"
             >
               {isLogin ? "Sign In to FitTogether" : "Create Account & Plan"}
               <ArrowRight className="w-4 h-4 ml-1" />
@@ -217,7 +217,7 @@ export const AuthPage = () => {
                 setIsLogin(!isLogin);
                 setError("");
               }}
-              className="text-xs font-bold text-slate-500 hover:text-lime-700 transition-colors cursor-pointer"
+              className="min-h-[44px] px-3 py-2 text-xs font-bold text-slate-500 hover:text-lime-700 transition-colors cursor-pointer inline-flex items-center justify-center"
             >
               {isLogin
                 ? "Don't have an account yet? Register here"

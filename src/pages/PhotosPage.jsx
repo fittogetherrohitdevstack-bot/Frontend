@@ -326,7 +326,7 @@ export const PhotosPage = () => {
 
   return (
     <FadeUp>
-      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5 pb-8 sm:pb-12">
         {/* Top Hero / Cycle Status Card */}
         <Card className="p-4 sm:p-6 bg-gradient-to-br from-white via-white to-lime-50/40">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

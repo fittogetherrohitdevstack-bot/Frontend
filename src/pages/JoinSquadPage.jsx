@@ -149,12 +149,12 @@ export const JoinSquadPage = () => {
                 </div>
               ) : (
                 <form onSubmit={handleQuickAuth} className="space-y-3.5">
-                  <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-xl">
+                  <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-2xl gap-1">
                     <button
                       type="button"
                       onClick={() => setMode("signup")}
-                      className={`min-h-[38px] rounded-lg text-xs font-extrabold cursor-pointer ${
-                        mode === "signup" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500"
+                      className={`min-h-[44px] rounded-xl text-xs font-extrabold cursor-pointer transition-all ${
+                        mode === "signup" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
                       }`}
                     >
                       Quick Sign Up
@@ -162,8 +162,8 @@ export const JoinSquadPage = () => {
                     <button
                       type="button"
                       onClick={() => setMode("login")}
-                      className={`min-h-[38px] rounded-lg text-xs font-extrabold cursor-pointer ${
-                        mode === "login" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500"
+                      className={`min-h-[44px] rounded-xl text-xs font-extrabold cursor-pointer transition-all ${
+                        mode === "login" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
                       }`}
                     >
                       Already Have Account

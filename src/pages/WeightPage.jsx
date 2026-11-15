@@ -740,12 +740,12 @@ export const WeightPage = () => {
 
       {/* 5. Tabs Below Chart: Daily | Weekly | Monthly */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <div className="flex bg-slate-100 p-1 rounded-2xl">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 px-1">
+          <div className="grid grid-cols-3 sm:flex w-full sm:w-auto bg-slate-100 p-1 rounded-2xl gap-1">
             {[
-              { id: "daily", label: "Daily Entries" },
-              { id: "weekly", label: "Weekly Averages" },
-              { id: "monthly", label: "Monthly Averages" },
+              { id: "daily", label: "Daily" },
+              { id: "weekly", label: "Weekly" },
+              { id: "monthly", label: "Monthly" },
             ].map((t) => {
               const active = subTab === t.id;
               return (
@@ -756,7 +756,7 @@ export const WeightPage = () => {
                     haptics.tick();
                     setSubTab(t.id);
                   }}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  className={`min-h-[44px] px-2.5 sm:px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center text-center ${
                     active
                       ? "bg-white text-slate-900 shadow-xs"
                       : "text-slate-500 hover:text-slate-800"

@@ -217,9 +217,14 @@ export const WorkoutsPage = () => {
   const progressPercent = totalSetsCount > 0 ? Math.round((completedSetsCount / totalSetsCount) * 100) : 0;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6 max-w-4xl mx-auto pb-8 sm:pb-12"
+    >
       {/* Athletic Hero Workout Card */}
-      <GlassCard className="p-5 sm:p-7 relative overflow-hidden bg-white/95 border-slate-200 shadow-[0_8px_30px_rgba(15,23,42,0.06)]">
+      <GlassCard className="p-4 sm:p-7 relative overflow-hidden bg-white/95 border-slate-200 shadow-[0_8px_30px_rgba(15,23,42,0.06)]">
         {/* Soft background glow */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-purple-100/50 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
 
@@ -241,12 +246,12 @@ export const WorkoutsPage = () => {
               )}
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
               {scheduledDay?.workoutName || session?.workoutName || "Full Body Power Split"}
             </h1>
 
             {/* Set Progress Bar */}
-            <div className="pt-2 flex items-center gap-3 max-w-xs">
+            <div className="pt-1 sm:pt-2 flex items-center gap-3 max-w-xs">
               <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
                 <motion.div
                   initial={{ width: 0 }}
@@ -262,24 +267,26 @@ export const WorkoutsPage = () => {
           </div>
 
           {/* Action Row & Floating Rest Timer */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
             {/* Rest Timer display */}
             <div
-              className={`flex items-center gap-2.5 px-3.5 py-2 rounded-2xl border transition-all ${
+              className={`flex items-center justify-between sm:justify-start gap-2.5 px-3.5 py-2.5 rounded-2xl border transition-all ${
                 timerActive
                   ? "bg-purple-50 border-purple-300 text-purple-800 shadow-sm animate-pulse"
                   : "bg-slate-50 border-slate-200 text-slate-700"
               }`}
             >
-              <Timer className={`w-4 h-4 ${timerActive ? "text-purple-600" : "text-slate-400"}`} />
-              <span className="font-mono font-black text-sm">
-                {timerActive ? `${restTimerSeconds}s Rest` : "Rest Timer"}
-              </span>
+              <div className="flex items-center gap-2">
+                <Timer className={`w-4 h-4 ${timerActive ? "text-purple-600" : "text-slate-400"}`} />
+                <span className="font-mono font-black text-sm">
+                  {timerActive ? `${restTimerSeconds}s Rest` : "Rest Timer"}
+                </span>
+              </div>
               {timerActive ? (
                 <button
                   type="button"
                   onClick={stopRestTimer}
-                  className="text-xs text-rose-600 font-bold hover:underline ml-1"
+                  className="text-xs text-rose-600 font-bold hover:underline ml-1 cursor-pointer min-h-[36px] flex items-center px-1"
                 >
                   Skip
                 </button>
@@ -287,7 +294,7 @@ export const WorkoutsPage = () => {
                 <button
                   type="button"
                   onClick={() => startRestTimer(60)}
-                  className="text-xs text-purple-600 font-bold hover:underline ml-1"
+                  className="text-xs text-purple-600 font-bold hover:underline ml-1 cursor-pointer min-h-[36px] flex items-center px-1"
                 >
                   Start 60s
                 </button>
@@ -299,7 +306,7 @@ export const WorkoutsPage = () => {
               variant={isCompleted ? "secondary" : "primary"}
               isLoading={saveSessionMutation.isPending}
               onClick={() => saveSessionMutation.mutate("completed")}
-              className="shadow-md"
+              className="shadow-md min-h-[46px] justify-center font-bold"
             >
               <CheckCircle2 className="w-4 h-4 mr-1.5 stroke-[2.5]" />
               {isCompleted ? "Update Session" : "Complete Workout"}
@@ -311,10 +318,10 @@ export const WorkoutsPage = () => {
       {/* Exercises Section Header */}
       <div className="flex items-center justify-between px-1">
         <div>
-          <h2 className="text-base font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
             Exercises ({exercises.length})
           </h2>
-          <p className="text-xs text-slate-500">Log your weights, reps, and check off sets as you crush them</p>
+          <p className="text-xs text-slate-500">Log weights, reps, and tick off sets as you crush them</p>
         </div>
         <Button
           size="sm"
@@ -323,7 +330,7 @@ export const WorkoutsPage = () => {
             haptics.tick();
             setShowAddExModal(true);
           }}
-          className="text-xs font-bold"
+          className="text-xs font-bold min-h-[40px] px-3.5"
         >
           <Plus className="w-3.5 h-3.5 mr-1 stroke-[3]" /> Add Exercise
         </Button>
@@ -331,129 +338,147 @@ export const WorkoutsPage = () => {
 
       {/* Exercise Cards */}
       <div className="space-y-4">
-        {exercises.map((ex, exIdx) => {
-          const setsDone = ex.sets?.filter((s) => s.completed).length || 0;
-          const setsTotal = ex.sets?.length || 0;
-          const isAllDone = setsTotal > 0 && setsDone === setsTotal;
-
-          return (
-            <GlassCard
-              key={exIdx}
-              className={`p-4 sm:p-5 transition-all ${
-                isAllDone
-                  ? "border-emerald-300 bg-emerald-50/30"
-                  : "bg-white/95 border-slate-200/90"
-              }`}
+        {exercises.length === 0 ? (
+          <GlassCard className="p-8 text-center bg-white/95 border-slate-200">
+            <Dumbbell className="w-10 h-10 text-slate-300 mx-auto mb-2 stroke-[1.5]" />
+            <h3 className="font-extrabold text-slate-800 text-sm">No exercises logged yet</h3>
+            <p className="text-xs text-slate-400 mt-1 mb-4">Add your first exercise to start recording sets</p>
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => setShowAddExModal(true)}
+              className="min-h-[44px] font-bold"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                      isAllDone
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-purple-100 text-purple-700"
-                    }`}
+              <Plus className="w-4 h-4 mr-1.5" /> Add Exercise
+            </Button>
+          </GlassCard>
+        ) : (
+          exercises.map((ex, exIdx) => {
+            const setsDone = ex.sets?.filter((s) => s.completed).length || 0;
+            const setsTotal = ex.sets?.length || 0;
+            const isAllDone = setsTotal > 0 && setsDone === setsTotal;
+
+            return (
+              <GlassCard
+                key={exIdx}
+                className={`p-3.5 sm:p-5 transition-all ${
+                  isAllDone
+                    ? "border-emerald-300 bg-emerald-50/30"
+                    : "bg-white/95 border-slate-200/90"
+                }`}
+              >
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                        isAllDone
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-purple-100 text-purple-700"
+                      }`}
+                    >
+                      <Dumbbell className="w-4 h-4 stroke-[2.5]" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-extrabold text-slate-900 text-sm sm:text-base truncate">{ex.name}</h3>
+                      <span className="text-xs text-slate-500 font-medium">
+                        {setsDone} of {setsTotal} sets completed
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-label="Remove exercise"
+                    onClick={() => handleRemoveExercise(exIdx)}
+                    className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
                   >
-                    <Dumbbell className="w-4 h-4 stroke-[2.5]" />
-                  </div>
-                  <div>
-                    <h3 className="font-extrabold text-slate-900 text-base">{ex.name}</h3>
-                    <span className="text-xs text-slate-500 font-medium">
-                      {setsDone} of {setsTotal} sets completed
-                    </span>
-                  </div>
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleRemoveExercise(exIdx)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+                {/* Sets Table */}
+                <div className="mt-3 space-y-2">
+                  <div className="grid grid-cols-12 gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-wider px-1 sm:px-2">
+                    <div className="col-span-2 text-center">Set</div>
+                    <div className="col-span-4 text-center">Weight (kg)</div>
+                    <div className="col-span-4 text-center">Reps</div>
+                    <div className="col-span-2 text-center">Status</div>
+                  </div>
 
-              {/* Sets Table */}
-              <div className="mt-3 space-y-2">
-                <div className="grid grid-cols-12 gap-2 text-[11px] font-black text-slate-400 uppercase tracking-wider px-2">
-                  <div className="col-span-2 text-center">Set</div>
-                  <div className="col-span-4 text-center">Weight (kg)</div>
-                  <div className="col-span-4 text-center">Reps</div>
-                  <div className="col-span-2 text-center">Status</div>
+                  {ex.sets?.map((set, setIdx) => (
+                    <motion.div
+                      key={setIdx}
+                      layout
+                      className={`grid grid-cols-12 gap-1.5 sm:gap-2 items-center p-1.5 sm:p-2 rounded-2xl border transition-all ${
+                        set.completed
+                          ? "bg-emerald-50 border-emerald-300 text-emerald-950 shadow-2xs"
+                          : "bg-slate-50/80 border-slate-200 text-slate-900"
+                      }`}
+                    >
+                      <div className="col-span-2 text-center font-black text-slate-700 text-xs">
+                        #{set.setNumber}
+                      </div>
+
+                      <div className="col-span-4">
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          value={set.weight}
+                          onChange={(e) => updateSetField(exIdx, setIdx, "weight", e.target.value)}
+                          className={`w-full text-center min-h-[44px] rounded-xl border font-black text-sm focus:outline-none transition-all ${
+                            set.completed
+                              ? "bg-white/80 border-emerald-200 text-emerald-900 focus:border-emerald-500"
+                              : "bg-white border-slate-200 text-slate-900 focus:border-purple-400"
+                          }`}
+                        />
+                      </div>
+
+                      <div className="col-span-4">
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          value={set.reps}
+                          onChange={(e) => updateSetField(exIdx, setIdx, "reps", e.target.value)}
+                          className={`w-full text-center min-h-[44px] rounded-xl border font-black text-sm focus:outline-none transition-all ${
+                            set.completed
+                              ? "bg-white/80 border-emerald-200 text-emerald-900 focus:border-emerald-500"
+                              : "bg-white border-slate-200 text-slate-900 focus:border-purple-400"
+                          }`}
+                        />
+                      </div>
+
+                      <div className="col-span-2 flex justify-center">
+                        <motion.button
+                          whileTap={{ scale: 0.85 }}
+                          type="button"
+                          aria-label={`Toggle set ${set.setNumber}`}
+                          onClick={() => toggleSetCompleted(exIdx, setIdx)}
+                          className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-all cursor-pointer ${
+                            set.completed
+                              ? "bg-gradient-to-tr from-emerald-500 to-lime-500 text-white shadow-md shadow-emerald-500/25"
+                              : "bg-white border border-slate-300 hover:border-purple-400 text-slate-400 hover:text-purple-600 shadow-2xs"
+                          }`}
+                        >
+                          <Check className="w-5 h-5 stroke-[3]" />
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
 
-                {ex.sets?.map((set, setIdx) => (
-                  <motion.div
-                    key={setIdx}
-                    layout
-                    className={`grid grid-cols-12 gap-2 items-center p-2 rounded-2xl border transition-all ${
-                      set.completed
-                        ? "bg-emerald-50 border-emerald-300 text-emerald-950 shadow-xs"
-                        : "bg-slate-50/80 border-slate-200 text-slate-900"
-                    }`}
+                <div className="pt-2 flex justify-start">
+                  <button
+                    type="button"
+                    onClick={() => handleAddSet(exIdx)}
+                    className="text-xs font-bold text-purple-700 hover:text-purple-800 inline-flex items-center gap-1 min-h-[44px] px-3 rounded-xl hover:bg-purple-50 transition-colors cursor-pointer"
                   >
-                    <div className="col-span-2 text-center font-black text-slate-700 text-xs">
-                      #{set.setNumber}
-                    </div>
-
-                    <div className="col-span-4">
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        value={set.weight}
-                        onChange={(e) => updateSetField(exIdx, setIdx, "weight", e.target.value)}
-                        className={`w-full text-center min-h-[40px] rounded-xl border font-black text-sm focus:outline-none transition-all ${
-                          set.completed
-                            ? "bg-white/80 border-emerald-200 text-emerald-900 focus:border-emerald-500"
-                            : "bg-white border-slate-200 text-slate-900 focus:border-purple-400"
-                        }`}
-                      />
-                    </div>
-
-                    <div className="col-span-4">
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        value={set.reps}
-                        onChange={(e) => updateSetField(exIdx, setIdx, "reps", e.target.value)}
-                        className={`w-full text-center min-h-[40px] rounded-xl border font-black text-sm focus:outline-none transition-all ${
-                          set.completed
-                            ? "bg-white/80 border-emerald-200 text-emerald-900 focus:border-emerald-500"
-                            : "bg-white border-slate-200 text-slate-900 focus:border-purple-400"
-                        }`}
-                      />
-                    </div>
-
-                    <div className="col-span-2 flex justify-center">
-                      <motion.button
-                        whileTap={{ scale: 0.85 }}
-                        type="button"
-                        onClick={() => toggleSetCompleted(exIdx, setIdx)}
-                        className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all cursor-pointer ${
-                          set.completed
-                            ? "bg-gradient-to-tr from-emerald-500 to-lime-500 text-white shadow-md shadow-emerald-500/25"
-                            : "bg-white border border-slate-300 hover:border-purple-400 text-slate-400 hover:text-purple-600 shadow-xs"
-                        }`}
-                      >
-                        <Check className="w-5 h-5 stroke-[3]" />
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              <div className="pt-2 flex justify-start">
-                <button
-                  type="button"
-                  onClick={() => handleAddSet(exIdx)}
-                  className="text-xs font-bold text-purple-700 hover:text-purple-800 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-purple-50 transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5 stroke-[3]" /> Add Set
-                </button>
-              </div>
-            </GlassCard>
-          );
-        })}
+                    <Plus className="w-3.5 h-3.5 stroke-[3]" /> Add Set
+                  </button>
+                </div>
+              </GlassCard>
+            );
+          })
+        )}
       </div>
 
       {/* Personal Records (PRs) Showcase */}
@@ -539,12 +564,12 @@ export const WorkoutsPage = () => {
             </div>
           </div>
 
-          <Button type="submit" className="w-full min-h-[46px] shadow-md">
+          <Button type="submit" className="w-full min-h-[46px] shadow-md font-bold">
             Add Exercise
           </Button>
         </form>
       </Sheet>
-    </div>
+    </motion.div>
   );
 };
 

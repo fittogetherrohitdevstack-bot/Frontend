@@ -86,6 +86,7 @@ export const progressApi = {
   getTodayWater: () => api.get("/water/today"),
   getWaterHistory: () => api.get("/water/history"),
   deleteWaterEntry: (id) => api.delete(`/water/entries/${id}`),
+  updateWaterTarget: (data) => api.put("/water/target", data),
   saveMetrics: (data) => api.post("/progress/metrics", data),
   uploadPhoto: (data) => api.post("/progress/photo", data),
   getProgressHistory: (period = "month") => api.get(`/progress/history?period=${period}`),

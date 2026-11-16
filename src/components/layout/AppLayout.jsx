@@ -456,8 +456,8 @@ export const AppLayout = () => {
         )}
       </AnimatePresence>
 
-      {/* Flexible & Symmetrical Mobile Floating Bottom Navigation Bar (Hidden when inside an active squad chat) */}
-      {!(location.pathname.startsWith("/chat/") && location.pathname !== "/chat") && (
+      {/* Flexible & Symmetrical Mobile Floating Bottom Navigation Bar (Hidden on chat pages) */}
+      {!location.pathname.startsWith("/chat") && (
         <nav className="lg:hidden fixed bottom-3 left-0 right-0 z-40 w-[calc(100%-1.25rem)] max-w-md mx-auto bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-3xl p-1.5 shadow-[0_10px_35px_rgba(15,23,42,0.12),inset_0_1px_0_0_rgba(255,255,255,0.9)] flex items-center justify-between safe-bottom">
           {/* Left 2 Tabs (Home, Diet) */}
         {mobileNavLeft.map((item) => {

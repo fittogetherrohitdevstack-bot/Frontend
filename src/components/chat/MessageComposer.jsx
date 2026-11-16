@@ -41,7 +41,9 @@ export const MessageComposer = ({
   }, [text]);
 
   const handleSubmit = (e) => {
-    if (e) e.preventDefault();
+    if (e && typeof e.preventDefault === "function") {
+      e.preventDefault();
+    }
     const trimmed = text.trim();
     if (!trimmed) return;
 
@@ -174,11 +176,11 @@ export const MessageComposer = ({
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={!canSubmit}
-          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center font-bold transition-all duration-150 shrink-0 ${
+          onClick={handleSubmit}
+          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center font-bold transition-all duration-150 shrink-0 cursor-pointer ${
             canSubmit
-              ? "bg-gradient-to-tr from-[#9EE616] to-[#84CC16] text-slate-950 shadow-md shadow-lime-500/25 hover:scale-105 active:scale-95 cursor-pointer"
-              : "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50"
+              ? "bg-gradient-to-tr from-[#9EE616] to-[#84CC16] text-slate-950 shadow-md shadow-lime-500/25 hover:scale-105 active:scale-95"
+              : "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 opacity-40 cursor-not-allowed"
           }`}
           aria-label={isEditing ? "Save changes" : "Send message"}
         >

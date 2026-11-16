@@ -245,7 +245,12 @@ export const useSquadChat = (squadId) => {
   const sendMessage = useCallback(
     async (text) => {
       const trimmed = String(text || "").trim();
-      if (!trimmed || !squadId) return;
+      if (!trimmed) return;
+      if (!squadId) {
+        console.warn("[SquadChat] Missing squadId, cannot send message");
+        toast.error("Please select a squad first");
+        return;
+      }
 
       stopTypingNow();
       haptics.impact();
@@ -307,7 +312,8 @@ export const useSquadChat = (squadId) => {
         });
         queryClient.invalidateQueries({ queryKey: ["chat-squads-list"] });
       } catch (err) {
-        toast.error("Failed to send message. Tap to retry.");
+        console.error("[SquadChat] Send message failed:", err.response?.data || err.message);
+        toast.error(err.response?.data?.message || "Failed to send message. Tap to retry.");
         setMessages((prev) =>
           prev.map((m) => (m._id === tempId ? { ...m, isFailed: true, isOptimistic: false } : m))
         );

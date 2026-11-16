@@ -1,4 +1,4 @@
-const CACHE_NAME = "fittogether-pwa-v2";
+const CACHE_NAME = "fittogether-pwa-v4";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE_ASSETS = [
   "/",
@@ -9,12 +9,13 @@ const PRECACHE_ASSETS = [
   "/web-app-manifest-512x512.png",
 ];
 
+// Force immediate activation of updated service worker
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll(PRECACHE_ASSETS))
-      .then(() => self.skipWaiting())
+      .then((cache) => cache.addAll(PRECACHE_ASSETS).catch((err) => console.warn("[SW] Precache non-blocking error:", err)))
   );
 });
 
@@ -29,6 +30,13 @@ self.addEventListener("activate", (event) => {
       )
       .then(() => self.clients.claim())
   );
+});
+
+// Handle postMessage skipWaiting trigger from main window
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("fetch", (event) => {
@@ -70,135 +78,247 @@ self.addEventListener("fetch", (event) => {
 });
 
 /**
- * Robust Push Handler supporting:
- * 1. Direct Web Push payload ({ title, body, icon, badge, image, url, data })
- * 2. Nested FCM Web Push payload ({ notification: { title, body, icon }, data: { ... } })
- * 3. Stringified data payloads
- * 4. Plain-text fallback
- * 5. Tag-based deduplication and deep linking
+ * Universal Push Notification Handler
+ * Compatible with:
+ * 1. Direct Web Push ({ title, body, icon, badge, data })
+ * 2. FCM nested notification ({ notification: { title, body }, data: { ... } })
+ * 3. FCM data-only ({ data: { title, body, ... } })
+ * 4. APNs alert structure ({ aps: { alert: { title, body } } })
+ * 5. Double/triple stringified JSON
+ * 6. Delimited plain text ("Title - Body" or "Title: Body")
+ *
+ * Guaranteed Behavior:
+ * - NEVER overwrites a meaningful title with "FitTogether"
+ * - Detailed diagnostic logging for inspection
+ * - Tag-based deduplication and deep linking
  */
 self.addEventListener("push", (event) => {
-  let title = "FitTogether";
-  let body = "New squad activity waiting for you!";
-  let icon = "/web-app-manifest-192x192.png";
-  let badge = "/favicon-96x96.png";
-  let image = undefined;
-  let tag = `fittogether-${Date.now()}`;
-  let targetUrl = "/";
-  let extraData = {};
+  console.log("[SW Push] Push event received at:", new Date().toISOString());
 
-  try {
-    if (event.data) {
-      let rawJson = null;
-      try {
-        rawJson = event.data.json();
-      } catch (_) {
-        // Plain text fallback
-        body = event.data.text() || body;
-      }
+  let rawText = "";
+  let payload = null;
 
-      if (rawJson && typeof rawJson === "object") {
-        // Handle FCM / nested notification wrapper
-        const notif = rawJson.notification || {};
-        const data = rawJson.data || {};
+  if (event.data) {
+    try {
+      rawText = event.data.text();
+    } catch (e) {
+      console.warn("[SW Push] Could not read raw text from event.data:", e);
+    }
 
-        title =
-          rawJson.title ||
-          notif.title ||
-          data.title ||
-          title;
-
-        body =
-          rawJson.body ||
-          notif.body ||
-          data.body ||
-          body;
-
-        icon =
-          rawJson.icon ||
-          notif.icon ||
-          data.icon ||
-          icon;
-
-        badge =
-          rawJson.badge ||
-          notif.badge ||
-          data.badge ||
-          badge;
-
-        image =
-          rawJson.image ||
-          notif.image ||
-          notif.imageUrl ||
-          data.image ||
-          data.imageUrl ||
-          undefined;
-
-        tag =
-          rawJson.tag ||
-          notif.tag ||
-          data.tag ||
-          tag;
-
-        targetUrl =
-          rawJson.url ||
-          notif.url ||
-          data.url ||
-          targetUrl;
-
-        extraData = {
-          ...data,
-          ...rawJson.data,
-          url: targetUrl,
-          activityId: rawJson.activityId || data.activityId || "",
-          type: rawJson.type || data.type || "general",
-          category: rawJson.category || data.category || "general",
-          senderName: rawJson.senderName || data.senderName || "",
-          senderImage: rawJson.senderImage || data.senderImage || "",
-        };
+    try {
+      payload = event.data.json();
+    } catch (_) {
+      // If event.data.json() throws, try JSON.parse on rawText
+      if (rawText) {
+        try {
+          payload = JSON.parse(rawText);
+        } catch (_) {
+          payload = null;
+        }
       }
     }
-  } catch (err) {
-    console.warn("[SW] Push payload parse error:", err);
   }
 
+  // Handle double-encoded or triple-encoded JSON strings
+  let parseAttempts = 0;
+  while (typeof payload === "string" && parseAttempts < 3) {
+    parseAttempts++;
+    try {
+      payload = JSON.parse(payload);
+    } catch (_) {
+      break;
+    }
+  }
+
+  console.log("[SW Push Raw Payload]:", rawText || "(empty)");
+  console.log("[SW Push Parsed JSON]:", payload ? JSON.stringify(payload) : "(null)");
+
+  // Extract nested objects if present
+  const notifObj =
+    payload && typeof payload === "object" && typeof payload.notification === "object"
+      ? payload.notification
+      : {};
+  const dataObj =
+    payload && typeof payload === "object" && typeof payload.data === "object"
+      ? payload.data
+      : {};
+  const apsAlert =
+    payload &&
+    typeof payload === "object" &&
+    payload.aps &&
+    typeof payload.aps.alert === "object"
+      ? payload.aps.alert
+      : {};
+
+  // Cascading extraction for Title: check all possible keys
+  let candidateTitle = "";
+  if (payload && typeof payload === "object") {
+    candidateTitle =
+      payload.title ||
+      notifObj.title ||
+      dataObj.title ||
+      apsAlert.title ||
+      payload.heading ||
+      dataObj.heading ||
+      payload.name ||
+      dataObj.name ||
+      payload.subject ||
+      dataObj.subject ||
+      "";
+  }
+
+  // Cascading extraction for Body: check all possible keys
+  let candidateBody = "";
+  if (payload && typeof payload === "object") {
+    candidateBody =
+      payload.body ||
+      notifObj.body ||
+      dataObj.body ||
+      apsAlert.body ||
+      payload.message ||
+      dataObj.message ||
+      payload.text ||
+      dataObj.text ||
+      payload.description ||
+      dataObj.description ||
+      "";
+  }
+
+  // If payload was plain text without JSON formatting
+  if (
+    !candidateTitle &&
+    !candidateBody &&
+    rawText &&
+    !rawText.trim().startsWith("{") &&
+    !rawText.trim().startsWith("[")
+  ) {
+    if (rawText.includes(" - ")) {
+      const parts = rawText.split(" - ");
+      candidateTitle = parts[0].trim();
+      candidateBody = parts.slice(1).join(" - ").trim();
+    } else if (rawText.includes(": ")) {
+      const parts = rawText.split(": ");
+      candidateTitle = parts[0].trim();
+      candidateBody = parts.slice(1).join(": ").trim();
+    } else {
+      candidateBody = rawText.trim();
+    }
+  }
+
+  // If senderName and activity/type exist, synthesize title if still missing
+  const senderName =
+    (payload && payload.senderName) ||
+    dataObj.senderName ||
+    (payload && payload.actorName) ||
+    dataObj.actorName ||
+    "";
+  const notifType =
+    (payload && payload.type) ||
+    dataObj.type ||
+    (payload && payload.category) ||
+    dataObj.category ||
+    "";
+
+  if (!candidateTitle && senderName) {
+    if (notifType === "meal_added") {
+      candidateTitle = `🍎 ${senderName} added a new meal`;
+    } else if (notifType === "water_logged") {
+      candidateTitle = `💧 ${senderName} logged water`;
+    } else if (notifType === "moment_posted") {
+      candidateTitle = `📸 ${senderName} shared a moment`;
+    } else if (notifType === "workout_completed") {
+      candidateTitle = `💪 ${senderName} completed a workout`;
+    } else if (notifType === "diet_updated") {
+      candidateTitle = `🥗 ${senderName} updated today's diet`;
+    } else {
+      candidateTitle = `${senderName} updated FitTogether`;
+    }
+  }
+
+  // Final fallback ONLY if title/body are strictly empty
+  const finalTitle =
+    candidateTitle && String(candidateTitle).trim().length > 0
+      ? String(candidateTitle).trim()
+      : "FitTogether";
+
+  const finalBody =
+    candidateBody && String(candidateBody).trim().length > 0
+      ? String(candidateBody).trim()
+      : "Time to keep your squad streak burning!";
+
+  console.log("[SW Push Extracted Title]:", finalTitle);
+  console.log("[SW Push Extracted Body]:", finalBody);
+
+  const finalIcon =
+    (payload && (payload.icon || notifObj.icon || dataObj.icon)) ||
+    "/web-app-manifest-192x192.png";
+
+  const finalBadge =
+    (payload && (payload.badge || notifObj.badge || dataObj.badge)) ||
+    "/favicon-96x96.png";
+
+  const finalImage =
+    (payload &&
+      (payload.image ||
+        notifObj.image ||
+        notifObj.imageUrl ||
+        dataObj.image ||
+        dataObj.imageUrl)) ||
+    undefined;
+
+  const finalTag =
+    (payload && (payload.tag || notifObj.tag || dataObj.tag)) ||
+    `fittogether-${Date.now()}`;
+
+  const targetUrl =
+    (payload && (payload.url || notifObj.url || dataObj.url)) ||
+    "/";
+
   const notificationOptions = {
-    body,
-    icon,
-    badge,
-    tag,
+    body: finalBody,
+    icon: finalIcon,
+    badge: finalBadge,
+    tag: finalTag,
     renotify: true,
     data: {
-      ...extraData,
+      ...dataObj,
+      ...(payload && typeof payload === "object" ? payload.data : {}),
       url: targetUrl,
+      type: notifType,
+      activityId: (payload && payload.activityId) || dataObj.activityId || "",
+      senderName,
+      timestamp: Date.now(),
     },
     timestamp: Date.now(),
   };
 
-  if (image) {
-    notificationOptions.image = image;
+  if (finalImage) {
+    notificationOptions.image = finalImage;
   }
 
-  // Add actions if appropriate
-  if (extraData.type === "moment_posted") {
+  // Contextual notification actions
+  if (notifType === "moment_posted") {
     notificationOptions.actions = [
       { action: "view", title: "View Moment 🔥" },
       { action: "dismiss", title: "Dismiss" },
     ];
-  } else if (extraData.type === "meal_added" || extraData.type === "diet_updated") {
+  } else if (notifType === "meal_added" || notifType === "diet_updated") {
     notificationOptions.actions = [
       { action: "view", title: "Open Tracker 🥗" },
       { action: "dismiss", title: "Dismiss" },
     ];
-  } else if (extraData.type === "workout_completed") {
+  } else if (notifType === "workout_completed") {
     notificationOptions.actions = [
       { action: "view", title: "See Workout 💪" },
       { action: "dismiss", title: "Dismiss" },
     ];
   }
 
+  console.log("[SW Push Notification Options]:", JSON.stringify(notificationOptions));
+  console.log("[SW Push Calling showNotification]:", finalTitle);
+
   event.waitUntil(
-    self.registration.showNotification(title, notificationOptions)
+    self.registration.showNotification(finalTitle, notificationOptions)
   );
 });
 

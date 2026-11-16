@@ -22,7 +22,31 @@ export const registerServiceWorker = async () => {
   try {
     const registration = await navigator.serviceWorker.register("/sw.js", {
       scope: "/",
+      updateViaCache: "none",
     });
+
+    // Check for updates on every application load
+    if (registration.update) {
+      registration.update().catch(() => {});
+    }
+
+    // If an updated worker is waiting, activate immediately
+    if (registration.waiting) {
+      registration.waiting.postMessage({ type: "SKIP_WAITING" });
+    }
+
+    registration.addEventListener("updatefound", () => {
+      const newWorker = registration.installing;
+      if (newWorker) {
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+            console.log("[PWA] New service worker ready, activating...");
+            newWorker.postMessage({ type: "SKIP_WAITING" });
+          }
+        });
+      }
+    });
+
     return registration;
   } catch (err) {
     console.warn("[PWA] Service worker registration skipped:", err.message);

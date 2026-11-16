@@ -24,7 +24,29 @@ export const registerServiceWorker = async () => {
   try {
     const registration = await navigator.serviceWorker.register("/sw.js", {
       scope: "/",
+      updateViaCache: "none",
     });
+
+    if (registration.update) {
+      registration.update().catch(() => {});
+    }
+
+    if (registration.waiting) {
+      registration.waiting.postMessage({ type: "SKIP_WAITING" });
+    }
+
+    registration.addEventListener("updatefound", () => {
+      const newWorker = registration.installing;
+      if (newWorker) {
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+            console.log("[WebPush] New service worker installed, skipping waiting...");
+            newWorker.postMessage({ type: "SKIP_WAITING" });
+          }
+        });
+      }
+    });
+
     return registration;
   } catch (err) {
     console.warn("[PWA] Service worker registration error:", err.message);

@@ -26,6 +26,8 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { haptics } from "../../motion/Haptics";
 import { toast } from "sonner";
+import { NotificationPermissionPrompt } from "../notifications/NotificationPermissionPrompt";
+import { notificationManager } from "../../services/notifications/notificationManager";
 
 export const AppLayout = () => {
   const location = useLocation();
@@ -67,6 +69,11 @@ export const AppLayout = () => {
       return () => clearTimeout(timer);
     }
   }, [liveEvent, clearLiveEvent]);
+
+  // Initialize unified cross-platform notification manager
+  useEffect(() => {
+    notificationManager.init(navigate);
+  }, [navigate]);
 
   // Close quick menu on route change
   useEffect(() => {
@@ -521,6 +528,9 @@ export const AppLayout = () => {
           );
         })}
       </nav>
+
+      {/* Non-intrusive squad notification permission prompt */}
+      <NotificationPermissionPrompt />
     </div>
   );
 };

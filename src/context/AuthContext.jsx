@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { authApi } from "../api/endpoints";
+import { notificationManager } from "../services/notifications/notificationManager";
 
 const AuthContext = createContext(null);
 
@@ -51,6 +52,7 @@ export const AuthProvider = ({ children }) => {
       setToken(accessToken);
       setUser(loggedUser);
       setProfile(loggedProfile);
+      notificationManager.registerOnLogin().catch(() => {});
       return res.data;
     }
   };
@@ -63,12 +65,14 @@ export const AuthProvider = ({ children }) => {
       setToken(accessToken);
       setUser(newUser);
       setProfile(newProfile);
+      notificationManager.registerOnLogin().catch(() => {});
       return res.data;
     }
   };
 
   const logout = async () => {
     try {
+      await notificationManager.unregisterOnLogout().catch(() => {});
       await authApi.logout();
     } catch (e) {
       // ignore

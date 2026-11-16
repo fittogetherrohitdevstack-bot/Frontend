@@ -1,0 +1,19 @@
+{
+  "appId": "com.fittogether.app",
+  "appName": "FitTogether",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_fittogether",
+      "iconColor": "#10B981",
+      "sound": "default"
+    }
+  }
+}

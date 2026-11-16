@@ -131,10 +131,31 @@ export const socialApi = {
   joinChallenge: (id) => api.post(`/challenges/${id}/join`),
   getChallengeDetails: (id) => api.get(`/challenges/${id}`),
   getMyBadges: () => api.get("/users/me/badges"),
-  getNotifications: () => api.get("/notifications"),
+  getNotifications: (params) => api.get("/notifications", { params }),
   markNotificationRead: (id) => api.patch(`/notifications/${id}/read`),
   markAllNotificationsRead: () => api.patch("/notifications/read-all"),
+  deleteNotification: (id) => api.delete(`/notifications/${id}`),
+  clearReadNotifications: () => api.delete("/notifications"),
+  getPreferences: () => api.get("/notifications/preferences"),
   updateReminderPreferences: (data) => api.put("/notifications/preferences", data),
+};
+
+// Centralized Notification API
+export const notificationApi = {
+  getNotifications: (params) => api.get("/notifications", { params }),
+  markAsRead: (id) => api.patch(`/notifications/${id}/read`),
+  markAllAsRead: () => api.patch("/notifications/read-all"),
+  deleteNotification: (id) => api.delete(`/notifications/${id}`),
+  clearRead: () => api.delete("/notifications"),
+  getPreferences: () => api.get("/notifications/preferences"),
+  updatePreferences: (data) => api.put("/notifications/preferences", data),
+};
+
+// Native Device Push Registrations (Phase 5: Android & iOS FCM / APNs)
+export const deviceApi = {
+  registerDevice: (data) => api.post("/devices/register", data),
+  unregisterDevice: (data) => api.post("/devices/unregister", data),
+  sendTest: () => api.post("/devices/test"),
 };
 
 // Weekly Targets & Pace Tracking

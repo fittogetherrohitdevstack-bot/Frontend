@@ -18,6 +18,7 @@ import { WeightPage } from "../pages/WeightPage";
 import { MeasurementsPage } from "../pages/MeasurementsPage";
 import { PhotosPage } from "../pages/PhotosPage";
 import { ReminderSettingsPage } from "../pages/ReminderSettingsPage";
+import { NotificationsPage } from "../pages/NotificationsPage";
 import { JoinSquadPage } from "../pages/JoinSquadPage";
 import { SquadMomentsPage } from "../pages/SquadMomentsPage";
 import { QuickOnboardingModal } from "../components/onboarding/QuickOnboardingModal";
@@ -92,6 +93,7 @@ export const AppRoutes = () => {
         <Route path="leaderboard" element={<LeaderboardPage />} />
         <Route path="challenges" element={<ChallengesPage />} />
         <Route path="badges" element={<BadgesPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="settings/reminders" element={<ReminderSettingsPage />} />
       </Route>

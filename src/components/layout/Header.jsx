@@ -87,7 +87,7 @@ export const Header = ({ streakCount = 0 }) => {
 
             {/* In-app Notifications */}
             <Link
-              to="/badges?tab=notifications"
+              to="/notifications"
               onClick={() => haptics.tick()}
               aria-label={
                 unreadCount > 0

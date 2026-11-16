@@ -47,7 +47,10 @@ export const MessageComposer = ({
     const trimmed = text.trim();
     if (!trimmed) return;
 
-    haptics.impact();
+    try {
+      haptics?.selection?.();
+    } catch (_) {}
+
     if (editingMessage) {
       onEdit(editingMessage._id, trimmed);
     } else {

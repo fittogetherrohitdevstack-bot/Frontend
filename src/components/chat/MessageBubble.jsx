@@ -293,7 +293,7 @@ export const MessageBubble = ({
                     key={emoji}
                     type="button"
                     onClick={() => {
-                      haptics.impact();
+                      try { haptics?.tick?.(); } catch (_) {}
                       onReact(message._id, emoji);
                       setShowActionModal(false);
                     }}

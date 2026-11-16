@@ -33,12 +33,28 @@ export const triggerHaptic = (pattern = "selection") => {
   }
 };
 
-export const haptics = {
+const baseHaptics = {
   tick: () => triggerHaptic("tick"),
   selection: () => triggerHaptic("selection"),
+  impact: () => triggerHaptic("selection"),
+  success: () => triggerHaptic("success"),
+  error: () => triggerHaptic("warning"),
   eaten: () => triggerHaptic("eaten"),
   goal: () => triggerHaptic("goal"),
   warning: () => triggerHaptic("warning"),
+  light: () => triggerHaptic("selection"),
+  medium: () => triggerHaptic("selection"),
+  heavy: () => triggerHaptic("warning"),
 };
+
+// Safe proxy to guarantee calling any haptics method never throws
+export const haptics = new Proxy(baseHaptics, {
+  get: (target, prop) => {
+    if (prop in target) {
+      return target[prop];
+    }
+    return () => triggerHaptic("selection");
+  },
+});
 
 export default haptics;

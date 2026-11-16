@@ -103,17 +103,33 @@ export const useSquadChat = (squadId) => {
     const handleNewMessage = (msg) => {
       if (String(msg.groupId) !== String(squadIdRef.current)) return;
 
+      const currentUid = user?._id || user?.id;
+      const isMine = currentUid
+        ? String(msg.sender?._id || msg.sender?.id || msg.sender) === String(currentUid)
+        : false;
+      const normalizedMsg = { ...msg, isMine };
+
       setMessages((prev) => {
-        // Replace matching optimistic message or append
-        const exists = prev.some((m) => String(m._id) === String(msg._id));
-        if (exists) {
-          return prev.map((m) => (String(m._id) === String(msg._id) ? msg : m));
+        // Check if matching optimistic message exists by clientMsgId, _id, or optimistic match
+        const matchIndex = prev.findIndex(
+          (m) =>
+            (msg.clientMsgId && m.clientMsgId === msg.clientMsgId) ||
+            (m._id && String(m._id) === String(msg._id)) ||
+            (m._id && msg.clientMsgId && String(m._id) === String(msg.clientMsgId)) ||
+            (m.isOptimistic && m.text === msg.text && isMine)
+        );
+
+        if (matchIndex !== -1) {
+          const updated = [...prev];
+          updated[matchIndex] = normalizedMsg;
+          return updated;
         }
-        return [...prev, msg];
+
+        return [...prev, normalizedMsg];
       });
 
       // Provide subtle haptic for incoming message if not from current user
-      if (String(msg.sender?._id) !== String(user?._id)) {
+      if (!isMine) {
         haptics.tick();
       }
 
@@ -235,11 +251,13 @@ export const useSquadChat = (squadId) => {
       haptics.impact();
 
       const tempId = "opt_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6);
+      const currentUid = user?._id || user?.id;
       const optimisticMsg = {
         _id: tempId,
+        clientMsgId: tempId,
         groupId: squadId,
         sender: {
-          _id: user?._id,
+          _id: currentUid,
           name: user?.name || "Me",
           profileImage: user?.profileImage || "",
         },
@@ -271,18 +289,27 @@ export const useSquadChat = (squadId) => {
         const res = await chatApi.sendMessage(squadId, {
           text: trimmed,
           replyToId: activeReplyId,
+          clientMsgId: tempId,
         });
         const serverMsg = res.data?.data;
 
-        // Replace optimistic msg with server message
-        setMessages((prev) =>
-          prev.map((m) => (m._id === tempId ? { ...serverMsg, isMine: true } : m))
-        );
+        // If the socket already added/replaced it with serverMsg._id, remove the tempId
+        setMessages((prev) => {
+          const alreadyAdded = prev.some((m) => String(m._id) === String(serverMsg?._id));
+          if (alreadyAdded) {
+            return prev.filter((m) => m._id !== tempId && m.clientMsgId !== tempId);
+          }
+          return prev.map((m) =>
+            m._id === tempId || m.clientMsgId === tempId
+              ? { ...serverMsg, isMine: true }
+              : m
+          );
+        });
         queryClient.invalidateQueries({ queryKey: ["chat-squads-list"] });
       } catch (err) {
         toast.error("Failed to send message. Tap to retry.");
         setMessages((prev) =>
-          prev.map((m) => (m._id === tempId ? { ...m, isFailed: true } : m))
+          prev.map((m) => (m._id === tempId ? { ...m, isFailed: true, isOptimistic: false } : m))
         );
       }
     },

@@ -20,6 +20,7 @@ export const MessageList = ({
   onDelete,
   onReact,
   canModerate = false,
+  onQuickPrompt,
 }) => {
   const containerRef = useRef(null);
   const bottomRef = useRef(null);
@@ -76,7 +77,9 @@ export const MessageList = ({
             key={i}
             className={`flex items-end gap-2.5 ${i % 2 === 0 ? "justify-end" : "justify-start"}`}
           >
-            {i % 2 !== 0 && <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse" />}
+            {i % 2 !== 0 && (
+              <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse shrink-0" />
+            )}
             <div
               className={`h-12 rounded-2xl bg-slate-200/70 dark:bg-slate-800/60 animate-pulse ${
                 i % 2 === 0 ? "w-48 sm:w-64" : "w-56 sm:w-80"
@@ -90,7 +93,7 @@ export const MessageList = ({
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center select-none">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center select-none overflow-y-auto">
         <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-lime-400/20 to-emerald-500/20 border border-lime-500/30 flex items-center justify-center text-lime-600 dark:text-lime-400 mb-4 shadow-lg shadow-lime-500/10">
           <MessageSquare className="w-8 h-8" />
         </div>
@@ -100,9 +103,29 @@ export const MessageList = ({
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-xs mt-1 leading-relaxed">
           Cheer on your teammates, coordinate today's workout, and keep your squad streak burning!
         </p>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 text-xs font-semibold text-slate-600 dark:text-slate-300 mt-4 border border-slate-200 dark:border-slate-700">
-          <Sparkles className="w-3.5 h-3.5 text-lime-500" />
-          <span>Say hello to the squad</span>
+
+        {/* Quick starter prompts */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-5 max-w-sm">
+          {[
+            "Hello Squad! 👋",
+            "Crushed today's workout! 💪",
+            "Hydration check! 💧",
+            "Let's keep the streak burning! 🔥",
+          ].map((prompt) => (
+            <button
+              key={prompt}
+              type="button"
+              onClick={() => {
+                haptics.tick();
+                if (typeof onQuickPrompt === "function") {
+                  onQuickPrompt(prompt);
+                }
+              }}
+              className="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-lime-500/15 dark:bg-slate-800 dark:hover:bg-lime-500/20 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-lime-700 dark:hover:text-lime-300 border border-slate-200 dark:border-slate-700 hover:border-lime-500/40 transition-all cursor-pointer active:scale-95 shadow-2xs"
+            >
+              {prompt}
+            </button>
+          ))}
         </div>
       </div>
     );
@@ -134,25 +157,33 @@ export const MessageList = ({
         const prevDateLabel = prevMsg ? getDateDividerLabel(prevMsg.createdAt) : null;
         const showDateDivider = !prevMsg || currentDateLabel !== prevDateLabel;
 
+        const senderId = String(msg.sender?._id || msg.sender?.id || msg.sender || "");
+        const prevSenderId = prevMsg
+          ? String(prevMsg.sender?._id || prevMsg.sender?.id || prevMsg.sender || "")
+          : null;
+        const nextSenderId = nextMsg
+          ? String(nextMsg.sender?._id || nextMsg.sender?.id || nextMsg.sender || "")
+          : null;
+
         // Group consecutive messages: within 5 minutes from same sender
         const isSameSenderAsPrev =
           prevMsg &&
-          String(prevMsg.sender?._id) === String(msg.sender?._id) &&
+          prevSenderId === senderId &&
           new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() < 5 * 60 * 1000;
 
         const isSameSenderAsNext =
           nextMsg &&
-          String(nextMsg.sender?._id) === String(msg.sender?._id) &&
+          nextSenderId === senderId &&
           new Date(nextMsg.createdAt).getTime() - new Date(msg.createdAt).getTime() < 5 * 60 * 1000;
 
         const isFirstInGroup = !isSameSenderAsPrev;
         const isLastInGroup = !isSameSenderAsNext;
 
         return (
-          <React.Fragment key={msg._id || index}>
+          <React.Fragment key={msg._id || msg.clientMsgId || index}>
             {showDateDivider && (
               <div className="flex items-center justify-center my-4 select-none">
-                <span className="px-3 py-1 rounded-full bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 text-[11px] font-bold text-slate-500 dark:text-slate-400 shadow-2xs">
+                <span className="px-3.5 py-1 rounded-full bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 text-[11px] font-bold text-slate-500 dark:text-slate-400 shadow-2xs">
                   {currentDateLabel}
                 </span>
               </div>
@@ -172,14 +203,14 @@ export const MessageList = ({
         );
       })}
 
-      <div ref={bottomRef} className="h-2" />
+      <div ref={bottomRef} className="h-3" />
 
       {/* Floating Scroll to Bottom Button */}
       {showScrollBottom && (
         <button
           type="button"
           onClick={scrollToBottom}
-          className="fixed bottom-20 right-4 sm:right-8 z-30 p-2.5 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-xl hover:scale-105 active:scale-95 transition-all"
+          className="fixed bottom-24 lg:bottom-20 right-4 sm:right-8 z-30 p-2.5 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
           aria-label="Scroll to bottom"
         >
           <ArrowDown className="w-4 h-4" />

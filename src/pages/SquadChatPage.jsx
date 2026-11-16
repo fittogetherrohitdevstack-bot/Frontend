@@ -31,20 +31,42 @@ export const SquadChatPage = () => {
 
   const squads = squadsData || [];
 
-  // Match active squad from URL or default
+  // Determine active squad ID from URL or selected state
+  const activeSquadId = urlSquadId || selectedSquad?._id;
+
+  // Single squad detail query (used if deep-linked or refreshed on /chat/:squadId)
+  const { data: singleSquadInfo } = useQuery({
+    queryKey: ["squad-chat-info", activeSquadId],
+    queryFn: async () => {
+      if (!activeSquadId) return null;
+      const res = await chatApi.getSquadInfo(activeSquadId);
+      return res.data?.data;
+    },
+    enabled: Boolean(activeSquadId),
+  });
+
+  // Effective squad object: from squads list, or single query, or state
+  const activeSquad =
+    squads.find((s) => String(s._id) === String(activeSquadId)) ||
+    singleSquadInfo ||
+    selectedSquad;
+
+  // Sync state with URL or desktop default selection
   useEffect(() => {
-    if (squads.length > 0) {
-      if (urlSquadId) {
+    if (urlSquadId) {
+      if (!selectedSquad || String(selectedSquad._id) !== String(urlSquadId)) {
         const found = squads.find((s) => String(s._id) === String(urlSquadId));
         if (found) {
           setSelectedSquad(found);
+        } else if (singleSquadInfo) {
+          setSelectedSquad(singleSquadInfo);
         }
-      } else if (window.innerWidth >= 1024 && !selectedSquad) {
-        // On desktop, auto-select first squad if none selected
-        setSelectedSquad(squads[0]);
       }
+    } else if (window.innerWidth >= 1024 && squads.length > 0 && !selectedSquad) {
+      // On desktop, auto-navigate to first squad if no squad selected in URL
+      navigate(`/chat/${squads[0]._id}`, { replace: true });
     }
-  }, [squads, urlSquadId]);
+  }, [squads, urlSquadId, singleSquadInfo, selectedSquad, navigate]);
 
   // Hook for active squad chat conversation
   const {
@@ -64,53 +86,58 @@ export const SquadChatPage = () => {
     toggleReaction,
     loadOlderMessages,
     emitTyping,
-  } = useSquadChat(selectedSquad?._id);
+  } = useSquadChat(activeSquadId);
 
   const handleSelectSquad = (squad) => {
     setSelectedSquad(squad);
-    navigate(`/chat/${squad._id}`, { replace: true });
+    navigate(`/chat/${squad._id}`);
   };
 
   const handleBackToList = () => {
     setSelectedSquad(null);
-    navigate("/chat", { replace: true });
+    navigate("/chat");
   };
 
-  const canModerate = selectedSquad?.myRole === "admin";
+  const canModerate = activeSquad?.myRole === "admin" || activeSquad?.role === "admin";
+  const hasActiveChat = Boolean(activeSquadId);
 
   return (
-    <div className="flex-1 flex h-[calc(100dvh-4rem)] bg-slate-50/50 dark:bg-slate-950/50 relative overflow-hidden">
+    <div className="flex-1 flex h-full w-full bg-slate-50/70 dark:bg-slate-950/70 relative overflow-hidden">
       {/* Left Column: Squads List (Hidden on mobile when a chat is open) */}
-      <div className={`${selectedSquad ? "hidden lg:flex" : "flex w-full"} h-full`}>
+      <div className={`${hasActiveChat ? "hidden lg:flex" : "flex w-full"} h-full shrink-0`}>
         <SquadListPane
           squads={squads}
-          activeSquadId={selectedSquad?._id}
+          activeSquadId={activeSquadId}
           onSelectSquad={handleSelectSquad}
           isLoading={isLoadingSquads}
         />
       </div>
 
       {/* Right Column: Chat Conversation (or Empty State) */}
-      <div className={`flex-1 flex flex-col h-full bg-white dark:bg-slate-900 ${!selectedSquad ? "hidden lg:flex" : "flex w-full"}`}>
-        {selectedSquad ? (
+      <div
+        className={`flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-slate-900 ${
+          !hasActiveChat ? "hidden lg:flex" : "flex w-full"
+        }`}
+      >
+        {hasActiveChat ? (
           <>
             {/* Chat Top Header */}
             <ChatHeader
-              squad={selectedSquad}
+              squad={activeSquad || { name: "Squad Chat", _id: activeSquadId }}
               onlineCount={onlineUserIds.length}
               onBack={handleBackToList}
               onOpenInfo={() => setIsInfoDrawerOpen(true)}
             />
 
             {/* Scrollable Message List */}
-            <div className="flex-1 flex flex-col min-h-0 relative">
+            <div className="flex-1 flex flex-col min-h-0 relative bg-slate-50/40 dark:bg-slate-950/40">
               <MessageList
                 messages={messages}
                 isLoading={isLoadingMessages}
                 isLoadingOlder={isLoadingOlder}
                 hasMoreOlder={hasMoreOlder}
                 onLoadOlder={loadOlderMessages}
-                currentUserId={user?._id}
+                currentUserId={user?._id || user?.id}
                 onReply={(msg) => {
                   setEditingMessage(null);
                   setReplyingTo(msg);
@@ -122,6 +149,7 @@ export const SquadChatPage = () => {
                 onDelete={deleteMessage}
                 onReact={toggleReaction}
                 canModerate={canModerate}
+                onQuickPrompt={(promptText) => sendMessage(promptText)}
               />
 
               {/* Floating Typing Indicator */}
@@ -142,22 +170,24 @@ export const SquadChatPage = () => {
             />
 
             {/* Squad Info Slide-over Sheet */}
-            <SquadInfoDrawer
-              isOpen={isInfoDrawerOpen}
-              onClose={() => setIsInfoDrawerOpen(false)}
-              squadId={selectedSquad._id}
-            />
+            {activeSquad && (
+              <SquadInfoDrawer
+                isOpen={isInfoDrawerOpen}
+                onClose={() => setIsInfoDrawerOpen(false)}
+                squadId={activeSquad._id || activeSquadId}
+              />
+            )}
           </>
         ) : (
           /* Desktop Empty State (when no squad selected) */
-          <div className="hidden lg:flex flex-1 flex-col items-center justify-center p-8 text-center select-none">
-            <div className="w-16 h-16 rounded-3xl bg-lime-500/10 border border-lime-500/20 text-lime-600 dark:text-lime-400 flex items-center justify-center mb-4">
+          <div className="hidden lg:flex flex-1 flex-col items-center justify-center p-8 text-center select-none bg-slate-50/50 dark:bg-slate-950/50">
+            <div className="w-16 h-16 rounded-3xl bg-lime-500/10 border border-lime-500/20 text-lime-600 dark:text-lime-400 flex items-center justify-center mb-4 shadow-lg shadow-lime-500/5">
               <MessageSquare className="w-8 h-8" />
             </div>
             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
               Select a Squad to Chat
             </h3>
-            <p className="text-xs text-slate-400 max-w-xs mt-1 leading-relaxed">
+            <p className="text-xs text-slate-400 max-w-xs mt-1.5 leading-relaxed">
               Choose a squad from the left panel to join the conversation and support your teammates.
             </p>
           </div>

@@ -217,7 +217,13 @@ export const AppLayout = () => {
         </aside>
 
         {/* Center Content Body */}
-        <main className="flex-1 min-w-0 p-3 sm:p-6 pb-28 lg:pb-10">
+        <main
+          className={`flex-1 min-w-0 ${
+            location.pathname.startsWith("/chat")
+              ? "flex flex-col h-[calc(100dvh-4rem)] overflow-hidden p-0 pb-0 lg:pb-0"
+              : "p-3 sm:p-6 pb-28 lg:pb-10"
+          }`}
+        >
           <Outlet />
         </main>
       </div>
@@ -450,9 +456,10 @@ export const AppLayout = () => {
         )}
       </AnimatePresence>
 
-      {/* Flexible & Symmetrical Mobile Floating Bottom Navigation Bar */}
-      <nav className="lg:hidden fixed bottom-3 left-0 right-0 z-40 w-[calc(100%-1.25rem)] max-w-md mx-auto bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-3xl p-1.5 shadow-[0_10px_35px_rgba(15,23,42,0.12),inset_0_1px_0_0_rgba(255,255,255,0.9)] flex items-center justify-between safe-bottom">
-        {/* Left 2 Tabs (Home, Diet) */}
+      {/* Flexible & Symmetrical Mobile Floating Bottom Navigation Bar (Hidden when inside an active squad chat) */}
+      {!(location.pathname.startsWith("/chat/") && location.pathname !== "/chat") && (
+        <nav className="lg:hidden fixed bottom-3 left-0 right-0 z-40 w-[calc(100%-1.25rem)] max-w-md mx-auto bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-3xl p-1.5 shadow-[0_10px_35px_rgba(15,23,42,0.12),inset_0_1px_0_0_rgba(255,255,255,0.9)] flex items-center justify-between safe-bottom">
+          {/* Left 2 Tabs (Home, Diet) */}
         {mobileNavLeft.map((item) => {
           const Icon = item.icon;
           const isActive = item.matchPaths.some((p) => location.pathname === p);
@@ -567,6 +574,7 @@ export const AppLayout = () => {
           );
         })}
       </nav>
+      )}
 
       {/* Non-intrusive squad notification permission prompt */}
       <NotificationPermissionPrompt />

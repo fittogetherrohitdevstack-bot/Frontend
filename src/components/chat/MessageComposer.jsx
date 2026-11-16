@@ -45,6 +45,7 @@ export const MessageComposer = ({
     const trimmed = text.trim();
     if (!trimmed) return;
 
+    haptics.impact();
     if (editingMessage) {
       onEdit(editingMessage._id, trimmed);
     } else {
@@ -82,7 +83,7 @@ export const MessageComposer = ({
   const canSubmit = text.trim().length > 0;
 
   return (
-    <div className="sticky bottom-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200/80 dark:border-slate-800 transition-colors">
+    <div className="sticky bottom-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200/80 dark:border-slate-800 transition-colors">
       {/* Floating Reply Banner */}
       {isReplying && (
         <div className="flex items-center justify-between px-4 py-2 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200/60 dark:border-slate-700/60 text-xs">
@@ -124,7 +125,10 @@ export const MessageComposer = ({
       )}
 
       {/* Main Composer Row */}
-      <form onSubmit={handleSubmit} className="p-2 sm:p-3 flex items-end gap-2 max-w-4xl mx-auto">
+      <form
+        onSubmit={handleSubmit}
+        className="p-2 sm:p-3 pb-[max(0.6rem,env(safe-area-inset-bottom))] flex items-end gap-2 max-w-4xl mx-auto"
+      >
         {/* Emoji Button */}
         <div className="relative shrink-0">
           <button
@@ -133,7 +137,7 @@ export const MessageComposer = ({
               haptics.tick();
               setShowEmojiPicker((p) => !p);
             }}
-            className="p-2.5 rounded-full text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95"
+            className="p-2.5 rounded-2xl text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95 cursor-pointer"
             title="Add Emoji"
           >
             <Smile className="w-5 h-5" />
@@ -148,7 +152,7 @@ export const MessageComposer = ({
         </div>
 
         {/* Text Input Area */}
-        <div className="flex-1 min-w-0 bg-slate-100 dark:bg-slate-800/90 rounded-2xl px-3.5 py-2 border border-slate-200/80 dark:border-slate-700/80 focus-within:border-lime-500 dark:focus-within:border-lime-400 focus-within:ring-2 focus-within:ring-lime-500/20 transition-all">
+        <div className="flex-1 min-w-0 bg-slate-100/90 dark:bg-slate-800/90 rounded-2xl px-3.5 py-1.5 border border-slate-200/90 dark:border-slate-700/80 focus-within:border-lime-500 dark:focus-within:border-lime-400 focus-within:ring-2 focus-within:ring-lime-500/20 transition-all">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -163,7 +167,7 @@ export const MessageComposer = ({
                 : "Message the squad... (Shift+Enter for newline)"
             }
             maxLength={2000}
-            className="w-full bg-transparent resize-none outline-none text-slate-900 dark:text-slate-100 text-sm leading-relaxed placeholder:text-slate-400 max-h-[140px]"
+            className="w-full bg-transparent resize-none outline-none text-slate-900 dark:text-slate-100 text-sm leading-relaxed placeholder:text-slate-400 max-h-[140px] py-1"
           />
         </div>
 
@@ -171,17 +175,17 @@ export const MessageComposer = ({
         <button
           type="submit"
           disabled={!canSubmit}
-          className={`p-2.5 sm:px-4 sm:py-2.5 rounded-2xl flex items-center justify-center font-bold text-sm transition-all duration-150 shrink-0 ${
+          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center font-bold transition-all duration-150 shrink-0 ${
             canSubmit
-              ? "bg-gradient-to-r from-lime-400 to-lime-500 text-slate-950 shadow-md shadow-lime-500/20 hover:scale-105 active:scale-95 cursor-pointer"
-              : "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-60"
+              ? "bg-gradient-to-tr from-[#9EE616] to-[#84CC16] text-slate-950 shadow-md shadow-lime-500/25 hover:scale-105 active:scale-95 cursor-pointer"
+              : "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50"
           }`}
           aria-label={isEditing ? "Save changes" : "Send message"}
         >
           {isEditing ? (
             <Check className="w-5 h-5 stroke-[2.5]" />
           ) : (
-            <Send className="w-5 h-5 stroke-[2.2]" />
+            <Send className="w-5 h-5 stroke-[2.2] translate-x-0.5" />
           )}
         </button>
       </form>

@@ -3,7 +3,7 @@ import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Header } from "./Header";
 import { useSocket } from "../../context/SocketContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { dietApi, progressApi } from "../../api/endpoints";
+import { dietApi, progressApi, chatApi } from "../../api/endpoints";
 import {
   Home,
   UtensilsCrossed,
@@ -22,6 +22,7 @@ import {
   Compass,
   Camera,
   Bell,
+  MessageSquare,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { haptics } from "../../motion/Haptics";
@@ -45,6 +46,17 @@ export const AppLayout = () => {
     },
     refetchInterval: 30000,
   });
+
+  // Fetch unread chat message counts
+  const { data: chatUnreadData } = useQuery({
+    queryKey: ["chat-unread-counts"],
+    queryFn: async () => {
+      const res = await chatApi.getUnreadCounts();
+      return res.data?.data;
+    },
+    refetchInterval: 20000,
+  });
+  const totalChatUnread = chatUnreadData?.totalUnread || 0;
 
   // Quick water addition from radial menu
   const quickWaterMutation = useMutation({
@@ -91,12 +103,14 @@ export const AppLayout = () => {
       label: "Squad",
       to: "/group",
       icon: Users,
-      matchPaths: ["/group", "/leaderboard", "/challenges", "/badges", "/moments"],
+      matchPaths: ["/group", "/leaderboard", "/challenges", "/badges", "/moments", "/chat"],
+      badge: totalChatUnread,
     },
   ];
 
   const sidebarNavItems = [
     { label: "Home", to: "/", icon: Home },
+    { label: "Squad Chat", to: "/chat", icon: MessageSquare, badge: totalChatUnread },
     { label: "Moments", to: "/moments", icon: Camera },
     { label: "Diet Plan", to: "/diet", icon: UtensilsCrossed },
     { label: "Workouts", to: "/workouts", icon: Dumbbell },
@@ -105,6 +119,7 @@ export const AppLayout = () => {
   ];
 
   const subNavItems = [
+    { label: "Squad Chat", to: "/chat", icon: MessageSquare, color: "text-blue-600", badge: totalChatUnread },
     { label: "Squad Moments", to: "/moments", icon: Camera, color: "text-lime-600" },
     { label: "Daily Tracker", to: "/tracker", icon: UtensilsCrossed, color: "text-lime-600" },
     { label: "Weight", to: "/weight", icon: Scale, color: "text-lime-600" },
@@ -159,7 +174,12 @@ export const AppLayout = () => {
                     />
                   )}
                   <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-lime-700" : ""}`} />
-                  <span>{item.label}</span>
+                  <span className="flex-1 truncate">{item.label}</span>
+                  {item.badge > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-lime-500 text-slate-950 font-black text-[10px] animate-pulse shrink-0">
+                      {item.badge > 99 ? "99+" : item.badge}
+                    </span>
+                  )}
                 </NavLink>
               );
             })}
@@ -184,7 +204,12 @@ export const AppLayout = () => {
                   }`}
                 >
                   <Icon className={`w-4 h-4 ${item.color}`} />
-                  {item.label}
+                  <span className="flex-1 truncate">{item.label}</span>
+                  {item.badge > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-lime-500 text-slate-950 font-black text-[10px] animate-pulse shrink-0">
+                      {item.badge > 99 ? "99+" : item.badge}
+                    </span>
+                  )}
                 </NavLink>
               );
             })}
@@ -451,11 +476,18 @@ export const AppLayout = () => {
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 className="relative z-10 flex flex-col items-center"
               >
-                <Icon
-                  className={`w-5 h-5 transition-colors ${
-                    isActive ? "text-lime-700 stroke-[2.5]" : "text-slate-400"
-                  }`}
-                />
+                <div className="relative">
+                  <Icon
+                    className={`w-5 h-5 transition-colors ${
+                      isActive ? "text-lime-700 stroke-[2.5]" : "text-slate-400"
+                    }`}
+                  />
+                  {item.badge > 0 && (
+                    <span className="absolute -top-1 -right-2 px-1 py-0.2 rounded-full bg-lime-500 text-slate-950 text-[9px] font-black animate-pulse leading-none">
+                      {item.badge > 9 ? "9+" : item.badge}
+                    </span>
+                  )}
+                </div>
                 <span
                   className={`text-[10px] font-bold tracking-tight transition-colors mt-0.5 truncate max-w-[56px] text-center ${
                     isActive ? "text-lime-800" : "text-slate-500"
@@ -511,11 +543,18 @@ export const AppLayout = () => {
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 className="relative z-10 flex flex-col items-center"
               >
-                <Icon
-                  className={`w-5 h-5 transition-colors ${
-                    isActive ? "text-lime-700 stroke-[2.5]" : "text-slate-400"
-                  }`}
-                />
+                <div className="relative">
+                  <Icon
+                    className={`w-5 h-5 transition-colors ${
+                      isActive ? "text-lime-700 stroke-[2.5]" : "text-slate-400"
+                    }`}
+                  />
+                  {item.badge > 0 && (
+                    <span className="absolute -top-1 -right-2 px-1 py-0.2 rounded-full bg-lime-500 text-slate-950 text-[9px] font-black animate-pulse leading-none">
+                      {item.badge > 9 ? "9+" : item.badge}
+                    </span>
+                  )}
+                </div>
                 <span
                   className={`text-[10px] font-bold tracking-tight transition-colors mt-0.5 truncate max-w-[56px] text-center ${
                     isActive ? "text-lime-800" : "text-slate-500"

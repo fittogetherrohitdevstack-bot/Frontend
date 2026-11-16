@@ -21,6 +21,7 @@ import { ReminderSettingsPage } from "../pages/ReminderSettingsPage";
 import { NotificationsPage } from "../pages/NotificationsPage";
 import { JoinSquadPage } from "../pages/JoinSquadPage";
 import { SquadMomentsPage } from "../pages/SquadMomentsPage";
+import { SquadChatPage } from "../pages/SquadChatPage";
 import { QuickOnboardingModal } from "../components/onboarding/QuickOnboardingModal";
 
 const ProtectedRoute = ({ children }) => {
@@ -94,6 +95,8 @@ export const AppRoutes = () => {
         <Route path="challenges" element={<ChallengesPage />} />
         <Route path="badges" element={<BadgesPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="chat" element={<SquadChatPage />} />
+        <Route path="chat/:squadId" element={<SquadChatPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="settings/reminders" element={<ReminderSettingsPage />} />
       </Route>

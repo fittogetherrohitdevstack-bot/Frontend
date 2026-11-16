@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { groupApi, photoSetApi } from "../api/endpoints";
 import { useGroup } from "../context/GroupContext";
@@ -35,6 +36,7 @@ import {
   Settings2,
   Camera,
   Info,
+  MessageSquare,
 } from "lucide-react";
 import { SquadMomentsTab } from "../components/group/SquadMomentsTab";
 import { haptics } from "../motion/Haptics";
@@ -49,6 +51,7 @@ const GROUP_TABS = [
 ];
 
 export const GroupPage = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { groups, activeGroup, selectGroup, refreshGroups } = useGroup();
   const { user } = useAuth();
@@ -559,6 +562,20 @@ export const GroupPage = () => {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 w-full">
+              <button
+                type="button"
+                aria-label="Open Squad Chat"
+                onClick={() => {
+                  haptics.tick();
+                  navigate(`/chat/${activeGroup._id}`);
+                }}
+                className="min-h-[42px] px-2.5 rounded-xl bg-lime-400 hover:bg-lime-300 text-slate-950 text-xs font-black inline-flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+                title="Open Squad Chat"
+              >
+                <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Chat</span>
+              </button>
+
               <button
                 type="button"
                 aria-label="Share on WhatsApp"

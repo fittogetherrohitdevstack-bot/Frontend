@@ -233,3 +233,16 @@ export const momentApi = {
   deleteComment: (groupId, momentId, commentId) =>
     api.delete(`/groups/${groupId}/moments/${momentId}/comments/${commentId}`),
 };
+
+// Real-Time Squad Chat
+export const chatApi = {
+  getSquads: () => api.get("/chat/squads"),
+  getMessages: (squadId, params = {}) => api.get(`/chat/squads/${squadId}/messages`, { params }),
+  sendMessage: (squadId, data) => api.post(`/chat/squads/${squadId}/messages`, data),
+  editMessage: (messageId, data) => api.patch(`/chat/messages/${messageId}`, data),
+  deleteMessage: (messageId) => api.delete(`/chat/messages/${messageId}`),
+  toggleReaction: (messageId, emoji) => api.post(`/chat/messages/${messageId}/reactions`, { emoji }),
+  markSquadAsRead: (squadId) => api.post(`/chat/squads/${squadId}/read`),
+  getUnreadCounts: () => api.get("/chat/unread-counts"),
+  getSquadInfo: (squadId) => api.get(`/chat/squads/${squadId}/info`),
+};

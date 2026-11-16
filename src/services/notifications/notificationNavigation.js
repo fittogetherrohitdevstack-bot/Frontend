@@ -42,6 +42,12 @@ export const resolveNotificationRoute = (notification) => {
       return "/photos";
     case "challenge":
       return "/challenges";
+    case "chat":
+    case "chat_message":
+    case "squad_chat": {
+      const groupId = notification.groupId || notification.data?.groupId;
+      return groupId ? `/chat/${groupId}` : "/chat";
+    }
     default:
       return "/";
   }

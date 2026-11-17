@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><title>Clearing Cache</title></head>
+<body style="font-family: sans-serif; padding: 40px; text-align: center;">
+<h1 id="status">Clearing Service Worker &amp; Caches...</h1>
+<script>
+(async () => {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) {
+        await r.unregister();
+      }
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      for (const k of keys) {
+        await caches.delete(k);
+      }
+    }
+    document.getElementById('status').innerText = 'CACHE_CLEARED_SUCCESSFULLY';
+  } catch (err) {
+    document.getElementById('status').innerText = 'ERROR: ' + err.message;
+  }
+})();
+</script>
+</body>
+</html>

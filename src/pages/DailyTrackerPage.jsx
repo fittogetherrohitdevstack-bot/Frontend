@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { mealChartApi } from "../api/endpoints";
 import { useAuth } from "../context/AuthContext";
@@ -11,6 +12,9 @@ import { Skeleton } from "../components/ui/Skeleton";
 import { haptics } from "../motion/Haptics";
 import confetti from "canvas-confetti";
 import { toast } from "sonner";
+import { TrackerMacroRing } from "../components/tracker/TrackerMacroRing";
+import { InteractiveMealCard } from "../components/tracker/InteractiveMealCard";
+import { AddExtraFoodSheet } from "../components/tracker/AddExtraFoodSheet";
 import {
   UtensilsCrossed,
   Check,
@@ -30,6 +34,7 @@ import {
   Ban,
   ExternalLink,
   RotateCcw,
+  Sparkles,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -178,6 +183,7 @@ export const DailyTrackerPage = () => {
   const [isChartEditorOpen, setIsChartEditorOpen] = useState(false);
   const [isUnplannedOpen, setIsUnplannedOpen] = useState(false);
   const [unplannedMealId, setUnplannedMealId] = useState("");
+  const [unplannedMealName, setUnplannedMealName] = useState("");
   const [unplannedItem, setUnplannedItem] = useState(INITIAL_UNPLANNED_ITEM);
   const [editItemModal, setEditItemModal] = useState(null);
   const [editActualQty, setEditActualQty] = useState("");
@@ -342,6 +348,7 @@ export const DailyTrackerPage = () => {
       await mealChartApi.addUnplannedItem({ date: selectedDate, mealId, item }),
     onSuccess: () => {
       invalidateMealQueries();
+      queryClient.invalidateQueries({ queryKey: ["user-extras"] });
       toast.success("Extra food item added and logged!");
       setIsUnplannedOpen(false);
       setUnplannedItem(INITIAL_UNPLANNED_ITEM);
@@ -546,88 +553,44 @@ export const DailyTrackerPage = () => {
               {weekStrip.map((item) => {
                 const isSelected = item.date === selectedDate;
                 return (
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.92 }}
                     key={item.date}
                     type="button"
                     onClick={() => {
                       haptics.tick();
                       setSelectedDate(item.date);
                     }}
-                    className={`min-h-[54px] py-1.5 px-0.5 rounded-2xl text-center transition-all flex flex-col items-center justify-center cursor-pointer ${
+                    className={`min-h-[58px] py-1.5 px-0.5 rounded-2xl text-center transition-all flex flex-col items-center justify-center cursor-pointer relative ${
                       isSelected
-                        ? "bg-lime-500 text-slate-950 shadow-sm font-black"
+                        ? "bg-lime-500 text-slate-950 shadow-md shadow-lime-500/20 font-black ring-2 ring-lime-400"
                         : item.isToday
-                        ? "bg-lime-50 text-lime-900 border border-lime-300 font-bold"
-                        : "bg-slate-50 text-slate-600 hover:bg-slate-100 font-semibold"
+                        ? "bg-lime-50 dark:bg-lime-950/40 text-lime-900 dark:text-lime-300 border border-lime-300 dark:border-lime-700 font-bold"
+                        : "bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold"
                     }`}
                   >
-                    <span className="text-[10px] uppercase leading-tight">{item.dayName}</span>
+                    <span className="text-[10px] uppercase leading-tight font-extrabold">{item.dayName}</span>
                     <span className="text-sm font-black tabular-nums leading-tight mt-0.5">
                       {item.dayNum}
                     </span>
-                  </button>
+                    {item.isToday && !isSelected && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-lime-500 mt-1" />
+                    )}
+                  </motion.button>
                 );
               })}
             </div>
           </GlassCard>
 
-          {/* Nutrition Totals & Completion Summary (Non-sticky on small mobile so meal rows aren't covered) */}
-          <GlassCard className="p-4 sm:p-5 bg-white/95 border-slate-200/90 rounded-3xl shadow-xs space-y-3.5">
-            <div className="flex flex-wrap items-center justify-between gap-2.5">
-              <div className="min-w-0">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Calories Consumed
-                </span>
-                <div className="flex items-baseline gap-1.5 mt-0.5 flex-wrap">
-                  <span className="text-2xl sm:text-3xl font-black text-slate-900 tabular-nums">
-                    {consumedTotals.calories}
-                  </span>
-                  <span className="text-xs font-semibold text-slate-500 tabular-nums">
-                    / {plannedTotals.calories || 2200} kcal planned
-                  </span>
-                </div>
-              </div>
-
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-lime-50 border border-lime-200 text-lime-800 text-xs font-extrabold shrink-0 tabular-nums">
-                <CheckCheck className="w-3.5 h-3.5 text-lime-600 shrink-0" />
-                <span>
-                  {itemsCompleted}/{totalItems} eaten · {completionPercentage}%
-                </span>
-              </div>
-            </div>
-
-            {/* Stacked Mobile-Safe 3-Column Macro Cards */}
-            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100">
-              {MACRO_CONFIG.map((macro) => {
-                const consumed = Math.round(consumedTotals[macro.key] || 0);
-                const plannedRaw = plannedTotals[macro.key] || 0;
-                const target = Math.round(plannedRaw || macro.fallback);
-                const pct =
-                  plannedRaw > 0 ? Math.min(100, (consumedTotals[macro.key] / plannedRaw) * 100) : 0;
-
-                return (
-                  <div
-                    key={macro.key}
-                    className="p-2.5 rounded-2xl bg-slate-50/90 border border-slate-100 space-y-1.5 min-w-0"
-                  >
-                    <div className="text-[11px] font-extrabold leading-none">
-                      <span className={macro.textClass}>{macro.label}</span>
-                    </div>
-                    <div className="text-[11px] font-bold text-slate-700 tabular-nums truncate">
-                      {consumed}
-                      <span className="text-slate-400 font-semibold">/{target}g</span>
-                    </div>
-                    <div className="w-full bg-slate-200/80 rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className={`${macro.barClass} h-full rounded-full transition-all duration-300`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </GlassCard>
+          {/* Interactive Animated Calorie Gauge & Macro Hero */}
+          <TrackerMacroRing
+            consumedTotals={consumedTotals}
+            plannedTotals={plannedTotals}
+            itemsCompleted={itemsCompleted}
+            totalItems={totalItems}
+            completionPercentage={completionPercentage}
+            streakDays={summaryRes?.summary?.currentStreak || 0}
+          />
 
           {/* Quick Action Controls: Full-Width Primary + Clean Secondary Row on Mobile */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -742,230 +705,43 @@ export const DailyTrackerPage = () => {
                     </Link>
                   </div>
                 )}
-              {meals.map((meal) => {
-                const mealId = meal.mealId || meal._id;
-                const items = meal.plannedFoodItems || [];
-                const eatenCount = items.filter((it) => it.eaten).length;
-                const isAllEaten = items.length > 0 && eatenCount === items.length;
-                const isPartial = eatenCount > 0 && !isAllEaten;
-                const isSkipped = meal.status === "skipped";
-                const totalMealKcal = Math.round(
-                  items.reduce((s, it) => s + (it.calories || 0), 0)
-                );
+              {/* Day All-Eaten Celebratory Banner */}
+              {totalItems > 0 && itemsCompleted === totalItems && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-lime-500/15 via-emerald-500/15 to-teal-500/15 border-2 border-lime-400 dark:border-lime-500 text-center shadow-lg shadow-lime-500/10 space-y-1.5"
+                >
+                  <div className="flex items-center justify-center gap-2 text-lime-900 dark:text-lime-300 font-black text-sm sm:text-base">
+                    <Sparkles className="w-5 h-5 text-amber-500" />
+                    <span>All Meals Completed! Today's Diet Crushed! 🔥</span>
+                    <Sparkles className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">
+                    You hit 100% of your daily meal plan. Consistency builds champions!
+                  </p>
+                </motion.div>
+              )}
 
-                return (
-                  <GlassCard
-                    key={mealId}
-                    className={`p-4 sm:p-5 rounded-3xl border transition-all ${
-                      isAllEaten
-                        ? "bg-lime-50/60 border-lime-300 shadow-xs"
-                        : isSkipped
-                        ? "bg-slate-50/90 border-slate-200 opacity-75"
-                        : isPartial
-                        ? "bg-white border-violet-300 shadow-xs"
-                        : "bg-white/95 border-slate-200/90 shadow-xs"
-                    }`}
-                  >
-                    {/* Meal Card Header (Stacks cleanly below 640px) */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-100">
-                      <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-base font-black text-slate-900 leading-tight">
-                            {meal.mealName}
-                          </h3>
-                          <span className="text-[11px] font-semibold text-slate-500 inline-flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {meal.scheduledTime || "08:00"}
-                          </span>
-
-                          {isAllEaten && (
-                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-lime-500 text-slate-950">
-                              ALL EATEN ✓
-                            </span>
-                          )}
-                          {isSkipped && (
-                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
-                              SKIPPED
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="text-xs font-medium text-slate-500 tabular-nums">
-                          {eatenCount}/{items.length} items logged · {totalMealKcal} kcal
-                        </div>
-                      </div>
-
-                      {/* Touch-Sized Meal Actions */}
-                      <div className="flex items-center gap-2 shrink-0">
-                        {!isSkipped && !isAllEaten && (
-                          <button
-                            type="button"
-                            disabled={isFuture || tickMealMutation.isPending}
-                            onClick={() =>
-                              tickMealMutation.mutate({ mealId, status: "eaten" })
-                            }
-                            className="min-h-[40px] px-3.5 text-xs font-extrabold rounded-xl bg-lime-100 hover:bg-lime-200 text-lime-900 border border-lime-300/70 transition-colors disabled:opacity-40 cursor-pointer inline-flex items-center gap-1.5"
-                          >
-                            <CheckCheck className="w-3.5 h-3.5" />
-                            Tick All
-                          </button>
-                        )}
-
-                        {!isSkipped && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              haptics.tick();
-                              setSkipMealModal({ mealId, mealName: meal.mealName });
-                            }}
-                            className="min-h-[40px] px-3 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer inline-flex items-center gap-1.5"
-                          >
-                            <Ban className="w-3.5 h-3.5 text-slate-500" />
-                            Skip
-                          </button>
-                        )}
-
-                        {isSkipped && (
-                          <button
-                            type="button"
-                            disabled={tickMealMutation.isPending}
-                            onClick={() =>
-                              tickMealMutation.mutate({ mealId, status: "pending" })
-                            }
-                            className="min-h-[40px] px-3.5 text-xs font-extrabold rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 cursor-pointer"
-                          >
-                            Undo Skip
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Food Items Checkable Rows (>= 44px touch hits) */}
-                    <div className="divide-y divide-slate-100 pt-1">
-                      {items.map((item) => {
-                        const itemId = item.itemId || item._id;
-                        const isChecked = Boolean(item.eaten);
-                        const qtyChanged =
-                          item.actualQuantity !== undefined &&
-                          item.actualQuantity !== null &&
-                          item.actualQuantity !== item.quantity;
-
-                        return (
-                          <div
-                            key={itemId}
-                            className="py-2 flex items-center justify-between gap-2"
-                          >
-                            {/* 44x44px Thumb Hit Target for Checkmark */}
-                            <button
-                              type="button"
-                              aria-label={`Mark ${item.name} as ${isChecked ? "not eaten" : "eaten"}`}
-                              disabled={isFuture || isSkipped}
-                              onClick={() =>
-                                tickItemMutation.mutate({
-                                  mealId,
-                                  itemId,
-                                  eaten: !isChecked,
-                                })
-                              }
-                              className="w-11 h-11 -ml-1.5 flex items-center justify-center shrink-0 rounded-2xl hover:bg-slate-100/70 transition-colors disabled:opacity-40 cursor-pointer"
-                            >
-                              <span
-                                className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all ${
-                                  isChecked
-                                    ? "bg-lime-500 text-slate-950 shadow-xs ring-2 ring-lime-500/20"
-                                    : "bg-slate-100 border-2 border-slate-300 text-transparent"
-                                }`}
-                              >
-                                <Check className="w-4 h-4 stroke-[3]" />
-                              </span>
-                            </button>
-
-                            {/* Food Info (tappable to edit actual portion) */}
-                            <button
-                              type="button"
-                              onClick={() => openEditQuantitySheet(mealId, item)}
-                              className="flex-1 min-w-0 text-left py-1.5 cursor-pointer"
-                            >
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span
-                                  className={`text-sm leading-snug ${
-                                    isChecked
-                                      ? "text-slate-900 font-extrabold"
-                                      : "text-slate-800 font-bold"
-                                  }`}
-                                >
-                                  {item.name}
-                                </span>
-                                {item.isUnplanned && (
-                                  <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
-                                    EXTRA
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-xs text-slate-500 mt-0.5 tabular-nums">
-                                {qtyChanged ? (
-                                  <span className="text-slate-700 font-semibold">
-                                    Ate {item.actualQuantity} {item.unit}{" "}
-                                    <span className="text-slate-400 font-normal">
-                                      (planned {item.quantity} {item.unit})
-                                    </span>
-                                  </span>
-                                ) : (
-                                  <span>
-                                    {item.quantity} {item.unit}
-                                  </span>
-                                )}
-                                <span className="mx-1.5 text-slate-300">·</span>
-                                <span>{Math.round(item.calories || 0)} kcal</span>
-                                <span className="mx-1.5 text-slate-300">·</span>
-                                <span className="text-violet-700 font-bold">
-                                  {item.protein}g P
-                                </span>
-                              </div>
-                            </button>
-
-                            {/* Timestamp + Always-Visible 44px Edit Button */}
-                            <div className="shrink-0 flex items-center gap-1">
-                              {isChecked && item.eatenAt && (
-                                <span className="hidden sm:inline text-[11px] text-slate-400 font-mono tabular-nums">
-                                  {new Date(item.eatenAt).toLocaleTimeString([], {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
-                                </span>
-                              )}
-                              <button
-                                type="button"
-                                aria-label={`Edit portion for ${item.name}`}
-                                onClick={() => openEditQuantitySheet(mealId, item)}
-                                className="min-h-[44px] min-w-[44px] rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Add Extra Food Trigger (Full Mobile Tap Row) */}
-                    <div className="pt-2.5 mt-1 border-t border-slate-100">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          haptics.tick();
-                          setUnplannedMealId(mealId);
-                          setIsUnplannedOpen(true);
-                        }}
-                        className="w-full min-h-[44px] px-3 rounded-2xl bg-violet-50/70 hover:bg-violet-100/70 border border-dashed border-violet-200 text-xs font-extrabold text-violet-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span>Add Extra Food Eaten</span>
-                      </button>
-                    </div>
-                  </GlassCard>
-                );
-              })}
+              {meals.map((meal, idx) => (
+                <InteractiveMealCard
+                  key={meal.mealId || meal._id}
+                  meal={meal}
+                  mealIndex={idx}
+                  isFuture={isFuture}
+                  onTickItem={(payload) => tickItemMutation.mutate(payload)}
+                  onTickMeal={(payload) => tickMealMutation.mutate(payload)}
+                  onOpenEditQuantity={openEditQuantitySheet}
+                  onOpenSkipModal={(payload) => setSkipMealModal(payload)}
+                  onOpenAddExtra={(mId, mName) => {
+                    setUnplannedMealId(mId);
+                    setUnplannedMealName(mName);
+                    setIsUnplannedOpen(true);
+                  }}
+                  isTickingItem={tickItemMutation.isPending}
+                  isTickingMeal={tickMealMutation.isPending}
+                />
+              ))}
             </div>
           )}
         </>
@@ -1278,112 +1054,21 @@ export const DailyTrackerPage = () => {
         </div>
       </Sheet>
 
-      {/* Add Extra Food Sheet */}
-      <Sheet
+      {/* Add Extra Food Sheet with User Memory & Selection from earlier extras */}
+      <AddExtraFoodSheet
         open={isUnplannedOpen}
         onOpenChange={setIsUnplannedOpen}
-        title="Add Extra Food Eaten"
-        description="Tap an instant preset or enter your own food details."
-      >
-        <div className="space-y-4 pb-2">
-          <div>
-            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
-              Quick Suggestions (Swipe)
-            </label>
-            <div className="flex overflow-x-auto gap-2 pb-1.5 -mx-1 px-1">
-              {QUICK_FOOD_LIBRARY.map((f, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => {
-                    haptics.tick();
-                    setUnplannedItem({ ...f });
-                  }}
-                  className="shrink-0 min-h-[40px] px-3 py-1.5 rounded-2xl bg-slate-100 hover:bg-lime-100 border border-slate-200/80 text-xs font-bold text-slate-700 transition-colors cursor-pointer"
-                >
-                  {f.name} · {f.calories} cal
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3 pt-2 border-t border-slate-100">
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Food Name</label>
-              <input
-                type="text"
-                value={unplannedItem.name}
-                onChange={(e) => setUnplannedItem({ ...unplannedItem, name: e.target.value })}
-                placeholder="e.g. Protein Bar / Almonds"
-                className="w-full min-h-[46px] text-base bg-slate-50 border border-slate-300 rounded-2xl px-3.5 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:bg-white"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2.5">
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Quantity</label>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  value={unplannedItem.quantity}
-                  onChange={(e) =>
-                    setUnplannedItem({ ...unplannedItem, quantity: Number(e.target.value) })
-                  }
-                  className="w-full min-h-[46px] text-base bg-slate-50 border border-slate-300 rounded-2xl px-3.5 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:bg-white"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Unit</label>
-                <input
-                  type="text"
-                  value={unplannedItem.unit}
-                  onChange={(e) => setUnplannedItem({ ...unplannedItem, unit: e.target.value })}
-                  className="w-full min-h-[46px] text-base bg-slate-50 border border-slate-300 rounded-2xl px-3.5 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:bg-white"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {[
-                { key: "calories", label: "Calories", color: "text-slate-600" },
-                { key: "protein", label: "Protein (g)", color: "text-violet-700" },
-                { key: "carbs", label: "Carbs (g)", color: "text-amber-700" },
-                { key: "fats", label: "Fats (g)", color: "text-pink-700" },
-              ].map((field) => (
-                <div key={field.key}>
-                  <label className={`text-[11px] font-bold block mb-1 ${field.color}`}>
-                    {field.label}
-                  </label>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    value={unplannedItem[field.key]}
-                    onChange={(e) =>
-                      setUnplannedItem({ ...unplannedItem, [field.key]: Number(e.target.value) })
-                    }
-                    className="w-full min-h-[46px] text-base bg-slate-50 border border-slate-300 rounded-2xl px-3 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:bg-white"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Button
-            variant="violet"
-            isLoading={addUnplannedMutation.isPending}
-            onClick={() =>
-              addUnplannedMutation.mutate({
-                mealId: unplannedMealId,
-                item: unplannedItem,
-              })
-            }
-            disabled={!unplannedItem.name.trim()}
-            className="w-full min-h-[48px] text-sm font-extrabold"
-          >
-            Add &amp; Log Extra Food
-          </Button>
-        </div>
-      </Sheet>
+        mealId={unplannedMealId}
+        mealName={unplannedMealName}
+        userId={user?._id || user?.id}
+        onAddExtra={({ mealId, item }) =>
+          addUnplannedMutation.mutate({
+            mealId,
+            item,
+          })
+        }
+        isAdding={addUnplannedMutation.isPending}
+      />
 
       {/* Copy Chart Sheet */}
       <Sheet

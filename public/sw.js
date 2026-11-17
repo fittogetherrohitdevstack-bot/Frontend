@@ -1,4 +1,4 @@
-const CACHE_NAME = "fittogether-pwa-v4";
+const CACHE_NAME = "fittogether-pwa-v5";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE_ASSETS = [
   "/",
@@ -44,8 +44,14 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
-  // Always bypass cache for backend API & socket traffic
-  if (url.pathname.startsWith("/api") || url.pathname.startsWith("/socket.io")) {
+  // Always bypass cache for backend API, socket traffic, and dev hot-reload assets
+  if (
+    url.pathname.startsWith("/api") ||
+    url.pathname.startsWith("/socket.io") ||
+    url.pathname.startsWith("/src") ||
+    url.pathname.startsWith("/@") ||
+    url.pathname.includes("/node_modules/")
+  ) {
     return;
   }
 

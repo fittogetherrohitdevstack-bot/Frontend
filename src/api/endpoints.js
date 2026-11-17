@@ -119,6 +119,7 @@ export const mealChartApi = {
   updateItem: (data) => api.patch("/meals/day/items", data),
   updateMeal: (data) => api.patch("/meals/day/meals", data),
   addUnplannedItem: (data) => api.post("/meals/day/items", data),
+  getUserExtras: () => api.get("/meals/extras"),
   copyChart: (data) => api.post("/meals/day/copy", data),
   getSummary: (range = "7d") => api.get(`/meals/summary?range=${range}`),
   getTemplates: () => api.get("/diet/templates"),

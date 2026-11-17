@@ -301,7 +301,7 @@ export const AddExtraFoodSheet = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search your past extras or staples..."
-            className="w-full min-h-[46px] pl-10 pr-9 text-base bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-500 dark:focus:ring-lime-400 focus:bg-white dark:focus:bg-slate-900 transition-all placeholder:text-slate-400"
+            className="w-full min-h-[46px] pl-10 pr-9 text-base bg-slate-100 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-500 focus:bg-white transition-all placeholder:text-slate-400"
           />
           {searchQuery && (
             <button
@@ -315,7 +315,7 @@ export const AddExtraFoodSheet = ({
         </div>
 
         {/* 3-Tab Segmented Header */}
-        <div className="grid grid-cols-3 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200/80 dark:border-slate-700 text-xs font-black">
+        <div className="grid grid-cols-3 bg-slate-100 p-1 rounded-2xl border border-slate-200/80 text-xs font-black">
           <button
             type="button"
             onClick={() => {
@@ -324,14 +324,14 @@ export const AddExtraFoodSheet = ({
             }}
             className={`min-h-[44px] px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === "saved"
-                ? "bg-white dark:bg-slate-900 text-lime-700 dark:text-lime-400 shadow-xs font-black border border-lime-300/80 dark:border-lime-700"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                ? "bg-white text-lime-700 shadow-xs font-black border border-lime-300/80"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <History className="w-4 h-4 shrink-0 text-lime-600 dark:text-lime-400" />
+            <History className="w-4 h-4 shrink-0 text-lime-600" />
             <span className="truncate">My Extras</span>
             {userExtras.length > 0 && (
-              <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] bg-lime-100 dark:bg-lime-950/70 text-lime-900 dark:text-lime-300 font-extrabold">
+              <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] bg-lime-100 text-lime-900 font-extrabold">
                 {userExtras.length}
               </span>
             )}
@@ -345,8 +345,8 @@ export const AddExtraFoodSheet = ({
             }}
             className={`min-h-[44px] px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === "popular"
-                ? "bg-white dark:bg-slate-900 text-lime-700 dark:text-lime-400 shadow-xs font-black border border-lime-300/80 dark:border-lime-700"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                ? "bg-white text-lime-700 shadow-xs font-black border border-lime-300/80"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             <Zap className="w-4 h-4 shrink-0 text-amber-500 fill-amber-500" />
@@ -361,8 +361,8 @@ export const AddExtraFoodSheet = ({
             }}
             className={`min-h-[44px] px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === "custom"
-                ? "bg-white dark:bg-slate-900 text-lime-700 dark:text-lime-400 shadow-xs font-black border border-lime-300/80 dark:border-lime-700"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                ? "bg-white text-lime-700 shadow-xs font-black border border-lime-300/80"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             <Edit3 className="w-4 h-4 shrink-0 text-slate-500" />
@@ -374,9 +374,9 @@ export const AddExtraFoodSheet = ({
         {activeTab === "saved" && (
           <div className="space-y-2.5 max-h-[420px] overflow-y-auto pr-0.5">
             {filteredSavedExtras.length === 0 ? (
-              <div className="p-6 text-center rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700 space-y-2">
-                <Bookmark className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
-                <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">
+              <div className="p-6 text-center rounded-2xl bg-slate-50 border border-dashed border-slate-200 space-y-2">
+                <Bookmark className="w-8 h-8 text-slate-300 mx-auto" />
+                <h4 className="text-sm font-bold text-slate-700">
                   {searchQuery ? "No matching extras found" : "No saved extras yet"}
                 </h4>
                 <p className="text-xs text-slate-400 max-w-xs mx-auto">
@@ -393,7 +393,7 @@ export const AddExtraFoodSheet = ({
                   <button
                     type="button"
                     onClick={() => setActiveTab("custom")}
-                    className="min-h-[44px] px-4 text-xs font-black rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 cursor-pointer"
+                    className="min-h-[44px] px-4 text-xs font-black rounded-xl bg-slate-200 text-slate-800 cursor-pointer"
                   >
                     Add Custom Food
                   </button>
@@ -412,7 +412,7 @@ export const AddExtraFoodSheet = ({
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.03 }}
-                    className="p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-slate-850 border border-slate-200/90 dark:border-slate-800 hover:border-lime-400 dark:hover:border-lime-600 transition-all flex items-center justify-between gap-2.5 sm:gap-3 shadow-xs"
+                    className="p-3 sm:p-3.5 rounded-2xl bg-white border border-slate-200/90 hover:border-lime-400 transition-all flex items-center justify-between gap-2.5 sm:gap-3 shadow-xs"
                   >
                     {/* Food Info */}
                     <div
@@ -420,20 +420,20 @@ export const AddExtraFoodSheet = ({
                       className="flex-1 min-w-0 cursor-pointer py-0.5"
                     >
                       <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                        <span className="text-sm font-black text-slate-900 dark:text-white truncate">
+                        <span className="text-sm font-black text-slate-900 truncate">
                           {extra.name}
                         </span>
-                        <span className="text-[11px] font-extrabold text-lime-900 dark:text-lime-200 bg-lime-100 dark:bg-lime-900/50 px-2 py-0.5 rounded-full border border-lime-300 dark:border-lime-700">
+                        <span className="text-[11px] font-extrabold text-lime-900 bg-lime-100 px-2 py-0.5 rounded-full border border-lime-300">
                           {extra.calories} kcal
                         </span>
                       </div>
 
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5 sm:gap-2 tabular-nums flex-wrap">
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">
+                      <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5 sm:gap-2 tabular-nums flex-wrap">
+                        <span className="font-semibold text-slate-700">
                           {extra.quantity} {extra.unit}
                         </span>
                         <span>·</span>
-                        <span className="text-emerald-700 dark:text-emerald-400 font-bold">{extra.protein}g P</span>
+                        <span className="text-emerald-700 font-bold">{extra.protein}g P</span>
                         <span>·</span>
                         <span className="text-amber-600 font-bold">{extra.carbs}g C</span>
                         <span>·</span>
@@ -458,7 +458,7 @@ export const AddExtraFoodSheet = ({
                         type="button"
                         title="Edit Portion"
                         onClick={() => handleSelectForCustom(extra)}
-                        className="min-h-[44px] min-w-[44px] rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
+                        className="min-h-[44px] min-w-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
@@ -467,7 +467,7 @@ export const AddExtraFoodSheet = ({
                         type="button"
                         title="Remove from saved"
                         onClick={(e) => removeFromMemory(extra.name, e)}
-                        className="min-h-[44px] min-w-[44px] rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center justify-center transition-colors cursor-pointer"
+                        className="min-h-[44px] min-w-[44px] rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -489,17 +489,17 @@ export const AddExtraFoodSheet = ({
               {filteredPopular.map((staple, idx) => (
                 <div
                   key={staple.name + idx}
-                  className="p-3 rounded-2xl bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 shadow-xs hover:border-lime-400 transition-colors"
+                  className="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between gap-2 shadow-xs hover:border-lime-400 transition-colors"
                 >
                   <div
                     onClick={() => handleSelectForCustom(staple)}
                     className="min-w-0 flex-1 cursor-pointer py-0.5"
                   >
-                    <div className="text-xs font-black text-slate-900 dark:text-white truncate">
+                    <div className="text-xs font-black text-slate-900 truncate">
                       {staple.name}
                     </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums mt-0.5">
-                      {staple.quantity} {staple.unit} · {staple.calories} kcal · <span className="text-emerald-700 dark:text-emerald-400 font-bold">{staple.protein}g P</span>
+                    <div className="text-[11px] text-slate-500 tabular-nums mt-0.5">
+                      {staple.quantity} {staple.unit} · {staple.calories} kcal · <span className="text-emerald-700 font-bold">{staple.protein}g P</span>
                     </div>
                   </div>
 
@@ -508,7 +508,7 @@ export const AddExtraFoodSheet = ({
                       type="button"
                       disabled={isAdding}
                       onClick={() => handleQuickAdd(staple)}
-                      className="min-h-[40px] px-3 rounded-xl bg-lime-100 hover:bg-lime-200 dark:bg-lime-900/50 text-lime-950 dark:text-lime-200 text-xs font-black flex items-center gap-1 transition-transform active:scale-95 cursor-pointer"
+                      className="min-h-[40px] px-3 rounded-xl bg-lime-100 hover:bg-lime-200 text-lime-950 text-xs font-black flex items-center gap-1 transition-transform active:scale-95 cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Log</span>
@@ -516,7 +516,7 @@ export const AddExtraFoodSheet = ({
                     <button
                       type="button"
                       onClick={() => handleSelectForCustom(staple)}
-                      className="min-h-[40px] px-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 text-xs font-bold cursor-pointer"
+                      className="min-h-[40px] px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold cursor-pointer"
                     >
                       Edit
                     </button>
@@ -532,7 +532,7 @@ export const AddExtraFoodSheet = ({
           <form onSubmit={handleCustomSubmit} className="space-y-3.5 pt-1">
             {/* Food Name */}
             <div>
-              <label className="text-xs font-black text-slate-700 dark:text-slate-300 block mb-1">
+              <label className="text-xs font-black text-slate-700 block mb-1">
                 Food Name
               </label>
               <input
@@ -541,7 +541,7 @@ export const AddExtraFoodSheet = ({
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g. Protein Shake / Sourdough Bread / Almonds"
-                className="w-full min-h-[48px] text-base bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-2xl px-3.5 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:bg-white dark:focus:bg-slate-900 placeholder:text-slate-400"
+                className="w-full min-h-[48px] text-base bg-slate-50 border border-slate-300 rounded-2xl px-3.5 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:bg-white placeholder:text-slate-400"
               />
             </div>
 
@@ -549,7 +549,7 @@ export const AddExtraFoodSheet = ({
             <div className="space-y-2">
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="text-xs font-black text-slate-700 dark:text-slate-300 block mb-1">
+                  <label className="text-xs font-black text-slate-700 block mb-1">
                     Portion Quantity
                   </label>
                   <input
@@ -558,11 +558,11 @@ export const AddExtraFoodSheet = ({
                     required
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
-                    className="w-full min-h-[48px] text-base font-bold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-2xl px-3.5 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:bg-white dark:focus:bg-slate-900"
+                    className="w-full min-h-[48px] text-base font-bold bg-slate-50 border border-slate-300 rounded-2xl px-3.5 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:bg-white"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-black text-slate-700 dark:text-slate-300 block mb-1">
+                  <label className="text-xs font-black text-slate-700 block mb-1">
                     Unit
                   </label>
                   <input
@@ -570,7 +570,7 @@ export const AddExtraFoodSheet = ({
                     value={formData.unit}
                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                     placeholder="g / ml / scoops / pcs"
-                    className="w-full min-h-[48px] text-base font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-2xl px-3.5 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:bg-white dark:focus:bg-slate-900"
+                    className="w-full min-h-[48px] text-base font-semibold bg-slate-50 border border-slate-300 rounded-2xl px-3.5 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:bg-white"
                   />
                 </div>
               </div>
@@ -585,7 +585,7 @@ export const AddExtraFoodSheet = ({
                     key={step}
                     type="button"
                     onClick={() => handleStepQuantity(step)}
-                    className="min-h-[36px] px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-black text-slate-700 dark:text-slate-300 shrink-0 cursor-pointer active:scale-95 transition-transform"
+                    className="min-h-[36px] px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-black text-slate-700 shrink-0 cursor-pointer active:scale-95 transition-transform"
                   >
                     {step > 0 ? `+${step}` : step}
                   </button>
@@ -595,7 +595,7 @@ export const AddExtraFoodSheet = ({
                     key={mult}
                     type="button"
                     onClick={() => handleScaleQuantity(mult)}
-                    className="min-h-[36px] px-2.5 rounded-xl bg-lime-50 dark:bg-lime-950/40 hover:bg-lime-100 text-xs font-black text-lime-900 dark:text-lime-300 shrink-0 border border-lime-300/60 cursor-pointer active:scale-95 transition-transform"
+                    className="min-h-[36px] px-2.5 rounded-xl bg-lime-50 hover:bg-lime-100 text-xs font-black text-lime-900 shrink-0 border border-lime-300/60 cursor-pointer active:scale-95 transition-transform"
                   >
                     {mult}x
                   </button>
@@ -606,10 +606,10 @@ export const AddExtraFoodSheet = ({
             {/* Nutrients: Calories, Protein, Carbs, Fats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
               {[
-                { key: "calories", label: "Calories", color: "text-slate-700 dark:text-slate-300", unit: "kcal" },
-                { key: "protein", label: "Protein", color: "text-emerald-700 dark:text-emerald-400", unit: "g" },
-                { key: "carbs", label: "Carbs", color: "text-amber-700 dark:text-amber-400", unit: "g" },
-                { key: "fats", label: "Fats", color: "text-rose-700 dark:text-rose-400", unit: "g" },
+                { key: "calories", label: "Calories", color: "text-slate-700", unit: "kcal" },
+                { key: "protein", label: "Protein", color: "text-emerald-700", unit: "g" },
+                { key: "carbs", label: "Carbs", color: "text-amber-700", unit: "g" },
+                { key: "fats", label: "Fats", color: "text-rose-700", unit: "g" },
               ].map((field) => (
                 <div key={field.key} className="space-y-1">
                   <label className={`text-[11px] font-black block leading-none ${field.color}`}>
@@ -622,7 +622,7 @@ export const AddExtraFoodSheet = ({
                     onChange={(e) =>
                       setFormData({ ...formData, [field.key]: Number(e.target.value) })
                     }
-                    className="w-full min-h-[46px] text-base font-bold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-2xl px-3 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:bg-white dark:focus:bg-slate-900"
+                    className="w-full min-h-[46px] text-base font-bold bg-slate-50 border border-slate-300 rounded-2xl px-3 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:bg-white"
                   />
                 </div>
               ))}
@@ -636,7 +636,7 @@ export const AddExtraFoodSheet = ({
                 onChange={(e) => setRememberThis(e.target.checked)}
                 className="w-5 h-5 rounded-md accent-lime-600 text-lime-600 focus:ring-lime-500 cursor-pointer"
               />
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              <span className="text-xs font-bold text-slate-700">
                 Remember this extra in "My Extras" for 1-tap future logging
               </span>
             </label>

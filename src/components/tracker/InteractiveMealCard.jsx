@@ -91,12 +91,12 @@ export const InteractiveMealCard = ({
       <GlassCard
         className={`relative overflow-hidden p-4 sm:p-5 rounded-3xl border transition-all duration-300 ${
           isAllEaten
-            ? "bg-lime-50/80 dark:bg-lime-950/20 border-lime-300 dark:border-lime-700/80 shadow-md shadow-lime-500/10 ring-1 ring-lime-400/30"
+            ? "bg-lime-50/80 border-lime-300 shadow-md shadow-lime-500/10 ring-1 ring-lime-400/30"
             : isSkipped
-            ? "bg-slate-50/90 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 opacity-75"
+            ? "bg-slate-50/90 border-slate-200 opacity-75"
             : isPartial
-            ? "bg-white dark:bg-slate-900 border-lime-200 dark:border-lime-900/60 shadow-xs"
-            : "bg-white/95 dark:bg-slate-900/95 border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-slate-300"
+            ? "bg-white border-lime-200 shadow-xs"
+            : "bg-white/95 border-slate-200/90 shadow-xs hover:border-slate-300"
         }`}
       >
         {/* Subtle decorative highlight when all eaten */}
@@ -105,14 +105,14 @@ export const InteractiveMealCard = ({
         )}
 
         {/* Meal Card Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-100">
           <div className="space-y-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-base font-black text-slate-900 dark:text-white leading-tight">
+              <h3 className="text-base font-black text-slate-900 leading-tight">
                 {meal.mealName}
               </h3>
 
-              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+              <span className="text-[11px] font-semibold text-slate-500 inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full">
                 <Clock className="w-3 h-3 text-slate-400" />
                 {meal.scheduledTime || "08:00"}
               </span>
@@ -128,20 +128,20 @@ export const InteractiveMealCard = ({
               )}
 
               {isSkipped && (
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
                   SKIPPED
                 </span>
               )}
             </div>
 
-            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 tabular-nums flex items-center gap-2">
-              <span className={eatenCount > 0 ? "text-lime-700 dark:text-lime-400 font-bold" : ""}>
+            <div className="text-xs font-semibold text-slate-500 tabular-nums flex items-center gap-2">
+              <span className={eatenCount > 0 ? "text-lime-700 font-bold" : ""}>
                 {eatenCount}/{items.length} items logged
               </span>
               <span>·</span>
               <span>{totalMealKcal} kcal</span>
               <span>·</span>
-              <span className="text-emerald-700 dark:text-emerald-400 font-bold">{totalMealProtein}g P</span>
+              <span className="text-emerald-700 font-bold">{totalMealProtein}g P</span>
             </div>
           </div>
 
@@ -156,7 +156,7 @@ export const InteractiveMealCard = ({
                   haptics.eaten();
                   onTickMeal({ mealId, status: "eaten" });
                 }}
-                className="min-h-[40px] px-3.5 text-xs font-black rounded-xl bg-lime-100 hover:bg-lime-200 dark:bg-lime-950/60 dark:hover:bg-lime-900/80 text-lime-900 dark:text-lime-300 border border-lime-300/80 dark:border-lime-700 transition-colors disabled:opacity-40 cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
+                className="min-h-[40px] px-3.5 text-xs font-black rounded-xl bg-lime-100 hover:bg-lime-200 text-lime-900 border border-lime-300/80 transition-colors disabled:opacity-40 cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
                 <span>Tick All</span>
@@ -171,7 +171,7 @@ export const InteractiveMealCard = ({
                   haptics.tick();
                   onOpenSkipModal({ mealId, mealName: meal.mealName });
                 }}
-                className="min-h-[40px] px-3 text-xs font-bold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                className="min-h-[40px] px-3 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer inline-flex items-center gap-1.5"
               >
                 <Ban className="w-3.5 h-3.5 text-slate-400" />
                 <span>Skip</span>
@@ -187,7 +187,7 @@ export const InteractiveMealCard = ({
                   haptics.tick();
                   onTickMeal({ mealId, status: "pending" });
                 }}
-                className="min-h-[40px] px-3.5 text-xs font-black rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 cursor-pointer"
+                className="min-h-[40px] px-3.5 text-xs font-black rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 cursor-pointer"
               >
                 Undo Skip
               </motion.button>
@@ -196,7 +196,7 @@ export const InteractiveMealCard = ({
         </div>
 
         {/* Checkable Food Item Rows */}
-        <div className="divide-y divide-slate-100 dark:divide-slate-800/80 pt-1">
+        <div className="divide-y divide-slate-100 pt-1">
           {items.map((item) => {
             const itemId = item.itemId || item._id;
             const isChecked = Boolean(item.eaten);
@@ -208,7 +208,7 @@ export const InteractiveMealCard = ({
             return (
               <div
                 key={itemId}
-                className="relative py-2.5 flex items-center justify-between gap-2.5 group transition-colors rounded-2xl px-1 hover:bg-slate-50/60 dark:hover:bg-slate-800/30"
+                className="relative py-2.5 flex items-center justify-between gap-2.5 group transition-colors rounded-2xl px-1 hover:bg-slate-50/60"
               >
                 {/* Floating Calorie Burst */}
                 <AnimatePresence>
@@ -252,7 +252,7 @@ export const InteractiveMealCard = ({
                     className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all ${
                       isChecked
                         ? "bg-lime-500 text-slate-950 shadow-sm shadow-lime-500/30 ring-2 ring-lime-400/40"
-                        : "bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 text-transparent hover:border-lime-500"
+                        : "bg-slate-100 border-2 border-slate-300 text-transparent hover:border-lime-500"
                     }`}
                   >
                     <Check className="w-4 h-4 stroke-[3]" />
@@ -269,23 +269,23 @@ export const InteractiveMealCard = ({
                     <span
                       className={`text-sm leading-snug transition-all ${
                         isChecked
-                          ? "text-slate-900 dark:text-white font-black line-through decoration-lime-500/80 decoration-2 opacity-90"
-                          : "text-slate-800 dark:text-slate-100 font-extrabold"
+                          ? "text-slate-900 font-black line-through decoration-lime-500/80 decoration-2 opacity-90"
+                          : "text-slate-800 font-extrabold"
                       }`}
                     >
                       {item.name}
                     </span>
 
                     {item.isUnplanned && (
-                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-lime-100 dark:bg-lime-900/50 text-lime-900 dark:text-lime-200 border border-lime-300 dark:border-lime-700 tracking-wider">
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-lime-100 text-lime-900 border border-lime-300 tracking-wider">
                         EXTRA
                       </span>
                     )}
                   </div>
 
-                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 tabular-nums flex items-center gap-1.5 flex-wrap">
+                  <div className="text-xs text-slate-500 mt-0.5 tabular-nums flex items-center gap-1.5 flex-wrap">
                     {qtyChanged ? (
-                      <span className="text-slate-700 dark:text-slate-300 font-bold">
+                      <span className="text-slate-700 font-bold">
                         Ate {item.actualQuantity} {item.unit}{" "}
                         <span className="text-slate-400 font-normal">
                           (planned {item.quantity} {item.unit})
@@ -297,11 +297,11 @@ export const InteractiveMealCard = ({
                       </span>
                     )}
                     <span>·</span>
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    <span className="font-semibold text-slate-700">
                       {Math.round(item.calories || 0)} kcal
                     </span>
                     <span>·</span>
-                    <span className="text-emerald-700 dark:text-emerald-400 font-bold">
+                    <span className="text-emerald-700 font-bold">
                       {item.protein}g P
                     </span>
                   </div>
@@ -310,7 +310,7 @@ export const InteractiveMealCard = ({
                 {/* Edit Portion Trigger */}
                 <div className="shrink-0 flex items-center gap-1">
                   {isChecked && item.eatenAt && (
-                    <span className="hidden sm:inline text-[11px] text-slate-400 dark:text-slate-500 font-mono tabular-nums">
+                    <span className="hidden sm:inline text-[11px] text-slate-400 font-mono tabular-nums">
                       {new Date(item.eatenAt).toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
@@ -322,7 +322,7 @@ export const InteractiveMealCard = ({
                     type="button"
                     title={`Edit portion for ${item.name}`}
                     onClick={() => onOpenEditQuantity(mealId, item)}
-                    className="min-h-[40px] min-w-[40px] rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+                    className="min-h-[40px] min-w-[40px] rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <Edit2 className="w-4 h-4" />
                   </motion.button>
@@ -333,7 +333,7 @@ export const InteractiveMealCard = ({
         </div>
 
         {/* Add Extra Food Trigger Row in FitTogether Athletic Lime */}
-        <div className="pt-2.5 mt-1 border-t border-slate-100 dark:border-slate-800">
+        <div className="pt-2.5 mt-1 border-t border-slate-100">
           <motion.button
             whileTap={{ scale: 0.98 }}
             type="button"
@@ -341,7 +341,7 @@ export const InteractiveMealCard = ({
               haptics.tick();
               onOpenAddExtra(mealId, meal.mealName);
             }}
-            className="w-full min-h-[46px] px-3.5 rounded-2xl bg-lime-50/90 dark:bg-lime-950/30 hover:bg-lime-100 dark:hover:bg-lime-900/40 border border-dashed border-lime-300 dark:border-lime-700/80 text-xs sm:text-sm font-black text-lime-900 dark:text-lime-200 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs group"
+            className="w-full min-h-[46px] px-3.5 rounded-2xl bg-lime-50/90 hover:bg-lime-100 border border-dashed border-lime-300 text-xs sm:text-sm font-black text-lime-900 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs group"
           >
             <div className="w-5 h-5 rounded-full bg-lime-500 text-slate-950 flex items-center justify-center group-hover:scale-110 transition-transform font-black">
               <Plus className="w-3.5 h-3.5 stroke-[3]" />

@@ -10,8 +10,8 @@ const MACRO_DETAILS = [
     label: "Protein",
     fallback: 140,
     gradient: "from-emerald-500 to-teal-500",
-    bgClass: "bg-emerald-500/10 dark:bg-emerald-500/20",
-    textClass: "text-emerald-700 dark:text-emerald-400",
+    bgClass: "bg-emerald-500/10",
+    textClass: "text-emerald-700",
     barColor: "bg-gradient-to-r from-emerald-500 to-teal-500",
     unit: "g",
   },
@@ -20,8 +20,8 @@ const MACRO_DETAILS = [
     label: "Carbs",
     fallback: 250,
     gradient: "from-amber-500 to-orange-400",
-    bgClass: "bg-amber-500/10 dark:bg-amber-500/20",
-    textClass: "text-amber-700 dark:text-amber-400",
+    bgClass: "bg-amber-500/10",
+    textClass: "text-amber-700",
     barColor: "bg-gradient-to-r from-amber-500 to-orange-400",
     unit: "g",
   },
@@ -30,8 +30,8 @@ const MACRO_DETAILS = [
     label: "Fats",
     fallback: 60,
     gradient: "from-rose-500 to-pink-500",
-    bgClass: "bg-rose-500/10 dark:bg-rose-500/20",
-    textClass: "text-rose-700 dark:text-rose-400",
+    bgClass: "bg-rose-500/10",
+    textClass: "text-rose-700",
     barColor: "bg-gradient-to-r from-rose-500 to-pink-500",
     unit: "g",
   },
@@ -57,19 +57,19 @@ export const TrackerMacroRing = ({
   const strokeDashoffset = circumference - (calPercent / 100) * circumference;
 
   return (
-    <GlassCard className="relative overflow-hidden p-4 sm:p-6 bg-white/95 dark:bg-slate-900/95 border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-sm space-y-4">
+    <GlassCard className="relative overflow-hidden p-4 sm:p-6 bg-white/95 border-slate-200/90 rounded-3xl shadow-sm space-y-4">
       {/* Background ambient decorative glow in athletic lime/emerald */}
       <div
         className={`absolute -top-24 -right-24 w-56 h-56 rounded-full blur-3xl pointer-events-none transition-all duration-700 ${
-          isGoalReached ? "bg-lime-500/20" : "bg-lime-500/10 dark:bg-lime-500/15"
+          isGoalReached ? "bg-lime-500/20" : "bg-lime-500/10"
         }`}
       />
 
       {/* Top Header: Title, Streak and Completion badge */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-lime-50 dark:bg-lime-950/40 border border-lime-200/80 dark:border-lime-700 text-xs font-black text-lime-950 dark:text-lime-200 shadow-2xs">
-            <TrendingUp className="w-3.5 h-3.5 text-lime-600 dark:text-lime-400" />
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-lime-50 border border-lime-200/80 text-xs font-black text-lime-950 shadow-2xs">
+            <TrendingUp className="w-3.5 h-3.5 text-lime-600" />
             <span>Today's Nutrition</span>
           </div>
 
@@ -78,7 +78,7 @@ export const TrackerMacroRing = ({
               initial={{ scale: 0.9 }}
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ repeat: Infinity, duration: 2.5 }}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-300/80 text-amber-800 dark:text-amber-300 text-xs font-black"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-300/80 text-amber-800 text-xs font-black"
             >
               <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
               <span>{streakDays}d Streak</span>
@@ -87,8 +87,8 @@ export const TrackerMacroRing = ({
         </div>
 
         {/* Eaten items pill */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-lime-100/80 dark:bg-lime-950/50 border border-lime-300 dark:border-lime-700 text-lime-950 dark:text-lime-200 text-xs font-black tabular-nums shadow-2xs">
-          <CheckCheck className="w-3.5 h-3.5 text-lime-700 dark:text-lime-400" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-lime-100/80 border border-lime-300 text-lime-950 text-xs font-black tabular-nums shadow-2xs">
+          <CheckCheck className="w-3.5 h-3.5 text-lime-700" />
           <span>
             {itemsCompleted}/{totalItems} items ({completionPercentage}%)
           </span>
@@ -98,7 +98,7 @@ export const TrackerMacroRing = ({
       {/* Core Calorie Ring + Macro Split Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center pt-1">
         {/* Left Column: Interactive Circular Calorie Meter in Athletic Lime/Emerald */}
-        <div className="md:col-span-5 flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80">
+        <div className="md:col-span-5 flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-50/70 border border-slate-100">
           <div className="relative w-36 h-36 flex items-center justify-center">
             <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 120 120">
               <defs>
@@ -112,7 +112,7 @@ export const TrackerMacroRing = ({
                 cx="60"
                 cy="60"
                 r={radius}
-                className="text-slate-200 dark:text-slate-700 stroke-current"
+                className="text-slate-200 stroke-current"
                 strokeWidth="10"
                 fill="transparent"
               />
@@ -134,13 +134,13 @@ export const TrackerMacroRing = ({
 
             {/* Inner Content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-2">
-              <span className="text-[10px] uppercase font-extrabold tracking-wider text-slate-400 dark:text-slate-500">
+              <span className="text-[10px] uppercase font-extrabold tracking-wider text-slate-400">
                 Calories
               </span>
-              <div className="text-2xl font-black text-slate-900 dark:text-white leading-tight">
+              <div className="text-2xl font-black text-slate-900 leading-tight">
                 <AnimatedNumber value={consumedCalories} />
               </div>
-              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+              <span className="text-[10px] font-bold text-slate-500">
                 / {targetCalories} kcal
               </span>
             </div>
@@ -149,12 +149,12 @@ export const TrackerMacroRing = ({
           {/* Calorie Status Subtext */}
           <div className="mt-2 text-center">
             {isGoalReached ? (
-              <span className="inline-flex items-center gap-1 text-xs font-black text-lime-900 dark:text-lime-300 bg-lime-100 dark:bg-lime-900/50 px-2.5 py-0.5 rounded-full border border-lime-300 dark:border-lime-700">
+              <span className="inline-flex items-center gap-1 text-xs font-black text-lime-900 bg-lime-100 px-2.5 py-0.5 rounded-full border border-lime-300">
                 <Sparkles className="w-3 h-3 text-lime-600" /> Target Achieved!
               </span>
             ) : (
-              <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
-                <span className="text-lime-700 dark:text-lime-400 font-black tabular-nums">
+              <span className="text-xs font-bold text-slate-600">
+                <span className="text-lime-700 font-black tabular-nums">
                   {remainingCalories} kcal
                 </span>{" "}
                 remaining
@@ -174,14 +174,14 @@ export const TrackerMacroRing = ({
             return (
               <div
                 key={macro.key}
-                className="p-3 rounded-2xl bg-white dark:bg-slate-850 border border-slate-200/70 dark:border-slate-800 shadow-xs space-y-2 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+                className="p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-2 hover:border-slate-300 transition-colors"
               >
                 <div className="flex items-center justify-between text-xs font-black">
                   <span className={`${macro.textClass} flex items-center gap-1.5`}>
                     <span className={`w-2.5 h-2.5 rounded-full ${macro.barColor}`} />
                     {macro.label}
                   </span>
-                  <div className="text-slate-900 dark:text-white tabular-nums flex items-baseline gap-1">
+                  <div className="text-slate-900 tabular-nums flex items-baseline gap-1">
                     <span className="font-black text-sm">
                       <AnimatedNumber value={consumed} />
                     </span>
@@ -193,7 +193,7 @@ export const TrackerMacroRing = ({
                 </div>
 
                 {/* Progress track */}
-                <div className="relative w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="relative w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}
@@ -202,7 +202,7 @@ export const TrackerMacroRing = ({
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium">
                   <span>
                     {remaining > 0 ? `${remaining}g left to hit goal` : "Goal crushed! 🔥"}
                   </span>

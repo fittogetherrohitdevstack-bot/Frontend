@@ -75,9 +75,9 @@ const INITIAL_UNPLANNED_ITEM = {
 };
 
 const MACRO_CONFIG = [
-  { key: "protein", label: "Protein", fallback: 140, textClass: "text-emerald-700 dark:text-emerald-400", barClass: "bg-emerald-500" },
-  { key: "carbs", label: "Carbs", fallback: 250, textClass: "text-amber-700 dark:text-amber-400", barClass: "bg-amber-500" },
-  { key: "fats", label: "Fats", fallback: 60, textClass: "text-rose-700 dark:text-rose-400", barClass: "bg-rose-500" },
+  { key: "protein", label: "Protein", fallback: 140, textClass: "text-emerald-700", barClass: "bg-emerald-500" },
+  { key: "carbs", label: "Carbs", fallback: 250, textClass: "text-amber-700", barClass: "bg-amber-500" },
+  { key: "fats", label: "Fats", fallback: 60, textClass: "text-rose-700", barClass: "bg-rose-500" },
 ];
 
 const DEFAULT_MEAL_TEMPLATES = {
@@ -565,8 +565,8 @@ export const DailyTrackerPage = () => {
                       isSelected
                         ? "bg-lime-500 text-slate-950 shadow-md shadow-lime-500/20 font-black ring-2 ring-lime-400"
                         : item.isToday
-                        ? "bg-lime-50 dark:bg-lime-950/40 text-lime-900 dark:text-lime-300 border border-lime-300 dark:border-lime-700 font-bold"
-                        : "bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold"
+                        ? "bg-lime-50 text-lime-900 border border-lime-300 font-bold"
+                        : "bg-slate-50 text-slate-600 hover:bg-slate-100 font-semibold"
                     }`}
                   >
                     <span className="text-[10px] uppercase leading-tight font-extrabold">{item.dayName}</span>
@@ -680,7 +680,7 @@ export const DailyTrackerPage = () => {
               <div className="pt-1">
                 <Link
                   to="/diet"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-lime-700 hover:text-lime-800 dark:text-lime-400 dark:hover:text-lime-300 min-h-[36px]"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-lime-700 hover:text-lime-800 min-h-[36px]"
                 >
                   Open Weekly Meal Planner <ExternalLink className="w-3.5 h-3.5" />
                 </Link>
@@ -699,7 +699,7 @@ export const DailyTrackerPage = () => {
                     </span>
                     <Link
                       to="/diet"
-                      className="text-[11px] font-bold text-lime-700 hover:underline dark:text-lime-400 shrink-0"
+                      className="text-[11px] font-bold text-lime-700 hover:underline shrink-0"
                     >
                       Edit Rotation
                     </Link>
@@ -710,14 +710,14 @@ export const DailyTrackerPage = () => {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-lime-500/15 via-emerald-500/15 to-teal-500/15 border-2 border-lime-400 dark:border-lime-500 text-center shadow-lg shadow-lime-500/10 space-y-1.5"
+                  className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-lime-500/15 via-emerald-500/15 to-teal-500/15 border-2 border-lime-400 text-center shadow-lg shadow-lime-500/10 space-y-1.5"
                 >
-                  <div className="flex items-center justify-center gap-2 text-lime-900 dark:text-lime-300 font-black text-sm sm:text-base">
+                  <div className="flex items-center justify-center gap-2 text-lime-900 font-black text-sm sm:text-base">
                     <Sparkles className="w-5 h-5 text-amber-500" />
                     <span>All Meals Completed! Today's Diet Crushed! 🔥</span>
                     <Sparkles className="w-5 h-5 text-amber-500" />
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-300">
+                  <p className="text-xs text-slate-600">
                     You hit 100% of your daily meal plan. Consistency builds champions!
                   </p>
                 </motion.div>
@@ -804,7 +804,7 @@ export const DailyTrackerPage = () => {
 
                 <GlassCard className="p-3.5 sm:p-4 bg-white/95 border-slate-200/90 rounded-3xl shadow-xs space-y-1">
                   <span className="text-[11px] font-bold text-slate-500">Avg Protein</span>
-                  <div className="text-2xl font-black text-emerald-700 dark:text-emerald-400 tabular-nums">
+                  <div className="text-2xl font-black text-emerald-700 tabular-nums">
                     {summaryRes?.summary?.averageProtein || 0}g
                   </div>
                   <div className="text-[11px] text-slate-400 font-medium tabular-nums">

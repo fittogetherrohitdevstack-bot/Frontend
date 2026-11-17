@@ -75,9 +75,9 @@ const INITIAL_UNPLANNED_ITEM = {
 };
 
 const MACRO_CONFIG = [
-  { key: "protein", label: "Protein", fallback: 140, textClass: "text-violet-700", barClass: "bg-violet-600" },
-  { key: "carbs", label: "Carbs", fallback: 250, textClass: "text-amber-700", barClass: "bg-amber-500" },
-  { key: "fats", label: "Fats", fallback: 60, textClass: "text-pink-700", barClass: "bg-pink-500" },
+  { key: "protein", label: "Protein", fallback: 140, textClass: "text-emerald-700 dark:text-emerald-400", barClass: "bg-emerald-500" },
+  { key: "carbs", label: "Carbs", fallback: 250, textClass: "text-amber-700 dark:text-amber-400", barClass: "bg-amber-500" },
+  { key: "fats", label: "Fats", fallback: 60, textClass: "text-rose-700 dark:text-rose-400", barClass: "bg-rose-500" },
 ];
 
 const DEFAULT_MEAL_TEMPLATES = {
@@ -461,7 +461,7 @@ export const DailyTrackerPage = () => {
             }}
             className={`min-h-[42px] px-3.5 text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === "insights"
-                ? "bg-violet-600 text-white shadow-xs font-extrabold"
+                ? "bg-lime-500 text-slate-950 shadow-xs font-black ring-1 ring-lime-400"
                 : "text-slate-600 hover:text-slate-900 font-semibold"
             }`}
           >
@@ -497,8 +497,8 @@ export const DailyTrackerPage = () => {
                     </span>
                   )}
                   {isFuture && (
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 border border-violet-200">
-                      FUTURE
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
+                      PLANNING
                     </span>
                   )}
                 </div>
@@ -680,7 +680,7 @@ export const DailyTrackerPage = () => {
               <div className="pt-1">
                 <Link
                   to="/diet"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-violet-600 hover:text-violet-700 min-h-[36px]"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-lime-700 hover:text-lime-800 dark:text-lime-400 dark:hover:text-lime-300 min-h-[36px]"
                 >
                   Open Weekly Meal Planner <ExternalLink className="w-3.5 h-3.5" />
                 </Link>
@@ -699,7 +699,7 @@ export const DailyTrackerPage = () => {
                     </span>
                     <Link
                       to="/diet"
-                      className="text-[11px] font-bold text-violet-700 hover:underline shrink-0"
+                      className="text-[11px] font-bold text-lime-700 hover:underline dark:text-lime-400 shrink-0"
                     >
                       Edit Rotation
                     </Link>
@@ -769,7 +769,7 @@ export const DailyTrackerPage = () => {
                   }}
                   className={`min-h-[40px] px-3.5 text-xs font-extrabold rounded-xl uppercase transition-all cursor-pointer ${
                     insightsRange === r
-                      ? "bg-violet-600 text-white shadow-xs"
+                      ? "bg-lime-500 text-slate-950 font-black shadow-xs ring-1 ring-lime-400"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -804,7 +804,7 @@ export const DailyTrackerPage = () => {
 
                 <GlassCard className="p-3.5 sm:p-4 bg-white/95 border-slate-200/90 rounded-3xl shadow-xs space-y-1">
                   <span className="text-[11px] font-bold text-slate-500">Avg Protein</span>
-                  <div className="text-2xl font-black text-violet-600 tabular-nums">
+                  <div className="text-2xl font-black text-emerald-700 dark:text-emerald-400 tabular-nums">
                     {summaryRes?.summary?.averageProtein || 0}g
                   </div>
                   <div className="text-[11px] text-slate-400 font-medium tabular-nums">
@@ -1148,12 +1148,12 @@ export const DailyTrackerPage = () => {
               value={templateName}
               onChange={(e) => setTemplateName(e.target.value)}
               placeholder="e.g. High Carb Training Day"
-              className="w-full min-h-[46px] text-base bg-slate-50 border border-slate-300 rounded-2xl px-3.5 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:bg-white"
+              className="w-full min-h-[46px] text-base bg-slate-50 border border-slate-300 rounded-2xl px-3.5 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:bg-white"
             />
           </div>
 
           <Button
-            variant="violet"
+            variant="primary"
             isLoading={saveTemplateMutation.isPending}
             onClick={() =>
               saveTemplateMutation.mutate({

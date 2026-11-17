@@ -46,15 +46,15 @@ export const Sheet = ({
 
           {/* Header */}
           {(title || description) && (
-            <div className="flex items-start justify-between px-6 pb-4 pt-1 border-b border-slate-100">
+            <div className="flex items-start justify-between px-4 sm:px-6 pb-3 sm:pb-4 pt-1 border-b border-slate-100 dark:border-slate-800">
               <div>
                 {title && (
-                  <Drawer.Title className="text-lg font-bold text-slate-900 tracking-tight">
+                  <Drawer.Title className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                     {title}
                   </Drawer.Title>
                 )}
                 {description && (
-                  <Drawer.Description className="text-xs text-slate-500 mt-0.5">
+                  <Drawer.Description className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     {description}
                   </Drawer.Description>
                 )}
@@ -63,7 +63,7 @@ export const Sheet = ({
                 <button
                   type="button"
                   aria-label="Close"
-                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -72,7 +72,7 @@ export const Sheet = ({
           )}
 
           {/* Scrollable Body */}
-          <div className="flex-1 overflow-y-auto px-6 py-5 max-w-2xl w-full mx-auto">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-3 sm:py-5 max-w-2xl w-full mx-auto">
             {children}
           </div>
         </Drawer.Content>

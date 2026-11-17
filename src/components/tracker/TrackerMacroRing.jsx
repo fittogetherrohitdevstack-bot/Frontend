@@ -9,10 +9,10 @@ const MACRO_DETAILS = [
     key: "protein",
     label: "Protein",
     fallback: 140,
-    gradient: "from-violet-600 to-indigo-500",
-    bgClass: "bg-violet-500/10 dark:bg-violet-500/20",
-    textClass: "text-violet-700 dark:text-violet-400",
-    barColor: "bg-gradient-to-r from-violet-600 to-indigo-500",
+    gradient: "from-emerald-500 to-teal-500",
+    bgClass: "bg-emerald-500/10 dark:bg-emerald-500/20",
+    textClass: "text-emerald-700 dark:text-emerald-400",
+    barColor: "bg-gradient-to-r from-emerald-500 to-teal-500",
     unit: "g",
   },
   {
@@ -58,17 +58,17 @@ export const TrackerMacroRing = ({
 
   return (
     <GlassCard className="relative overflow-hidden p-4 sm:p-6 bg-white/95 dark:bg-slate-900/95 border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-sm space-y-4">
-      {/* Background ambient decorative glow */}
+      {/* Background ambient decorative glow in athletic lime/emerald */}
       <div
         className={`absolute -top-24 -right-24 w-56 h-56 rounded-full blur-3xl pointer-events-none transition-all duration-700 ${
-          isGoalReached ? "bg-lime-500/15" : "bg-violet-500/10"
+          isGoalReached ? "bg-lime-500/20" : "bg-lime-500/10 dark:bg-lime-500/15"
         }`}
       />
 
       {/* Top Header: Title, Streak and Completion badge */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-xs font-black text-slate-800 dark:text-slate-200">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-lime-50 dark:bg-lime-950/40 border border-lime-200/80 dark:border-lime-700 text-xs font-black text-lime-950 dark:text-lime-200 shadow-2xs">
             <TrendingUp className="w-3.5 h-3.5 text-lime-600 dark:text-lime-400" />
             <span>Today's Nutrition</span>
           </div>
@@ -87,8 +87,8 @@ export const TrackerMacroRing = ({
         </div>
 
         {/* Eaten items pill */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-lime-50 dark:bg-lime-950/50 border border-lime-300/80 dark:border-lime-700 text-lime-900 dark:text-lime-300 text-xs font-black tabular-nums">
-          <CheckCheck className="w-3.5 h-3.5 text-lime-600 dark:text-lime-400" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-lime-100/80 dark:bg-lime-950/50 border border-lime-300 dark:border-lime-700 text-lime-950 dark:text-lime-200 text-xs font-black tabular-nums shadow-2xs">
+          <CheckCheck className="w-3.5 h-3.5 text-lime-700 dark:text-lime-400" />
           <span>
             {itemsCompleted}/{totalItems} items ({completionPercentage}%)
           </span>
@@ -97,10 +97,16 @@ export const TrackerMacroRing = ({
 
       {/* Core Calorie Ring + Macro Split Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center pt-1">
-        {/* Left Column: Interactive Circular Calorie Meter */}
+        {/* Left Column: Interactive Circular Calorie Meter in Athletic Lime/Emerald */}
         <div className="md:col-span-5 flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80">
           <div className="relative w-36 h-36 flex items-center justify-center">
             <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 120 120">
+              <defs>
+                <linearGradient id="calorie-ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#84CC16" />
+                  <stop offset="100%" stopColor="#10B981" />
+                </linearGradient>
+              </defs>
               {/* Background track */}
               <circle
                 cx="60"
@@ -110,12 +116,12 @@ export const TrackerMacroRing = ({
                 strokeWidth="10"
                 fill="transparent"
               />
-              {/* Animated Progress Ring */}
+              {/* Animated Progress Ring in Athletic Lime/Emerald */}
               <motion.circle
                 cx="60"
                 cy="60"
                 r={radius}
-                stroke={isGoalReached ? "#84CC16" : "#7C5CFF"}
+                stroke="url(#calorie-ring-gradient)"
                 strokeWidth="10"
                 strokeDasharray={circumference}
                 initial={{ strokeDashoffset: circumference }}
@@ -143,12 +149,12 @@ export const TrackerMacroRing = ({
           {/* Calorie Status Subtext */}
           <div className="mt-2 text-center">
             {isGoalReached ? (
-              <span className="inline-flex items-center gap-1 text-xs font-black text-lime-700 dark:text-lime-400 bg-lime-100 dark:bg-lime-900/50 px-2.5 py-0.5 rounded-full">
-                <Sparkles className="w-3 h-3" /> Target Achieved!
+              <span className="inline-flex items-center gap-1 text-xs font-black text-lime-900 dark:text-lime-300 bg-lime-100 dark:bg-lime-900/50 px-2.5 py-0.5 rounded-full border border-lime-300 dark:border-lime-700">
+                <Sparkles className="w-3 h-3 text-lime-600" /> Target Achieved!
               </span>
             ) : (
               <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
-                <span className="text-violet-600 dark:text-violet-400 font-black">
+                <span className="text-lime-700 dark:text-lime-400 font-black tabular-nums">
                   {remainingCalories} kcal
                 </span>{" "}
                 remaining

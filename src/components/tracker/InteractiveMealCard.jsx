@@ -65,7 +65,7 @@ export const InteractiveMealCard = ({
             particleCount: 25,
             spread: 50,
             origin: { y: 0.7 },
-            colors: ["#84CC16", "#10B981", "#6366F1"],
+            colors: ["#84CC16", "#10B981", "#65A30D", "#F59E0B"],
           });
         } catch (_) {}
       }
@@ -95,7 +95,7 @@ export const InteractiveMealCard = ({
             : isSkipped
             ? "bg-slate-50/90 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 opacity-75"
             : isPartial
-            ? "bg-white dark:bg-slate-900 border-violet-200 dark:border-violet-900/70 shadow-xs"
+            ? "bg-white dark:bg-slate-900 border-lime-200 dark:border-lime-900/60 shadow-xs"
             : "bg-white/95 dark:bg-slate-900/95 border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-slate-300"
         }`}
       >
@@ -141,7 +141,7 @@ export const InteractiveMealCard = ({
               <span>·</span>
               <span>{totalMealKcal} kcal</span>
               <span>·</span>
-              <span className="text-violet-600 dark:text-violet-400 font-bold">{totalMealProtein}g P</span>
+              <span className="text-emerald-700 dark:text-emerald-400 font-bold">{totalMealProtein}g P</span>
             </div>
           </div>
 
@@ -187,7 +187,7 @@ export const InteractiveMealCard = ({
                   haptics.tick();
                   onTickMeal({ mealId, status: "pending" });
                 }}
-                className="min-h-[40px] px-3.5 text-xs font-black rounded-xl bg-violet-50 dark:bg-violet-950/50 hover:bg-violet-100 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800 cursor-pointer"
+                className="min-h-[40px] px-3.5 text-xs font-black rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 cursor-pointer"
               >
                 Undo Skip
               </motion.button>
@@ -277,7 +277,7 @@ export const InteractiveMealCard = ({
                     </span>
 
                     {item.isUnplanned && (
-                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300/60">
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-lime-100 dark:bg-lime-900/50 text-lime-900 dark:text-lime-200 border border-lime-300 dark:border-lime-700 tracking-wider">
                         EXTRA
                       </span>
                     )}
@@ -301,7 +301,7 @@ export const InteractiveMealCard = ({
                       {Math.round(item.calories || 0)} kcal
                     </span>
                     <span>·</span>
-                    <span className="text-violet-600 dark:text-violet-400 font-bold">
+                    <span className="text-emerald-700 dark:text-emerald-400 font-bold">
                       {item.protein}g P
                     </span>
                   </div>
@@ -332,21 +332,21 @@ export const InteractiveMealCard = ({
           })}
         </div>
 
-        {/* Add Extra Food Trigger Row */}
+        {/* Add Extra Food Trigger Row in FitTogether Athletic Lime */}
         <div className="pt-2.5 mt-1 border-t border-slate-100 dark:border-slate-800">
           <motion.button
-            whileTap={{ scale: 0.97 }}
+            whileTap={{ scale: 0.98 }}
             type="button"
             onClick={() => {
               haptics.tick();
               onOpenAddExtra(mealId, meal.mealName);
             }}
-            className="w-full min-h-[44px] px-3.5 rounded-2xl bg-violet-50/80 dark:bg-violet-950/40 hover:bg-violet-100/90 dark:hover:bg-violet-900/50 border border-dashed border-violet-300 dark:border-violet-700/80 text-xs font-black text-violet-700 dark:text-violet-300 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs group"
+            className="w-full min-h-[46px] px-3.5 rounded-2xl bg-lime-50/90 dark:bg-lime-950/30 hover:bg-lime-100 dark:hover:bg-lime-900/40 border border-dashed border-lime-300 dark:border-lime-700/80 text-xs sm:text-sm font-black text-lime-900 dark:text-lime-200 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs group"
           >
-            <div className="w-5 h-5 rounded-full bg-violet-200/70 dark:bg-violet-800 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="w-5 h-5 rounded-full bg-lime-500 text-slate-950 flex items-center justify-center group-hover:scale-110 transition-transform font-black">
               <Plus className="w-3.5 h-3.5 stroke-[3]" />
             </div>
-            <span>Add Extra Food Eaten to {meal.mealName}</span>
+            <span>+ Add Extra Food Eaten to {meal.mealName}</span>
           </motion.button>
         </div>
       </GlassCard>

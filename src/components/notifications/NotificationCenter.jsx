@@ -15,6 +15,7 @@ import {
   Clock,
   Sparkles,
   ExternalLink,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { GlassCard } from "../ui/GlassCard";
@@ -24,6 +25,7 @@ import { haptics } from "../../motion/Haptics";
 
 const getNotificationIcon = (type = "", category = "") => {
   const t = (type || category || "").toLowerCase();
+  if (t.includes("chat") || t.includes("message")) return <MessageSquare className="w-4 h-4 text-lime-600" />;
   if (t.includes("meal")) return <UtensilsCrossed className="w-4 h-4 text-emerald-500" />;
   if (t.includes("water")) return <Droplets className="w-4 h-4 text-cyan-500" />;
   if (t.includes("workout")) return <Dumbbell className="w-4 h-4 text-violet-500" />;

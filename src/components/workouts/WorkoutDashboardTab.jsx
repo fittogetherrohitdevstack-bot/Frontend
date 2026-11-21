@@ -1,7 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { workoutApi } from "../../api/endpoints";
 import { GlassCard } from "../ui/GlassCard";
 import { Button } from "../ui/Button";
 import { Skeleton } from "../ui/Skeleton";
+import { CompletedWorkoutDetailModal } from "./CompletedWorkoutDetailModal";
+import { EditCompletedWorkoutModal } from "./EditCompletedWorkoutModal";
+import { DeleteWorkoutConfirmDialog } from "./DeleteWorkoutConfirmDialog";
 import {
   Dumbbell,
   Play,
@@ -16,9 +21,11 @@ import {
   ChevronRight,
   Plus,
   Trophy,
+  Eye,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { haptics } from "../../motion/Haptics";
+import { toast } from "sonner";
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -35,6 +42,57 @@ export const WorkoutDashboardTab = ({
   onMarkRestDay,
   onNavigateTab,
 }) => {
+  const queryClient = useQueryClient();
+
+  // History modal states for dashboard recent workouts
+  const [detailSession, setDetailSession] = useState(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  const [editingSession, setEditingSession] = useState(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  const [deletingSession, setDeletingSession] = useState(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  // Update session mutation
+  const updateSessionMutation = useMutation({
+    mutationFn: ({ id, payload }) => workoutApi.updateCompletedSession(id, payload),
+    onSuccess: (res) => {
+      haptics.goal();
+      toast.success("Workout session updated successfully!");
+      setIsEditOpen(false);
+      setEditingSession(null);
+      if (detailSession?._id === res.data?.data?.session?._id) {
+        setDetailSession(res.data.data.session);
+      }
+      queryClient.invalidateQueries({ queryKey: ["workout-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["workout-history"] });
+      queryClient.invalidateQueries({ queryKey: ["workout-analytics"] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Failed to update workout");
+    },
+  });
+
+  // Delete session mutation
+  const deleteSessionMutation = useMutation({
+    mutationFn: (id) => workoutApi.deleteCompletedSession(id),
+    onSuccess: () => {
+      haptics.tick();
+      toast.success("Workout session deleted successfully");
+      setIsDeleteOpen(false);
+      setDeletingSession(null);
+      setIsDetailOpen(false);
+      setDetailSession(null);
+      queryClient.invalidateQueries({ queryKey: ["workout-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["workout-history"] });
+      queryClient.invalidateQueries({ queryKey: ["workout-analytics"] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || "Failed to delete workout");
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -208,7 +266,7 @@ export const WorkoutDashboardTab = ({
         </div>
 
         {/* 7 Day Pills */}
-        <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2">
           {weeklyCalendar.map((day) => {
             const isCompleted = day.status === "completed";
             const isRest = day.status === "rest";
@@ -218,7 +276,7 @@ export const WorkoutDashboardTab = ({
             return (
               <div
                 key={day.date}
-                className={`p-2.5 rounded-2xl text-center border transition-all ${
+                className={`p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl text-center border transition-all ${
                   isToday
                     ? "ring-2 ring-purple-500 border-purple-300"
                     : "border-slate-200"
@@ -232,24 +290,24 @@ export const WorkoutDashboardTab = ({
                     : "bg-white text-slate-700"
                 }`}
               >
-                <span className="text-[10px] font-black uppercase block text-slate-400">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase block text-slate-400">
                   {day.dayLabel}
                 </span>
-                <span className="text-xs font-extrabold block my-1">
+                <span className="text-[11px] sm:text-xs font-extrabold block my-0.5 sm:my-1">
                   {day.date.split("-")[2]}
                 </span>
 
                 <div className="flex justify-center mt-0.5">
                   {isCompleted ? (
-                    <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                      <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     </span>
                   ) : isRest ? (
-                    <span className="text-[10px] font-bold text-slate-400">Rest</span>
+                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-400">Rest</span>
                   ) : isMissed ? (
-                    <span className="w-2 h-2 rounded-full bg-amber-400" />
+                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400" />
                   ) : (
-                    <span className="w-2 h-2 rounded-full bg-slate-200" />
+                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-slate-200" />
                   )}
                 </div>
               </div>
@@ -358,14 +416,19 @@ export const WorkoutDashboardTab = ({
             {recentWorkouts.map((w) => (
               <div
                 key={w._id}
-                className="p-3.5 rounded-2xl bg-white border border-slate-200 flex items-center justify-between gap-3 shadow-2xs"
+                onClick={() => {
+                  haptics.tick();
+                  setDetailSession(w);
+                  setIsDetailOpen(true);
+                }}
+                className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-purple-300 hover:shadow-xs transition-all flex items-center justify-between gap-3 shadow-2xs cursor-pointer group"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
-                    <Dumbbell className="w-4 h-4" />
+                  <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <Dumbbell className="w-4 h-4 stroke-[2.5]" />
                   </div>
                   <div className="min-w-0">
-                    <h4 className="font-bold text-slate-900 text-sm truncate">
+                    <h4 className="font-bold text-slate-900 text-sm truncate group-hover:text-purple-700 transition-colors">
                       {w.workoutName || "Workout"}
                     </h4>
                     <span className="text-[11px] text-slate-500">
@@ -374,13 +437,57 @@ export const WorkoutDashboardTab = ({
                   </div>
                 </div>
 
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shrink-0">
-                  Completed
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    Completed
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                </div>
               </div>
             ))}
           </div>
         </div>
+      )}
+
+      {/* View Detail Modal */}
+      {detailSession && (
+        <CompletedWorkoutDetailModal
+          session={detailSession}
+          open={isDetailOpen}
+          onOpenChange={setIsDetailOpen}
+          onEditWorkout={(sess) => {
+            setIsDetailOpen(false);
+            setEditingSession(sess);
+            setIsEditOpen(true);
+          }}
+          onDeleteWorkout={(sess) => {
+            setDeletingSession(sess);
+            setIsDeleteOpen(true);
+          }}
+        />
+      )}
+
+      {/* Edit Completed Workout Modal */}
+      {editingSession && (
+        <EditCompletedWorkoutModal
+          session={editingSession}
+          open={isEditOpen}
+          onOpenChange={setIsEditOpen}
+          onSave={(id, payload) => updateSessionMutation.mutate({ id, payload })}
+          isSaving={updateSessionMutation.isPending}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deletingSession && (
+        <DeleteWorkoutConfirmDialog
+          open={isDeleteOpen}
+          onClose={() => setIsDeleteOpen(false)}
+          onConfirm={() => deleteSessionMutation.mutate(deletingSession._id)}
+          isDeleting={deleteSessionMutation.isPending}
+          workoutName={deletingSession.workoutName}
+          workoutDate={deletingSession.date}
+        />
       )}
     </div>
   );

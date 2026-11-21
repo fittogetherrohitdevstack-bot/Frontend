@@ -287,7 +287,7 @@ export const LiveWorkoutExerciseCard = ({
                       type="button"
                       disabled={set.completed}
                       onClick={() => onStepValue?.(exIdx, setIdx, "weight", -2.5)}
-                      className="w-6 h-8 rounded-lg bg-white border border-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs hover:bg-slate-100 disabled:opacity-40 cursor-pointer shrink-0"
+                      className="w-6 sm:w-7 h-9 rounded-lg bg-white border border-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs hover:bg-slate-100 disabled:opacity-40 cursor-pointer shrink-0"
                     >
                       -
                     </button>
@@ -298,13 +298,13 @@ export const LiveWorkoutExerciseCard = ({
                       disabled={set.completed}
                       value={set.weight}
                       onChange={(e) => onUpdateSet?.(exIdx, setIdx, "weight", e.target.value)}
-                      className="w-full text-center h-8 rounded-lg bg-white border border-slate-200 font-black text-xs focus:outline-none focus:border-purple-400 disabled:bg-slate-100"
+                      className="w-full text-center h-9 rounded-lg bg-white border border-slate-200 font-black text-xs sm:text-sm focus:outline-none focus:border-purple-400 disabled:bg-slate-100"
                     />
                     <button
                       type="button"
                       disabled={set.completed}
                       onClick={() => onStepValue?.(exIdx, setIdx, "weight", 2.5)}
-                      className="w-6 h-8 rounded-lg bg-white border border-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs hover:bg-slate-100 disabled:opacity-40 cursor-pointer shrink-0"
+                      className="w-6 sm:w-7 h-9 rounded-lg bg-white border border-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs hover:bg-slate-100 disabled:opacity-40 cursor-pointer shrink-0"
                     >
                       +
                     </button>
@@ -318,7 +318,7 @@ export const LiveWorkoutExerciseCard = ({
                       disabled={set.completed}
                       value={set.reps}
                       onChange={(e) => onUpdateSet?.(exIdx, setIdx, "reps", e.target.value)}
-                      className="w-full text-center h-8 rounded-lg bg-white border border-slate-200 font-black text-xs focus:outline-none focus:border-purple-400 disabled:bg-slate-100"
+                      className="w-full text-center h-9 rounded-lg bg-white border border-slate-200 font-black text-xs sm:text-sm focus:outline-none focus:border-purple-400 disabled:bg-slate-100"
                     />
                   </div>
 
@@ -329,7 +329,7 @@ export const LiveWorkoutExerciseCard = ({
                       type="button"
                       aria-label={`Complete set ${set.setNumber || setIdx + 1}`}
                       onClick={() => onToggleSet?.(exIdx, setIdx)}
-                      className={`min-w-[36px] min-h-[36px] rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                      className={`min-w-[40px] min-h-[40px] rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                         set.completed
                           ? "bg-gradient-to-tr from-emerald-500 to-lime-500 text-white shadow-xs"
                           : "bg-white border-2 border-slate-300 text-transparent hover:border-purple-400"

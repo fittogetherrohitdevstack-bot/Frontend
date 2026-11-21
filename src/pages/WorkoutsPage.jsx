@@ -239,7 +239,7 @@ export const WorkoutsPage = () => {
       ) : (
         <>
           {/* Main Top Tab Navigation */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none border-b border-slate-200/80">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none border-b border-slate-200/80 -mx-4 px-4 sm:mx-0 sm:px-0">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -251,9 +251,9 @@ export const WorkoutsPage = () => {
                     haptics.selection();
                     setActiveTab(tab.id);
                   }}
-                  className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
+                  className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer shrink-0 min-h-[44px] ${
                     isActive
-                      ? "bg-purple-600 text-white shadow-xs shadow-purple-600/20"
+                      ? "bg-purple-600 text-white shadow-sm shadow-purple-600/25"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                   }`}
                 >

@@ -61,7 +61,12 @@ export const WorkoutPlansTab = () => {
       queryClient.invalidateQueries({ queryKey: ["today-workout"] });
     },
     onError: (err) => {
-      toast.error(err.response?.data?.message || "Failed to apply template");
+      const msg =
+        err.response?.data?.message ||
+        (Array.isArray(err.response?.data?.errors)
+          ? err.response.data.errors.join(", ")
+          : "Failed to apply template");
+      toast.error(msg);
     },
   });
 
@@ -118,7 +123,12 @@ export const WorkoutPlansTab = () => {
       queryClient.invalidateQueries({ queryKey: ["today-workout"] });
     },
     onError: (err) => {
-      toast.error(err.response?.data?.message || "Failed to save workout plan");
+      const msg =
+        err.response?.data?.message ||
+        (Array.isArray(err.response?.data?.errors)
+          ? err.response.data.errors.join(", ")
+          : "Failed to save workout plan");
+      toast.error(msg);
     },
   });
 

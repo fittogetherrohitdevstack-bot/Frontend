@@ -162,14 +162,37 @@ export const CustomPlanBuilderModal = ({
       return;
     }
 
+    // Clean and validate schedule to prevent any malformed payload
+    const cleanedSchedule = schedule.map((day) => ({
+      dayOfWeek: day.dayOfWeek,
+      dayName: day.dayName || `${DAYS_OF_WEEK.find((d) => d.dayOfWeek === day.dayOfWeek)?.name || "Day"} Split`,
+      workoutName: day.workoutName || "Workout",
+      isRestDay: Boolean(day.isRestDay),
+      targetMuscles: Array.isArray(day.targetMuscles) ? day.targetMuscles : [],
+      exercises: day.isRestDay
+        ? []
+        : (day.exercises || []).map((ex, i) => ({
+            exerciseId: ex.exerciseId || null,
+            name: ex.name?.trim() || `Exercise ${i + 1}`,
+            primaryMuscle: ex.primaryMuscle || day.targetMuscles?.[0] || "Chest",
+            targetSets: Number(ex.targetSets) || 3,
+            targetReps: Number(ex.targetReps) || 10,
+            restSeconds: Number(ex.restSeconds) || 60,
+            targetWeight: Number(ex.targetWeight) || 0,
+            notes: ex.notes || "",
+          })),
+    }));
+
+    const activeDaysCount = cleanedSchedule.filter((s) => !s.isRestDay).length;
+
     const payload = {
       name: name.trim(),
       description: description.trim(),
       fitnessLevel,
       goal,
       isActive,
-      daysPerWeek: schedule.filter((s) => !s.isRestDay).length,
-      schedule,
+      daysPerWeek: activeDaysCount || 4,
+      schedule: cleanedSchedule,
     };
 
     onSavePlan(payload);

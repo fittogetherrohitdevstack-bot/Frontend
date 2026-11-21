@@ -385,8 +385,14 @@ export const WorkoutPlansTab = () => {
 
       {/* Custom Plan Builder Modal */}
       <CustomPlanBuilderModal
+        key={editingPlan?._id || (isBuilderOpen ? "open-builder-new" : "closed-builder")}
         open={isBuilderOpen}
-        onOpenChange={setIsBuilderOpen}
+        onOpenChange={(isOpen) => {
+          setIsBuilderOpen(isOpen);
+          if (!isOpen) {
+            setEditingPlan(null);
+          }
+        }}
         existingPlan={editingPlan}
         onSavePlan={(payload) => savePlanMutation.mutate(payload)}
         isSaving={savePlanMutation.isPending}

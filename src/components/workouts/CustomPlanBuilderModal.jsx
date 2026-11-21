@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sheet } from "../ui/Sheet";
 import { Button } from "../ui/Button";
 import {
@@ -37,6 +37,98 @@ const MUSCLE_LIST = [
   "Full Body",
 ];
 
+const STANDARD_FITNESS_LEVELS = [
+  "Beginner",
+  "Intermediate",
+  "Advanced",
+  "All Levels",
+];
+
+const STANDARD_GOALS = [
+  "Hypertrophy",
+  "Strength",
+  "Hypertrophy & Strength",
+  "Strength & Muscle Growth",
+  "Maximum Muscle Hypertrophy",
+  "Fat Loss",
+  "Endurance",
+  "General Fitness",
+  "Total Body Conditioning & Strength",
+  "Foundational Form & Strength",
+  "Powerbuilding (Strength + Hypertrophy)",
+];
+
+const buildInitialSchedule = (plan) => {
+  if (plan?.schedule && plan.schedule.length > 0) {
+    return DAYS_OF_WEEK.map((d) => {
+      const found = plan.schedule.find(
+        (s) => Number(s.dayOfWeek) === Number(d.dayOfWeek)
+      );
+      if (found) {
+        return {
+          dayOfWeek: d.dayOfWeek,
+          dayName: found.dayName || `${d.name} Split`,
+          workoutName: found.workoutName || "Workout",
+          isRestDay: Boolean(found.isRestDay),
+          targetMuscles: Array.isArray(found.targetMuscles)
+            ? [...found.targetMuscles]
+            : [],
+          exercises: Array.isArray(found.exercises)
+            ? found.exercises.map((ex) => {
+                if (typeof ex === "string") {
+                  return {
+                    exerciseId: null,
+                    name: ex,
+                    targetSets: 3,
+                    targetReps: 10,
+                    restSeconds: 60,
+                    targetWeight: 0,
+                    primaryMuscle: "",
+                    notes: "",
+                  };
+                }
+                return {
+                  exerciseId: ex.exerciseId || null,
+                  name: ex.name || "Exercise",
+                  targetSets: ex.targetSets ?? 3,
+                  targetReps: ex.targetReps ?? 10,
+                  restSeconds: ex.restSeconds ?? 60,
+                  targetWeight: ex.targetWeight ?? 0,
+                  primaryMuscle: ex.primaryMuscle || "",
+                  notes: ex.notes || "",
+                };
+              })
+            : [],
+        };
+      }
+      return {
+        dayOfWeek: d.dayOfWeek,
+        dayName:
+          d.dayOfWeek === 3 || d.dayOfWeek === 6 || d.dayOfWeek === 0
+            ? "Rest Day"
+            : `${d.name} Split`,
+        workoutName: "Workout",
+        isRestDay: d.dayOfWeek === 3 || d.dayOfWeek === 6 || d.dayOfWeek === 0,
+        targetMuscles: [],
+        exercises: [],
+      };
+    });
+  }
+
+  // Default 7-day schedule with Mon/Tue/Thu/Fri as workout days, Wed/Sat/Sun as rest
+  return DAYS_OF_WEEK.map((d) => ({
+    dayOfWeek: d.dayOfWeek,
+    dayName:
+      d.dayOfWeek === 3 || d.dayOfWeek === 6 || d.dayOfWeek === 0
+        ? "Rest Day"
+        : `${d.name} Split`,
+    workoutName: "Workout",
+    isRestDay: d.dayOfWeek === 3 || d.dayOfWeek === 6 || d.dayOfWeek === 0,
+    targetMuscles: [],
+    exercises: [],
+  }));
+};
+
 export const CustomPlanBuilderModal = ({
   open,
   onOpenChange,
@@ -46,39 +138,35 @@ export const CustomPlanBuilderModal = ({
 }) => {
   const [name, setName] = useState(existingPlan?.name || "");
   const [description, setDescription] = useState(existingPlan?.description || "");
-  const [fitnessLevel, setFitnessLevel] = useState(existingPlan?.fitnessLevel || "Intermediate");
+  const [fitnessLevel, setFitnessLevel] = useState(
+    existingPlan?.fitnessLevel || "Intermediate"
+  );
   const [goal, setGoal] = useState(existingPlan?.goal || "Hypertrophy");
   const [isActive, setIsActive] = useState(existingPlan?.isActive !== false);
-
-  // Initialize 7 days schedule
-  const [schedule, setSchedule] = useState(() => {
-    if (existingPlan?.schedule && existingPlan.schedule.length > 0) {
-      return DAYS_OF_WEEK.map((d) => {
-        const found = existingPlan.schedule.find((s) => s.dayOfWeek === d.dayOfWeek);
-        return (
-          found || {
-            dayOfWeek: d.dayOfWeek,
-            dayName: `${d.name} Workout`,
-            isRestDay: false,
-            targetMuscles: [],
-            exercises: [],
-          }
-        );
-      });
-    }
-    // Default 7-day schedule with Mon/Tue/Thu/Fri as workout days, Wed/Sat/Sun as rest
-    return DAYS_OF_WEEK.map((d) => ({
-      dayOfWeek: d.dayOfWeek,
-      dayName: d.dayOfWeek === 3 || d.dayOfWeek === 6 || d.dayOfWeek === 0 ? "Rest Day" : `${d.name} Split`,
-      isRestDay: d.dayOfWeek === 3 || d.dayOfWeek === 6 || d.dayOfWeek === 0,
-      targetMuscles: [],
-      exercises: [],
-    }));
-  });
-
+  const [schedule, setSchedule] = useState(() => buildInitialSchedule(existingPlan));
   const [activeDayIdx, setActiveDayIdx] = useState(0);
 
-  const currentDay = schedule[activeDayIdx];
+  // Synchronize state when existingPlan prop changes or modal opens
+  useEffect(() => {
+    if (open) {
+      setName(existingPlan?.name || "");
+      setDescription(existingPlan?.description || "");
+      setFitnessLevel(existingPlan?.fitnessLevel || "Intermediate");
+      setGoal(existingPlan?.goal || "Hypertrophy");
+      setIsActive(existingPlan?.isActive !== false);
+      setSchedule(buildInitialSchedule(existingPlan));
+      setActiveDayIdx(0);
+    }
+  }, [existingPlan, open]);
+
+  const currentDay =
+    schedule[activeDayIdx] || {
+      dayOfWeek: 1,
+      dayName: "Monday Split",
+      isRestDay: false,
+      targetMuscles: [],
+      exercises: [],
+    };
 
   const updateDayField = (idx, field, value) => {
     setSchedule((prev) => {
@@ -202,7 +290,7 @@ export const CustomPlanBuilderModal = ({
     <Sheet
       open={open}
       onOpenChange={onOpenChange}
-      title={existingPlan ? "Edit Workout Plan" : "Create Custom Workout Plan"}
+      title={existingPlan ? `Edit "${existingPlan.name}"` : "Create Custom Workout Plan"}
       description="Configure your weekly days, target muscle groups, and exercise sets."
     >
       <form onSubmit={handleSubmit} className="space-y-5 pb-8">
@@ -232,9 +320,14 @@ export const CustomPlanBuilderModal = ({
                 onChange={(e) => setFitnessLevel(e.target.value)}
                 className="w-full min-h-[44px] px-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 font-bold text-xs"
               >
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
+                {fitnessLevel && !STANDARD_FITNESS_LEVELS.includes(fitnessLevel) && (
+                  <option value={fitnessLevel}>{fitnessLevel}</option>
+                )}
+                {STANDARD_FITNESS_LEVELS.map((lvl) => (
+                  <option key={lvl} value={lvl}>
+                    {lvl}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -247,10 +340,14 @@ export const CustomPlanBuilderModal = ({
                 onChange={(e) => setGoal(e.target.value)}
                 className="w-full min-h-[44px] px-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 font-bold text-xs"
               >
-                <option value="Hypertrophy">Hypertrophy (Muscle)</option>
-                <option value="Strength">Strength & Power</option>
-                <option value="Fat Loss">Fat Loss & Conditioning</option>
-                <option value="Endurance">Muscular Endurance</option>
+                {goal && !STANDARD_GOALS.includes(goal) && (
+                  <option value={goal}>{goal}</option>
+                )}
+                {STANDARD_GOALS.map((g) => (
+                  <option key={g} value={g}>
+                    {g}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

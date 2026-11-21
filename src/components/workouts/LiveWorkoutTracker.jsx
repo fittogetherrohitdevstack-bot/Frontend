@@ -143,6 +143,37 @@ export const LiveWorkoutTracker = ({
           })
           .catch(() => {});
       }
+
+      // Hydrate rich media (video, gif, instructions) if missing from session
+      if (!ex.videoUrl && !ex.gifUrl && (!ex.images || ex.images.length === 0)) {
+        workoutApi
+          .getExercises({ search: ex.name, limit: 1 })
+          .then((res) => {
+            const found = res.data?.data?.exercises?.[0];
+            if (found) {
+              setExercises((prev) => {
+                const next = JSON.parse(JSON.stringify(prev));
+                if (next[idx]) {
+                  next[idx].exerciseId = next[idx].exerciseId || found._id;
+                  next[idx].videoUrl = found.videoUrl || "";
+                  next[idx].videoUrlFemale = found.videoUrlFemale || "";
+                  next[idx].gifUrl = found.gifUrl || "";
+                  next[idx].thumbnailUrl = found.thumbnailUrl || "";
+                  next[idx].images = found.images || [];
+                  next[idx].mediaType =
+                    found.mediaType ||
+                    (found.videoUrl ? "video" : found.gifUrl ? "gif" : "text_only");
+                  next[idx].instructions = found.instructions || [];
+                  next[idx].equipment = found.equipment || "";
+                  next[idx].difficulty = found.difficulty || "";
+                  next[idx].category = found.category || "";
+                }
+                return next;
+              });
+            }
+          })
+          .catch(() => {});
+      }
     });
   }, []);
 
@@ -316,7 +347,17 @@ export const LiveWorkoutTracker = ({
         name: exName,
         primaryMuscle: selectedEx.primaryMuscle || "Full Body",
         videoUrl: selectedEx.videoUrl || "",
+        videoUrlFemale: selectedEx.videoUrlFemale || "",
         gifUrl: selectedEx.gifUrl || "",
+        thumbnailUrl: selectedEx.thumbnailUrl || "",
+        images: selectedEx.images || [],
+        mediaType:
+          selectedEx.mediaType ||
+          (selectedEx.videoUrl ? "video" : selectedEx.gifUrl ? "gif" : "text_only"),
+        instructions: selectedEx.instructions || [],
+        equipment: selectedEx.equipment || "",
+        difficulty: selectedEx.difficulty || "",
+        category: selectedEx.category || "",
         previousPerformance: null,
       };
       setExercises(updated);
@@ -354,7 +395,17 @@ export const LiveWorkoutTracker = ({
       name: exName,
       primaryMuscle: selectedEx.primaryMuscle || "Full Body",
       videoUrl: selectedEx.videoUrl || "",
+      videoUrlFemale: selectedEx.videoUrlFemale || "",
       gifUrl: selectedEx.gifUrl || "",
+      thumbnailUrl: selectedEx.thumbnailUrl || "",
+      images: selectedEx.images || [],
+      mediaType:
+        selectedEx.mediaType ||
+        (selectedEx.videoUrl ? "video" : selectedEx.gifUrl ? "gif" : "text_only"),
+      instructions: selectedEx.instructions || [],
+      equipment: selectedEx.equipment || "",
+      difficulty: selectedEx.difficulty || "",
+      category: selectedEx.category || "",
       sets: [
         { setNumber: 1, weight: 20, reps: 10, completed: false, previousWeight: 0, previousReps: 0 },
         { setNumber: 2, weight: 20, reps: 10, completed: false, previousWeight: 0, previousReps: 0 },
@@ -428,39 +479,39 @@ export const LiveWorkoutTracker = ({
   );
 
   return (
-    <div className="space-y-5 pb-24">
+    <div className="space-y-4 pb-28">
       {/* Top Floating Sticky HUD Bar */}
-      <div className="sticky top-16 z-30 bg-white/95 backdrop-blur-md border border-purple-200/90 rounded-2xl p-3 sm:p-4 shadow-md flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-mono font-black text-xs">
-            <Timer className="w-5 h-5 stroke-[2.5]" />
+      <div className="sticky top-14 sm:top-16 z-30 bg-white/95 backdrop-blur-md border border-purple-200/90 rounded-2xl p-2.5 sm:p-4 shadow-md flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-mono font-black text-xs shrink-0">
+            <Timer className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
           </div>
           <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-purple-700 block">
-              Elapsed Time
+            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-purple-700 block">
+              Elapsed
             </span>
-            <div className="text-xl sm:text-2xl font-black font-mono text-slate-900 leading-none">
+            <div className="text-base sm:text-2xl font-black font-mono text-slate-900 leading-none">
               {formatTimer(elapsedSeconds)}
             </div>
           </div>
         </div>
 
         {/* Live Volume & Sets summary pills */}
-        <div className="hidden sm:flex items-center gap-3">
-          <div className="text-center px-3 py-1 rounded-xl bg-slate-50 border border-slate-200">
-            <span className="text-[9px] font-black uppercase text-slate-400 block">Sets</span>
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          <div className="text-center px-2 sm:px-3 py-1 rounded-xl bg-slate-50 border border-slate-200">
+            <span className="text-[8px] sm:text-[9px] font-black uppercase text-slate-400 block">Sets</span>
             <span className="text-xs font-black text-slate-800">
-              {completedSets} / {totalSets}
+              {completedSets}/{totalSets}
             </span>
           </div>
-          <div className="text-center px-3 py-1 rounded-xl bg-slate-50 border border-slate-200">
-            <span className="text-[9px] font-black uppercase text-slate-400 block">Volume</span>
+          <div className="text-center px-2 sm:px-3 py-1 rounded-xl bg-slate-50 border border-slate-200">
+            <span className="text-[8px] sm:text-[9px] font-black uppercase text-slate-400 block">Volume</span>
             <span className="text-xs font-black text-purple-700">{totalVolume} kg</span>
           </div>
         </div>
 
         {/* Primary Workout Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -476,7 +527,7 @@ export const LiveWorkoutTracker = ({
                 setIsPaused(false);
               }
             }}
-            className={`min-w-[40px] min-h-[40px] rounded-xl flex items-center justify-center border font-bold text-xs transition-all cursor-pointer ${
+            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border font-bold text-xs transition-all cursor-pointer ${
               isPaused
                 ? "bg-amber-100 border-amber-300 text-amber-800"
                 : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
@@ -498,9 +549,9 @@ export const LiveWorkoutTracker = ({
                 notes: sessionNotes,
               });
             }}
-            className="font-black text-xs min-h-[40px] px-3.5 shadow-md"
+            className="font-black text-xs h-9 sm:h-10 px-2.5 sm:px-3.5 shadow-md shrink-0"
           >
-            <Check className="w-4 h-4 mr-1 stroke-[3]" /> Finish Workout
+            <Check className="w-3.5 h-3.5 mr-1 stroke-[3]" /> Finish
           </Button>
         </div>
       </div>
@@ -630,8 +681,41 @@ export const LiveWorkoutTracker = ({
         ))}
       </div>
 
+      {/* Sticky Mobile Bottom Bar (Thumb-Accessible Gym Controls) */}
+      <div className="sticky bottom-3 sm:bottom-6 z-20 flex items-center justify-between gap-2.5 p-2.5 sm:p-3 rounded-2xl bg-white/95 backdrop-blur-md border border-purple-200/90 shadow-xl max-w-xl mx-auto">
+        <Button
+          size="md"
+          variant="secondary"
+          onClick={() => {
+            haptics.selection();
+            setReplaceIndex(null);
+            setShowPickerModal(true);
+          }}
+          className="flex-1 font-black text-xs min-h-[44px] shadow-2xs"
+        >
+          <Plus className="w-4 h-4 mr-1.5 stroke-[3]" /> Add Exercise
+        </Button>
+
+        <Button
+          size="md"
+          variant="primary"
+          isLoading={isFinishing}
+          onClick={() => {
+            haptics.goal();
+            onFinishWorkout({
+              exercises: sanitizeExercises(exercises),
+              durationSeconds: elapsedSeconds,
+              notes: sessionNotes,
+            });
+          }}
+          className="flex-1 font-black text-xs min-h-[44px] shadow-lg shadow-purple-600/25"
+        >
+          <Check className="w-4 h-4 mr-1.5 stroke-[3]" /> Finish Workout
+        </Button>
+      </div>
+
       {/* Discard Workout Button */}
-      <div className="pt-4 flex justify-center">
+      <div className="pt-2 flex justify-center">
         <button
           type="button"
           onClick={() => {

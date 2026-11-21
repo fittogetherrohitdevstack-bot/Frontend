@@ -202,6 +202,16 @@ export const WorkoutsPage = () => {
           exerciseId: exercise._id,
           name: exercise.name,
           primaryMuscle: exercise.primaryMuscle,
+          videoUrl: exercise.videoUrl || "",
+          videoUrlFemale: exercise.videoUrlFemale || "",
+          gifUrl: exercise.gifUrl || "",
+          thumbnailUrl: exercise.thumbnailUrl || "",
+          images: exercise.images || [],
+          mediaType:
+            exercise.mediaType ||
+            (exercise.videoUrl ? "video" : exercise.gifUrl ? "gif" : "text_only"),
+          instructions: exercise.instructions || [],
+          equipment: exercise.equipment || "",
           targetSets: 3,
           targetReps: 10,
         },

@@ -75,22 +75,36 @@ export const LiveWorkoutTracker = ({
 
   const saveTimeoutRef = useRef(null);
 
-  // 1. Wall-clock resilient workout elapsed timer
+  // 1. Wall-clock resilient workout elapsed timer with pause compensation
   const startTimeRef = useRef(
-    session?.startTime ? new Date(session.startTime).getTime() : Date.now()
+    Date.now() - (session?.durationSeconds || 0) * 1000
   );
+  const totalPausedMsRef = useRef(0);
+  const pausedAtRef = useRef(null);
 
   useEffect(() => {
     if (isPaused) return;
 
     const interval = setInterval(() => {
       const now = Date.now();
-      const diff = Math.floor((now - startTimeRef.current) / 1000);
+      const elapsedMs = now - startTimeRef.current - totalPausedMsRef.current;
+      const diff = Math.floor(elapsedMs / 1000);
       setElapsedSeconds(Math.max(0, diff));
     }, 1000);
 
     return () => clearInterval(interval);
   }, [isPaused]);
+
+  // Helper to sanitize set numbers for API storage
+  const sanitizeExercises = (exList) =>
+    (exList || []).map((ex) => ({
+      ...ex,
+      sets: (ex.sets || []).map((s) => ({
+        ...s,
+        weight: s.weight === "" ? 0 : Number(s.weight) || 0,
+        reps: s.reps === "" ? 0 : Number(s.reps) || 0,
+      })),
+    }));
 
   // 2. Rest Timer Countdown
   useEffect(() => {
@@ -116,7 +130,7 @@ export const LiveWorkoutTracker = ({
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
       onLiveSave?.({
-        exercises: newExercises,
+        exercises: sanitizeExercises(newExercises),
         durationSeconds: elapsedSeconds,
         notes: notesVal,
       });
@@ -157,7 +171,7 @@ export const LiveWorkoutTracker = ({
 
   const handleUpdateSet = (exIdx, setIdx, field, val) => {
     const updated = JSON.parse(JSON.stringify(exercises));
-    updated[exIdx].sets[setIdx][field] = Number(val);
+    updated[exIdx].sets[setIdx][field] = val === "" ? "" : Number(val);
     setExercises(updated);
     triggerAutosave(updated);
   };
@@ -319,7 +333,16 @@ export const LiveWorkoutTracker = ({
             type="button"
             onClick={() => {
               haptics.tick();
-              setIsPaused(!isPaused);
+              if (!isPaused) {
+                pausedAtRef.current = Date.now();
+                setIsPaused(true);
+              } else {
+                if (pausedAtRef.current) {
+                  totalPausedMsRef.current += Date.now() - pausedAtRef.current;
+                  pausedAtRef.current = null;
+                }
+                setIsPaused(false);
+              }
             }}
             className={`min-w-[40px] min-h-[40px] rounded-xl flex items-center justify-center border font-bold text-xs transition-all cursor-pointer ${
               isPaused
@@ -338,7 +361,7 @@ export const LiveWorkoutTracker = ({
             onClick={() => {
               haptics.goal();
               onFinishWorkout({
-                exercises,
+                exercises: sanitizeExercises(exercises),
                 durationSeconds: elapsedSeconds,
                 notes: sessionNotes,
               });

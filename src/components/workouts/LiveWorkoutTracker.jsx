@@ -620,15 +620,48 @@ export const LiveWorkoutTracker = ({
 
             <form onSubmit={handleAddCustomExercise} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Exercise Name</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Search or Type Exercise Name
+                </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Incline Dumbbell Curl"
+                  placeholder="e.g. Incline Dumbbell Press, Pull-ups..."
                   value={newExerciseName}
                   onChange={(e) => setNewExerciseName(e.target.value)}
                   className="w-full min-h-[44px] px-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 font-bold text-sm focus:outline-none focus:border-purple-400 focus:bg-white"
                 />
+              </div>
+
+              {/* Quick Popular Suggestions */}
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">
+                  Popular Presets
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    "Barbell Bench Press",
+                    "Barbell Back Squat",
+                    "Conventional Deadlift",
+                    "Overhead Barbell Press",
+                    "Pull-ups",
+                    "Dumbbell Lateral Raise",
+                    "Incline Dumbbell Curl",
+                    "Tricep Rope Pushdown",
+                  ].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => {
+                        haptics.tick();
+                        setNewExerciseName(preset);
+                      }}
+                      className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-purple-100 text-slate-700 hover:text-purple-800 text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <Button type="submit" className="w-full min-h-[44px] font-bold shadow-md justify-center">

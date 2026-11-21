@@ -83,6 +83,7 @@ export const workoutApi = {
 
   // Exercise Library
   getExercises: (params) => api.get("/workouts/exercises", { params }),
+  getExerciseFilters: () => api.get("/workouts/exercises/filters"),
   getExerciseById: (idOrSlug) => api.get(`/workouts/exercises/${idOrSlug}`),
   toggleFavoriteExercise: (id) => api.post(`/workouts/exercises/${id}/favorite`),
   createCustomExercise: (data) => api.post("/workouts/exercises/custom", data),

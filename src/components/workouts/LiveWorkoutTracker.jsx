@@ -24,6 +24,7 @@ import {
   Dumbbell,
   AlertTriangle,
   RotateCcw,
+  ArrowLeft,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { haptics } from "../../motion/Haptics";
@@ -59,6 +60,7 @@ const playRestChime = () => {
 
 export const LiveWorkoutTracker = ({
   session,
+  onMinimize,
   onLiveSave,
   onFinishWorkout,
   onCancelWorkout,
@@ -481,78 +483,103 @@ export const LiveWorkoutTracker = ({
   return (
     <div className="space-y-4 pb-28">
       {/* Top Floating Sticky HUD Bar */}
-      <div className="sticky top-14 sm:top-16 z-30 bg-white/95 backdrop-blur-md border border-purple-200/90 rounded-2xl p-2.5 sm:p-4 shadow-md flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-mono font-black text-xs shrink-0">
-            <Timer className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
-          </div>
-          <div>
-            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-purple-700 block">
-              Elapsed
-            </span>
-            <div className="text-base sm:text-2xl font-black font-mono text-slate-900 leading-none">
-              {formatTimer(elapsedSeconds)}
+      <div className="sticky top-0 sm:top-2 z-30 bg-white/95 backdrop-blur-md border border-purple-200/90 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-md space-y-2.5">
+        {/* Tier 1: Minimize/Dashboard + Session Title + Pause & Big Finish Button */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            {onMinimize && (
+              <button
+                type="button"
+                onClick={() => {
+                  haptics.tick();
+                  onMinimize();
+                }}
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 transition-colors cursor-pointer"
+                title="Minimize workout to dashboard"
+              >
+                <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
+              </button>
+            )}
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="text-[10px] font-black uppercase tracking-wider text-purple-700">
+                  Live Session
+                </span>
+              </div>
+              <h2 className="text-sm sm:text-base font-black text-slate-900 truncate leading-tight">
+                {session?.workoutName || "Live Workout"}
+              </h2>
             </div>
           </div>
+
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                haptics.tick();
+                if (!isPaused) {
+                  pausedAtRef.current = Date.now();
+                  setIsPaused(true);
+                } else {
+                  if (pausedAtRef.current) {
+                    totalPausedMsRef.current += Date.now() - pausedAtRef.current;
+                    pausedAtRef.current = null;
+                  }
+                  setIsPaused(false);
+                }
+              }}
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border font-bold text-xs transition-all cursor-pointer ${
+                isPaused
+                  ? "bg-amber-100 border-amber-300 text-amber-800"
+                  : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
+              }`}
+              title={isPaused ? "Resume workout" : "Pause workout"}
+            >
+              {isPaused ? <Play className="w-4 h-4 fill-amber-700" /> : <Pause className="w-4 h-4" />}
+            </button>
+
+            <Button
+              size="md"
+              variant="primary"
+              isLoading={isFinishing}
+              onClick={() => {
+                haptics.goal();
+                onFinishWorkout({
+                  exercises: sanitizeExercises(exercises),
+                  durationSeconds: elapsedSeconds,
+                  notes: sessionNotes,
+                });
+              }}
+              className="font-black text-xs sm:text-sm min-h-[38px] sm:min-h-[42px] px-3.5 sm:px-4 shadow-md shadow-purple-600/25 bg-purple-600 hover:bg-purple-700 text-white rounded-xl shrink-0"
+            >
+              <Check className="w-4 h-4 mr-1 stroke-[3]" /> Finish
+            </Button>
+          </div>
         </div>
 
-        {/* Live Volume & Sets summary pills */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
-          <div className="text-center px-2 sm:px-3 py-1 rounded-xl bg-slate-50 border border-slate-200">
-            <span className="text-[8px] sm:text-[9px] font-black uppercase text-slate-400 block">Sets</span>
-            <span className="text-xs font-black text-slate-800">
-              {completedSets}/{totalSets}
+        {/* Tier 2: 3-Pillar Mobile Metrics Strip (Timer | Sets | Volume) */}
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-1 border-t border-slate-100">
+          <div className="p-1.5 sm:p-2 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
+            <span className="text-[9px] font-black uppercase text-slate-400 block">Duration</span>
+            <span className="text-xs sm:text-sm font-black font-mono text-slate-900 block truncate">
+              {formatTimer(elapsedSeconds)}
             </span>
           </div>
-          <div className="text-center px-2 sm:px-3 py-1 rounded-xl bg-slate-50 border border-slate-200">
-            <span className="text-[8px] sm:text-[9px] font-black uppercase text-slate-400 block">Volume</span>
-            <span className="text-xs font-black text-purple-700">{totalVolume} kg</span>
+
+          <div className="p-1.5 sm:p-2 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
+            <span className="text-[9px] font-black uppercase text-slate-400 block">Sets Done</span>
+            <span className="text-xs sm:text-sm font-black text-slate-900 block truncate">
+              {completedSets} / {totalSets}
+            </span>
           </div>
-        </div>
 
-        {/* Primary Workout Controls */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={() => {
-              haptics.tick();
-              if (!isPaused) {
-                pausedAtRef.current = Date.now();
-                setIsPaused(true);
-              } else {
-                if (pausedAtRef.current) {
-                  totalPausedMsRef.current += Date.now() - pausedAtRef.current;
-                  pausedAtRef.current = null;
-                }
-                setIsPaused(false);
-              }
-            }}
-            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center border font-bold text-xs transition-all cursor-pointer ${
-              isPaused
-                ? "bg-amber-100 border-amber-300 text-amber-800"
-                : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
-            }`}
-            title={isPaused ? "Resume workout" : "Pause workout"}
-          >
-            {isPaused ? <Play className="w-4 h-4 fill-amber-700" /> : <Pause className="w-4 h-4" />}
-          </button>
-
-          <Button
-            size="sm"
-            variant="primary"
-            isLoading={isFinishing}
-            onClick={() => {
-              haptics.goal();
-              onFinishWorkout({
-                exercises: sanitizeExercises(exercises),
-                durationSeconds: elapsedSeconds,
-                notes: sessionNotes,
-              });
-            }}
-            className="font-black text-xs h-9 sm:h-10 px-2.5 sm:px-3.5 shadow-md shrink-0"
-          >
-            <Check className="w-3.5 h-3.5 mr-1 stroke-[3]" /> Finish
-          </Button>
+          <div className="p-1.5 sm:p-2 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
+            <span className="text-[9px] font-black uppercase text-slate-400 block">Total Volume</span>
+            <span className="text-xs sm:text-sm font-black text-purple-700 block truncate">
+              {totalVolume} kg
+            </span>
+          </div>
         </div>
       </div>
 

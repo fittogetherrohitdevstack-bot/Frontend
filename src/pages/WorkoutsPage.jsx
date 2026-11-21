@@ -230,16 +230,9 @@ export const WorkoutsPage = () => {
       {/* If Live Workout Tracker is active, show tracker view */}
       {isLiveTrackerOpen && activeSession ? (
         <div className="space-y-4">
-          <button
-            type="button"
-            onClick={() => setIsLiveTrackerOpen(false)}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-purple-700 transition-colors cursor-pointer px-2 py-1"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Workout Dashboard (Session stays active)
-          </button>
-
           <LiveWorkoutTracker
             session={activeSession}
+            onMinimize={() => setIsLiveTrackerOpen(false)}
             onLiveSave={(data) => liveSaveMutation.mutate(data)}
             onFinishWorkout={(data) => finishSessionMutation.mutate(data)}
             onCancelWorkout={() => cancelSessionMutation.mutate()}

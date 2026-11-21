@@ -85,6 +85,10 @@ export const workoutApi = {
   getExercises: (params) => api.get("/workouts/exercises", { params }),
   getExerciseFilters: () => api.get("/workouts/exercises/filters"),
   getExerciseById: (idOrSlug) => api.get(`/workouts/exercises/${idOrSlug}`),
+  getExercisePreviousPerformance: (identifier) =>
+    api.get(`/workouts/exercises/${encodeURIComponent(identifier)}/previous-performance`),
+  getExerciseHistory: (identifier) =>
+    api.get(`/workouts/exercises/${encodeURIComponent(identifier)}/history`),
   toggleFavoriteExercise: (id) => api.post(`/workouts/exercises/${id}/favorite`),
   createCustomExercise: (data) => api.post("/workouts/exercises/custom", data),
 
@@ -102,6 +106,7 @@ export const workoutApi = {
 
   // History, Sessions & Analytics
   getHistory: (params) => api.get("/workouts/sessions/history", { params }),
+  getCompletedSessions: () => api.get("/workouts/sessions/completed-list"),
   getSessionById: (id) => api.get(`/workouts/sessions/${id}`),
   getAnalytics: () => api.get("/workouts/analytics"),
   getMuscleMap: () => api.get("/workouts/analytics/muscle-map"),

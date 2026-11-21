@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Sheet } from "../ui/Sheet";
 import { Button } from "../ui/Button";
 import { ExerciseMedia } from "./ExerciseMedia";
+import { ExerciseHistoryModal } from "./ExerciseHistoryModal";
 import {
   Dumbbell,
   AlertTriangle,
@@ -16,6 +17,7 @@ import {
   Plus,
   Play,
   Share2,
+  History,
 } from "lucide-react";
 import { haptics } from "../../motion/Haptics";
 
@@ -29,6 +31,8 @@ export const ExerciseDetailSheet = ({
   similarExercises = [],
   onSelectSimilar,
 }) => {
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+
   if (!exercise) return null;
 
   return (
@@ -248,6 +252,17 @@ export const ExerciseDetailSheet = ({
             </Button>
           )}
 
+          <Button
+            variant="outline"
+            className="w-full min-h-[44px] font-bold justify-center text-xs"
+            onClick={() => {
+              haptics.tick();
+              setShowHistoryModal(true);
+            }}
+          >
+            <History className="w-4 h-4 mr-1.5 text-purple-600" /> View Performance History
+          </Button>
+
           {onAddToPlan && (
             <Button
               variant="secondary"
@@ -262,6 +277,15 @@ export const ExerciseDetailSheet = ({
           )}
         </div>
       </div>
+
+      {showHistoryModal && (
+        <ExerciseHistoryModal
+          open={showHistoryModal}
+          onClose={() => setShowHistoryModal(false)}
+          exerciseName={exercise.name}
+          exerciseId={exercise._id}
+        />
+      )}
     </Sheet>
   );
 };

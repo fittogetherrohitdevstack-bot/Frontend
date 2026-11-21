@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { GlassCard } from "../ui/GlassCard";
 import { Button } from "../ui/Button";
+import { workoutApi } from "../../api/endpoints";
+import { LiveWorkoutExerciseCard } from "./LiveWorkoutExerciseCard";
+import { ExercisePickerModal } from "./ExercisePickerModal";
+import { ExerciseHistoryModal } from "./ExerciseHistoryModal";
+import { ExerciseDetailSheet } from "./ExerciseDetailSheet";
 import {
   Play,
   Pause,
@@ -69,9 +74,13 @@ export const LiveWorkoutTracker = ({
   const [restTotal, setRestTotal] = useState(60);
   const [isRestActive, setIsRestActive] = useState(false);
 
-  // New exercise quick-add modal state
-  const [showAddExerciseModal, setShowAddExerciseModal] = useState(false);
-  const [newExerciseName, setNewExerciseName] = useState("");
+  // Modals state
+  const [showPickerModal, setShowPickerModal] = useState(false);
+  const [replaceIndex, setReplaceIndex] = useState(null);
+  const [inspectExercise, setInspectExercise] = useState(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [historyTarget, setHistoryTarget] = useState({ name: "", id: null });
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const saveTimeoutRef = useRef(null);
 
@@ -105,6 +114,37 @@ export const LiveWorkoutTracker = ({
         reps: s.reps === "" ? 0 : Number(s.reps) || 0,
       })),
     }));
+
+  // Background hydration of previous performance for any exercises missing it
+  useEffect(() => {
+    exercises.forEach((ex, idx) => {
+      if (!ex.previousPerformance) {
+        workoutApi
+          .getExercisePreviousPerformance(ex.exerciseId || ex.name)
+          .then((res) => {
+            const data = res.data?.data;
+            if (data?.hasPreviousPerformance && data?.previousSession) {
+              setExercises((prev) => {
+                const next = JSON.parse(JSON.stringify(prev));
+                if (next[idx]) {
+                  next[idx].previousPerformance = data.previousSession;
+                  (data.previousSession.sets || []).forEach((ps, sIdx) => {
+                    if (next[idx].sets[sIdx]) {
+                      if (!next[idx].sets[sIdx].previousWeight) {
+                        next[idx].sets[sIdx].previousWeight = ps.weight;
+                        next[idx].sets[sIdx].previousReps = ps.reps;
+                      }
+                    }
+                  });
+                }
+                return next;
+              });
+            }
+          })
+          .catch(() => {});
+      }
+    });
+  }, []);
 
   // 2. Rest Timer Countdown
   useEffect(() => {
@@ -171,7 +211,11 @@ export const LiveWorkoutTracker = ({
 
   const handleUpdateSet = (exIdx, setIdx, field, val) => {
     const updated = JSON.parse(JSON.stringify(exercises));
-    updated[exIdx].sets[setIdx][field] = val === "" ? "" : Number(val);
+    if (field === "exerciseNotes") {
+      updated[exIdx].notes = val;
+    } else if (setIdx !== null) {
+      updated[exIdx].sets[setIdx][field] = val === "" ? "" : Number(val);
+    }
     setExercises(updated);
     triggerAutosave(updated);
   };
@@ -230,6 +274,25 @@ export const LiveWorkoutTracker = ({
     toast.success("Copied weight & reps from set #" + prev.setNumber);
   };
 
+  // Copy ALL previous sets values into current workout
+  const handleCopyAllPreviousSets = (exIdx) => {
+    const updated = JSON.parse(JSON.stringify(exercises));
+    const ex = updated[exIdx];
+    const prevSets = ex.previousPerformance?.sets || [];
+    if (prevSets.length === 0) return;
+
+    ex.sets.forEach((set, sIdx) => {
+      if (prevSets[sIdx]) {
+        set.weight = prevSets[sIdx].weight;
+        set.reps = prevSets[sIdx].reps;
+      }
+    });
+
+    setExercises(updated);
+    triggerAutosave(updated);
+    toast.success(`Copied previous set values for ${ex.name}!`);
+  };
+
   const handleRemoveExercise = (exIdx) => {
     if (window.confirm("Remove this exercise from your active session?")) {
       haptics.tick();
@@ -239,24 +302,93 @@ export const LiveWorkoutTracker = ({
     }
   };
 
-  const handleAddCustomExercise = (e) => {
-    e.preventDefault();
-    if (!newExerciseName.trim()) return;
-    haptics.selection();
+  // Selection from comprehensive ExercisePickerModal
+  const handleSelectFromPicker = async (selectedEx) => {
+    const exName = selectedEx.name.trim();
+
+    if (replaceIndex !== null) {
+      // Replace existing exercise
+      const updated = JSON.parse(JSON.stringify(exercises));
+      const targetIdx = replaceIndex;
+      updated[targetIdx] = {
+        ...updated[targetIdx],
+        exerciseId: selectedEx._id || null,
+        name: exName,
+        primaryMuscle: selectedEx.primaryMuscle || "Full Body",
+        videoUrl: selectedEx.videoUrl || "",
+        gifUrl: selectedEx.gifUrl || "",
+        previousPerformance: null,
+      };
+      setExercises(updated);
+      setReplaceIndex(null);
+      triggerAutosave(updated);
+
+      toast.success(`Replaced with ${exName}`);
+
+      // Fetch previous performance in background
+      try {
+        const res = await workoutApi.getExercisePreviousPerformance(selectedEx._id || exName);
+        const data = res.data?.data;
+        if (data?.hasPreviousPerformance && data?.previousSession) {
+          setExercises((prev) => {
+            const next = JSON.parse(JSON.stringify(prev));
+            if (next[targetIdx]) {
+              next[targetIdx].previousPerformance = data.previousSession;
+              (data.previousSession.sets || []).forEach((ps, sIdx) => {
+                if (next[targetIdx].sets[sIdx]) {
+                  next[targetIdx].sets[sIdx].previousWeight = ps.weight;
+                  next[targetIdx].sets[sIdx].previousReps = ps.reps;
+                }
+              });
+            }
+            return next;
+          });
+        }
+      } catch (e) {}
+      return;
+    }
+
+    // Add as new exercise
     const newEx = {
-      name: newExerciseName.trim(),
-      primaryMuscle: "Full Body",
+      exerciseId: selectedEx._id || null,
+      name: exName,
+      primaryMuscle: selectedEx.primaryMuscle || "Full Body",
+      videoUrl: selectedEx.videoUrl || "",
+      gifUrl: selectedEx.gifUrl || "",
       sets: [
         { setNumber: 1, weight: 20, reps: 10, completed: false, previousWeight: 0, previousReps: 0 },
         { setNumber: 2, weight: 20, reps: 10, completed: false, previousWeight: 0, previousReps: 0 },
         { setNumber: 3, weight: 20, reps: 10, completed: false, previousWeight: 0, previousReps: 0 },
       ],
+      previousPerformance: null,
     };
+
+    const newIndex = exercises.length;
     const updated = [...exercises, newEx];
     setExercises(updated);
     triggerAutosave(updated);
-    setNewExerciseName("");
-    setShowAddExerciseModal(false);
+    toast.success(`Added ${exName} to workout!`);
+
+    // Fetch previous performance in background
+    try {
+      const res = await workoutApi.getExercisePreviousPerformance(selectedEx._id || exName);
+      const data = res.data?.data;
+      if (data?.hasPreviousPerformance && data?.previousSession) {
+        setExercises((prev) => {
+          const next = JSON.parse(JSON.stringify(prev));
+          if (next[newIndex]) {
+            next[newIndex].previousPerformance = data.previousSession;
+            (data.previousSession.sets || []).forEach((ps, sIdx) => {
+              if (next[newIndex].sets[sIdx]) {
+                next[newIndex].sets[sIdx].previousWeight = ps.weight;
+                next[newIndex].sets[sIdx].previousReps = ps.reps;
+              }
+            });
+          }
+          return next;
+        });
+      }
+    } catch (e) {}
   };
 
   // Formatted Time Helper
@@ -304,26 +436,26 @@ export const LiveWorkoutTracker = ({
             <Timer className="w-5 h-5 stroke-[2.5]" />
           </div>
           <div>
-            <span className="text-[10px] font-black uppercase text-purple-700 block">
-              Live Workout Elapsed
+            <span className="text-[10px] font-black uppercase tracking-wider text-purple-700 block">
+              Elapsed Time
             </span>
-            <span className="text-xl sm:text-2xl font-mono font-black text-slate-900 tracking-tight">
+            <div className="text-xl sm:text-2xl font-black font-mono text-slate-900 leading-none">
               {formatTimer(elapsedSeconds)}
-            </span>
+            </div>
           </div>
         </div>
 
-        {/* Live Metrics: Volume & Completed Sets */}
-        <div className="hidden sm:flex items-center gap-4 text-xs font-bold text-slate-600">
-          <div>
-            <span className="text-[10px] text-slate-400 block uppercase">Volume</span>
-            <span className="text-slate-900 font-black">{totalVolume} kg</span>
-          </div>
-          <div>
-            <span className="text-[10px] text-slate-400 block uppercase">Sets</span>
-            <span className="text-slate-900 font-black">
+        {/* Live Volume & Sets summary pills */}
+        <div className="hidden sm:flex items-center gap-3">
+          <div className="text-center px-3 py-1 rounded-xl bg-slate-50 border border-slate-200">
+            <span className="text-[9px] font-black uppercase text-slate-400 block">Sets</span>
+            <span className="text-xs font-black text-slate-800">
               {completedSets} / {totalSets}
             </span>
+          </div>
+          <div className="text-center px-3 py-1 rounded-xl bg-slate-50 border border-slate-200">
+            <span className="text-[9px] font-black uppercase text-slate-400 block">Volume</span>
+            <span className="text-xs font-black text-purple-700">{totalVolume} kg</span>
           </div>
         </div>
 
@@ -380,36 +512,42 @@ export const LiveWorkoutTracker = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="p-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg flex items-center justify-between gap-3"
+            className="p-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white shadow-lg flex items-center justify-between gap-3"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center font-mono font-black text-sm">
-                {restSeconds}s
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold">
+                <Timer className="w-4 h-4 animate-spin" />
               </div>
               <div>
-                <span className="text-xs font-black block">Resting between sets</span>
-                <span className="text-[11px] opacity-80">Take deep breaths & hydrate</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-purple-200 block">
+                  Rest Countdown
+                </span>
+                <span className="text-lg font-black font-mono">
+                  {formatTimer(restSeconds)}
+                </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Rest adjustments */}
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                onClick={() => {
-                  haptics.tick();
-                  setRestSeconds((sec) => sec + 30);
-                }}
-                className="px-2.5 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold cursor-pointer"
+                onClick={() => setRestSeconds((s) => Math.max(0, s - 15))}
+                className="px-2 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-xs font-bold transition-colors cursor-pointer"
               >
-                +30s
+                -15s
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  haptics.tick();
-                  setIsRestActive(false);
-                }}
-                className="px-2.5 py-1.5 rounded-xl bg-white text-purple-700 hover:bg-purple-50 text-xs font-extrabold cursor-pointer"
+                onClick={() => setRestSeconds((s) => s + 15)}
+                className="px-2 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-xs font-bold transition-colors cursor-pointer"
+              >
+                +15s
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsRestActive(false)}
+                className="px-2 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-xs font-bold transition-colors cursor-pointer ml-1"
               >
                 Skip
               </button>
@@ -418,193 +556,82 @@ export const LiveWorkoutTracker = ({
         )}
       </AnimatePresence>
 
-      {/* Exercises Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-            Workout Exercises ({exercises.length})
-          </h2>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => setShowAddExerciseModal(true)}
-            className="text-xs font-bold min-h-[38px]"
-          >
-            <Plus className="w-3.5 h-3.5 mr-1 stroke-[3]" /> Add Exercise
-          </Button>
+      {/* Workout Metadata Header */}
+      <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-black uppercase tracking-wider text-purple-700">
+            {session?.workoutName || "Live Workout"}
+          </span>
+          <span className="text-xs text-slate-500 font-bold">{session?.date}</span>
         </div>
-
-        {exercises.map((exercise, exIdx) => {
-          const setsDone = exercise.sets?.filter((s) => s.completed).length || 0;
-          const setsTotal = exercise.sets?.length || 0;
-          const isAllCompleted = setsTotal > 0 && setsDone === setsTotal;
-
-          return (
-            <GlassCard
-              key={exIdx}
-              className={`p-3.5 sm:p-5 transition-all ${
-                isAllCompleted
-                  ? "border-emerald-300 bg-emerald-50/20"
-                  : "bg-white/95 border-slate-200"
-              }`}
-            >
-              {/* Exercise Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                      isAllCompleted
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-purple-100 text-purple-700"
-                    }`}
-                  >
-                    <Dumbbell className="w-4 h-4 stroke-[2.5]" />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-extrabold text-slate-900 text-sm sm:text-base truncate">
-                      {exercise.name}
-                    </h3>
-                    <span className="text-xs text-slate-500 font-medium">
-                      {setsDone} of {setsTotal} sets completed
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  aria-label="Remove exercise"
-                  onClick={() => handleRemoveExercise(exIdx)}
-                  className="min-w-[40px] min-h-[40px] rounded-xl flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Set Table with Steppers */}
-              <div className="mt-3 space-y-2">
-                <div className="grid grid-cols-12 gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-wider px-1">
-                  <div className="col-span-2 text-center">Set</div>
-                  <div className="col-span-5 text-center">Weight (kg)</div>
-                  <div className="col-span-3 text-center">Reps</div>
-                  <div className="col-span-2 text-center">Tick</div>
-                </div>
-
-                {exercise.sets?.map((set, setIdx) => (
-                  <motion.div
-                    key={setIdx}
-                    layout
-                    className={`grid grid-cols-12 gap-1.5 sm:gap-2 items-center p-2 rounded-2xl border transition-all ${
-                      set.completed
-                        ? "bg-emerald-50 border-emerald-300 text-emerald-950"
-                        : "bg-slate-50/90 border-slate-200"
-                    }`}
-                  >
-                    {/* Set Number with Copy Button */}
-                    <div className="col-span-2 flex flex-col items-center justify-center">
-                      <span className="font-black text-slate-700 text-xs">#{set.setNumber}</span>
-                      {setIdx > 0 && !set.completed && (
-                        <button
-                          type="button"
-                          onClick={() => handleCopyPreviousSet(exIdx, setIdx)}
-                          className="text-[9px] font-bold text-purple-600 hover:underline flex items-center gap-0.5 mt-0.5 cursor-pointer"
-                          title="Copy from previous set"
-                        >
-                          <Copy className="w-2.5 h-2.5" /> Prev
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Weight Input with +/- 2.5 Steppers */}
-                    <div className="col-span-5 flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => handleStepValue(exIdx, setIdx, "weight", -2.5)}
-                        className="w-7 h-10 rounded-lg bg-white border border-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs hover:bg-slate-100 cursor-pointer shrink-0"
-                      >
-                        -
-                      </button>
-                      <input
-                        type="number"
-                        step="0.5"
-                        inputMode="decimal"
-                        value={set.weight}
-                        onChange={(e) => handleUpdateSet(exIdx, setIdx, "weight", e.target.value)}
-                        className="w-full text-center min-h-[40px] rounded-xl bg-white border border-slate-200 font-black text-sm focus:outline-none focus:border-purple-400"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleStepValue(exIdx, setIdx, "weight", 2.5)}
-                        className="w-7 h-10 rounded-lg bg-white border border-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs hover:bg-slate-100 cursor-pointer shrink-0"
-                      >
-                        +
-                      </button>
-                    </div>
-
-                    {/* Reps Input with +/- 1 Steppers */}
-                    <div className="col-span-3 flex items-center gap-1">
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        value={set.reps}
-                        onChange={(e) => handleUpdateSet(exIdx, setIdx, "reps", e.target.value)}
-                        className="w-full text-center min-h-[40px] rounded-xl bg-white border border-slate-200 font-black text-sm focus:outline-none focus:border-purple-400"
-                      />
-                    </div>
-
-                    {/* Completion Checkbox */}
-                    <div className="col-span-2 flex justify-center">
-                      <motion.button
-                        whileTap={{ scale: 0.85 }}
-                        type="button"
-                        aria-label={`Complete set ${set.setNumber}`}
-                        onClick={() => handleToggleSet(exIdx, setIdx)}
-                        className={`min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                          set.completed
-                            ? "bg-gradient-to-tr from-emerald-500 to-lime-500 text-white shadow-md shadow-emerald-500/20"
-                            : "bg-white border border-slate-300 hover:border-purple-400 text-slate-400 hover:text-purple-600"
-                        }`}
-                      >
-                        <Check className="w-5 h-5 stroke-[3]" />
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Add Set Button */}
-              <div className="pt-2 flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => handleAddSet(exIdx)}
-                  className="text-xs font-bold text-purple-700 hover:text-purple-900 inline-flex items-center gap-1 min-h-[38px] px-2.5 rounded-xl hover:bg-purple-50 transition-colors cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5 stroke-[3]" /> Add Set
-                </button>
-              </div>
-            </GlassCard>
-          );
-        })}
-      </div>
-
-      {/* Workout Session Notes */}
-      <GlassCard className="p-4 bg-white/95 border-slate-200 space-y-2">
-        <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
-          Workout Session Notes
-        </label>
-        <textarea
-          rows={2}
+        <input
+          type="text"
+          placeholder="Session notes (e.g. felt strong on bench press, energy high)..."
           value={sessionNotes}
           onChange={(e) => {
             setSessionNotes(e.target.value);
             triggerAutosave(exercises, e.target.value);
           }}
-          placeholder="How did this workout feel? Any personal milestones or notes..."
-          className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:bg-white resize-none"
+          className="w-full text-xs font-medium text-slate-800 bg-white border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-purple-400"
         />
-      </GlassCard>
+      </div>
 
-      {/* Bottom Danger Controls */}
-      <div className="flex items-center justify-between pt-2 px-1">
+      {/* Exercises Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between px-1">
+          <div>
+            <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+              Workout Exercises ({exercises.length})
+            </h2>
+            <p className="text-xs text-slate-500 font-medium">
+              Track sets, compare previous performance, and progressively overload
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              setReplaceIndex(null);
+              setShowPickerModal(true);
+            }}
+            className="text-xs font-bold min-h-[38px] shadow-xs"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1 stroke-[3]" /> Add Exercise
+          </Button>
+        </div>
+
+        {/* Exercises Cards */}
+        {exercises.map((exercise, exIdx) => (
+          <LiveWorkoutExerciseCard
+            key={exercise.exerciseId || exercise.name + exIdx}
+            exercise={exercise}
+            exIdx={exIdx}
+            onToggleSet={handleToggleSet}
+            onUpdateSet={handleUpdateSet}
+            onStepValue={handleStepValue}
+            onAddSet={handleAddSet}
+            onRemoveSet={handleRemoveSet}
+            onCopyPreviousSet={handleCopyPreviousSet}
+            onCopyAllPreviousSets={handleCopyAllPreviousSets}
+            onRemoveExercise={handleRemoveExercise}
+            onReplaceExercise={(idx) => {
+              setReplaceIndex(idx);
+              setShowPickerModal(true);
+            }}
+            onInspectExercise={(ex) => {
+              setInspectExercise(ex);
+              setIsDetailOpen(true);
+            }}
+            onViewHistory={(name, id) => {
+              setHistoryTarget({ name, id });
+              setIsHistoryOpen(true);
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Discard Workout Button */}
+      <div className="pt-4 flex justify-center">
         <button
           type="button"
           onClick={() => {
@@ -622,77 +649,37 @@ export const LiveWorkoutTracker = ({
         </button>
       </div>
 
-      {/* Add Custom Exercise Sheet */}
-      {showAddExerciseModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-md bg-white rounded-3xl p-5 shadow-2xl border border-slate-200 space-y-4"
-          >
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="font-extrabold text-slate-900 text-base">Add Exercise to Live Session</h3>
-              <button
-                type="button"
-                onClick={() => setShowAddExerciseModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      {/* Dedicated Exercise Picker Modal (Full 2,100+ Catalog) */}
+      <ExercisePickerModal
+        open={showPickerModal}
+        onClose={() => {
+          setShowPickerModal(false);
+          setReplaceIndex(null);
+        }}
+        onSelectExercise={handleSelectFromPicker}
+        replaceMode={replaceIndex !== null}
+        replacingExerciseName={
+          replaceIndex !== null && exercises[replaceIndex] ? exercises[replaceIndex].name : ""
+        }
+      />
 
-            <form onSubmit={handleAddCustomExercise} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Search or Type Exercise Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Incline Dumbbell Press, Pull-ups..."
-                  value={newExerciseName}
-                  onChange={(e) => setNewExerciseName(e.target.value)}
-                  className="w-full min-h-[44px] px-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 font-bold text-sm focus:outline-none focus:border-purple-400 focus:bg-white"
-                />
-              </div>
+      {/* Exercise History Timeline Modal */}
+      {isHistoryOpen && (
+        <ExerciseHistoryModal
+          open={isHistoryOpen}
+          onClose={() => setIsHistoryOpen(false)}
+          exerciseName={historyTarget.name}
+          exerciseId={historyTarget.id}
+        />
+      )}
 
-              {/* Quick Popular Suggestions */}
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">
-                  Popular Presets
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {[
-                    "Barbell Bench Press",
-                    "Barbell Back Squat",
-                    "Conventional Deadlift",
-                    "Overhead Barbell Press",
-                    "Pull-ups",
-                    "Dumbbell Lateral Raise",
-                    "Incline Dumbbell Curl",
-                    "Tricep Rope Pushdown",
-                  ].map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => {
-                        haptics.tick();
-                        setNewExerciseName(preset);
-                      }}
-                      className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-purple-100 text-slate-700 hover:text-purple-800 text-xs font-bold transition-colors cursor-pointer"
-                    >
-                      {preset}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <Button type="submit" className="w-full min-h-[44px] font-bold shadow-md justify-center">
-                Add to Live Workout
-              </Button>
-            </form>
-          </motion.div>
-        </div>
+      {/* Exercise Demonstration & Detail Sheet */}
+      {inspectExercise && (
+        <ExerciseDetailSheet
+          exercise={inspectExercise}
+          open={isDetailOpen}
+          onOpenChange={setIsDetailOpen}
+        />
       )}
     </div>
   );

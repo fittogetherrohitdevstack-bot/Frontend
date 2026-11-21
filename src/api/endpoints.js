@@ -71,15 +71,44 @@ export const dietApi = {
 
 // Workouts
 export const workoutApi = {
+  // Plans & Templates
   createPlan: (data) => api.post("/workouts", data),
   getMyPlans: () => api.get("/workouts/my-plans"),
-  getToday: () => api.get("/workouts/today"),
   updatePlan: (id, data) => api.put(`/workouts/${id}`, data),
   deletePlan: (id) => api.delete(`/workouts/${id}`),
+  duplicatePlan: (id) => api.post(`/workouts/${id}/duplicate`),
+  activatePlan: (id) => api.post(`/workouts/${id}/activate`),
+  getTemplates: () => api.get("/workouts/templates"),
+  applyTemplate: (data) => api.post("/workouts/templates/apply", data),
+
+  // Exercise Library
+  getExercises: (params) => api.get("/workouts/exercises", { params }),
+  getExerciseById: (idOrSlug) => api.get(`/workouts/exercises/${idOrSlug}`),
+  toggleFavoriteExercise: (id) => api.post(`/workouts/exercises/${id}/favorite`),
+  createCustomExercise: (data) => api.post("/workouts/exercises/custom", data),
+
+  // Dashboard & Today
+  getDashboard: () => api.get("/workouts/dashboard"),
+  getToday: () => api.get("/workouts/today"),
+
+  // Live Workout Sessions & Tracker
+  getActiveSession: () => api.get("/workouts/sessions/active"),
+  startSession: (data) => api.post("/workouts/sessions/start", data),
+  liveSaveSession: (id, data) => api.put(`/workouts/sessions/${id}/live-save`, data),
+  finishSession: (id, data) => api.post(`/workouts/sessions/${id}/finish`, data),
+  cancelSession: (id) => api.post(`/workouts/sessions/${id}/cancel`),
+  shareSession: (id, data) => api.post(`/workouts/sessions/${id}/share`, data),
+
+  // History, Sessions & Analytics
+  getHistory: (params) => api.get("/workouts/sessions/history", { params }),
+  getSessionById: (id) => api.get(`/workouts/sessions/${id}`),
+  getAnalytics: () => api.get("/workouts/analytics"),
+  getMuscleMap: () => api.get("/workouts/analytics/muscle-map"),
+  getRecords: () => api.get("/workouts/records"),
+
+  // Legacy (Preserved)
   saveSession: (data) => api.post("/workouts/sessions", data),
   updateSession: (id, data) => api.patch(`/workouts/sessions/${id}`, data),
-  getHistory: () => api.get("/workouts/sessions/history"),
-  getRecords: () => api.get("/workouts/records"),
   markAttendance: (data) => api.post("/workouts/attendance", data),
 };
 

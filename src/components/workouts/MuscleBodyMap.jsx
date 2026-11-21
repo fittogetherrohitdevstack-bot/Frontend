@@ -51,12 +51,12 @@ export const MuscleBodyMap = ({ muscleMapData = [] }) => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setView("front")}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial min-h-[38px] px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 view === "front"
                   ? "bg-white text-purple-700 shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -67,7 +67,7 @@ export const MuscleBodyMap = ({ muscleMapData = [] }) => {
             <button
               type="button"
               onClick={() => setView("back")}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial min-h-[38px] px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 view === "back"
                   ? "bg-white text-purple-700 shadow-xs"
                   : "text-slate-600 hover:text-slate-900"

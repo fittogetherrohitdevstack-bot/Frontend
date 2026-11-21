@@ -837,7 +837,7 @@ export const CustomPlanBuilderModal = ({
                       haptics.tick();
                       setActiveDayIdx(idx);
                     }}
-                    className={`py-2 px-1 rounded-xl text-center border font-mono transition-all cursor-pointer ${
+                    className={`py-1.5 sm:py-2 px-0.5 sm:px-1 rounded-xl text-center border font-mono transition-all cursor-pointer min-h-[44px] flex flex-col items-center justify-center ${
                       isSelected
                         ? "bg-purple-600 border-purple-600 text-white shadow-md shadow-purple-500/20"
                         : dayPlan.isRestDay
@@ -845,10 +845,10 @@ export const CustomPlanBuilderModal = ({
                         : "bg-white border-slate-200 text-slate-800 hover:border-purple-300"
                     }`}
                   >
-                    <span className="text-[10px] uppercase font-bold block">
+                    <span className="text-[9px] sm:text-[10px] uppercase font-bold block truncate max-w-full">
                       {d.name.slice(0, 3)}
                     </span>
-                    <span className="text-[11px] font-black block mt-0.5">
+                    <span className="text-[9px] sm:text-[11px] font-black block mt-0.5 truncate max-w-full">
                       {dayPlan.isRestDay ? "Rest" : `${(dayPlan.exercises || []).length} ex`}
                     </span>
                   </button>
@@ -929,7 +929,7 @@ export const CustomPlanBuilderModal = ({
                         size="sm"
                         variant="secondary"
                         onClick={() => setShowExercisePicker(true)}
-                        className="text-xs font-bold"
+                        className="text-xs font-bold min-h-[38px] px-3"
                       >
                         <Plus className="w-3.5 h-3.5 mr-1 stroke-[3]" /> Add From Library
                       </Button>
@@ -943,6 +943,7 @@ export const CustomPlanBuilderModal = ({
                           size="sm"
                           variant="outline"
                           onClick={() => setShowExercisePicker(true)}
+                          className="min-h-[38px]"
                         >
                           Browse Exercise Library
                         </Button>
@@ -956,7 +957,7 @@ export const CustomPlanBuilderModal = ({
                           >
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex items-center gap-2 min-w-0">
-                                <span className="font-mono text-xs font-black text-purple-700 bg-purple-50 w-6 h-6 rounded-lg flex items-center justify-center shrink-0">
+                                <span className="font-mono text-xs font-black text-purple-700 bg-purple-50 w-7 h-7 rounded-lg flex items-center justify-center shrink-0">
                                   {exIdx + 1}
                                 </span>
                                 <input
@@ -965,16 +966,17 @@ export const CustomPlanBuilderModal = ({
                                   onChange={(e) =>
                                     updateExerciseField(exIdx, "name", e.target.value)
                                   }
-                                  className="font-extrabold text-xs text-slate-900 bg-transparent focus:outline-none focus:border-b focus:border-purple-600 truncate"
+                                  className="font-extrabold text-xs text-slate-900 bg-transparent focus:outline-none focus:border-b focus:border-purple-600 truncate min-h-[36px]"
                                 />
                               </div>
 
-                              <div className="flex items-center gap-1 shrink-0">
+                              <div className="flex items-center gap-0.5 shrink-0">
                                 <button
                                   type="button"
                                   disabled={exIdx === 0}
                                   onClick={() => moveExercise(exIdx, -1)}
-                                  className="p-1 rounded text-slate-400 hover:text-slate-600 disabled:opacity-30"
+                                  className="p-1.5 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 active:bg-slate-100 disabled:opacity-20 cursor-pointer"
+                                  title="Move Up"
                                 >
                                   <ArrowUp className="w-3.5 h-3.5" />
                                 </button>
@@ -982,14 +984,16 @@ export const CustomPlanBuilderModal = ({
                                   type="button"
                                   disabled={exIdx === (currentDay.exercises || []).length - 1}
                                   onClick={() => moveExercise(exIdx, 1)}
-                                  className="p-1 rounded text-slate-400 hover:text-slate-600 disabled:opacity-30"
+                                  className="p-1.5 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 active:bg-slate-100 disabled:opacity-20 cursor-pointer"
+                                  title="Move Down"
                                 >
                                   <ArrowDown className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => removeExerciseFromCurrentDay(exIdx)}
-                                  className="p-1 rounded text-slate-400 hover:text-rose-600"
+                                  className="p-1.5 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 active:bg-rose-50 cursor-pointer"
+                                  title="Remove Exercise"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -998,8 +1002,8 @@ export const CustomPlanBuilderModal = ({
 
                             {/* Sets / Reps / Rest inputs */}
                             <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                              <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-100">
-                                <span className="text-[9px] uppercase font-bold text-slate-400 block">Sets</span>
+                              <div className="p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                                <span className="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Sets</span>
                                 <input
                                   type="number"
                                   min="1"
@@ -1008,11 +1012,11 @@ export const CustomPlanBuilderModal = ({
                                   onChange={(e) =>
                                     updateExerciseField(exIdx, "targetSets", e.target.value)
                                   }
-                                  className="w-full text-center font-black text-slate-800 bg-transparent focus:outline-none"
+                                  className="w-full text-center font-black text-slate-900 bg-transparent focus:outline-none min-h-[28px] text-xs sm:text-sm"
                                 />
                               </div>
-                              <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-100">
-                                <span className="text-[9px] uppercase font-bold text-slate-400 block">Reps</span>
+                              <div className="p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                                <span className="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Reps</span>
                                 <input
                                   type="number"
                                   min="1"
@@ -1021,11 +1025,11 @@ export const CustomPlanBuilderModal = ({
                                   onChange={(e) =>
                                     updateExerciseField(exIdx, "targetReps", e.target.value)
                                   }
-                                  className="w-full text-center font-black text-slate-800 bg-transparent focus:outline-none"
+                                  className="w-full text-center font-black text-slate-900 bg-transparent focus:outline-none min-h-[28px] text-xs sm:text-sm"
                                 />
                               </div>
-                              <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-100">
-                                <span className="text-[9px] uppercase font-bold text-slate-400 block">Rest (s)</span>
+                              <div className="p-2 rounded-xl bg-slate-50 border border-slate-200/80">
+                                <span className="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Rest (s)</span>
                                 <input
                                   type="number"
                                   step="15"
@@ -1035,7 +1039,7 @@ export const CustomPlanBuilderModal = ({
                                   onChange={(e) =>
                                     updateExerciseField(exIdx, "restSeconds", e.target.value)
                                   }
-                                  className="w-full text-center font-black text-slate-800 bg-transparent focus:outline-none"
+                                  className="w-full text-center font-black text-slate-900 bg-transparent focus:outline-none min-h-[28px] text-xs sm:text-sm"
                                 />
                               </div>
                             </div>

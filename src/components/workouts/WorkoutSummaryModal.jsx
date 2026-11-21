@@ -63,7 +63,7 @@ export const WorkoutSummaryModal = ({
         initial={{ scale: 0.92, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.92, opacity: 0, y: 20 }}
-        className="w-full max-w-lg bg-white rounded-3xl p-5 sm:p-7 shadow-2xl border border-slate-200 space-y-5 my-8"
+        className="w-full max-w-lg max-h-[92vh] overflow-y-auto bg-white rounded-3xl p-5 sm:p-7 shadow-2xl border border-slate-200 space-y-5 my-auto"
       >
         {/* Celebration Header */}
         <div className="text-center space-y-1.5 relative">
@@ -161,14 +161,14 @@ export const WorkoutSummaryModal = ({
                 placeholder="Add a hype caption (e.g., Felt strong on squats today!)"
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl bg-white border border-purple-200 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-purple-400"
+                className="w-full min-h-[44px] px-3.5 py-2 text-xs rounded-xl bg-white border border-purple-200 text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
               <Button
                 size="sm"
                 variant="secondary"
                 isLoading={isSharing}
                 onClick={handleShare}
-                className="w-full text-xs font-bold min-h-[38px] justify-center"
+                className="w-full text-xs font-bold min-h-[44px] justify-center"
               >
                 <Share2 className="w-3.5 h-3.5 mr-1.5" /> Post to Squad Activity Feed
               </Button>

@@ -317,12 +317,13 @@ export const EditCompletedWorkoutModal = ({
                     />
                   </div>
 
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center gap-0.5 shrink-0">
                     <button
                       type="button"
                       disabled={exIdx === 0}
                       onClick={() => handleMoveExercise(exIdx, -1)}
-                      className="p-1 rounded text-slate-400 hover:text-slate-700 disabled:opacity-30"
+                      className="p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 active:bg-slate-100 disabled:opacity-20 cursor-pointer"
+                      title="Move Up"
                     >
                       <ArrowUp className="w-3.5 h-3.5" />
                     </button>
@@ -330,14 +331,16 @@ export const EditCompletedWorkoutModal = ({
                       type="button"
                       disabled={exIdx === exercises.length - 1}
                       onClick={() => handleMoveExercise(exIdx, 1)}
-                      className="p-1 rounded text-slate-400 hover:text-slate-700 disabled:opacity-30"
+                      className="p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 active:bg-slate-100 disabled:opacity-20 cursor-pointer"
+                      title="Move Down"
                     >
                       <ArrowDown className="w-3.5 h-3.5" />
                     </button>
                     <button
                       type="button"
                       onClick={() => handleRemoveExercise(exIdx)}
-                      className="p-1 rounded text-slate-400 hover:text-rose-600"
+                      className="p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 active:bg-rose-50 cursor-pointer"
+                      title="Remove Exercise"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -356,7 +359,7 @@ export const EditCompletedWorkoutModal = ({
                   {(ex.sets || []).map((set, setIdx) => (
                     <div
                       key={setIdx}
-                      className={`grid grid-cols-12 gap-1 items-center p-1.5 rounded-xl border ${
+                      className={`grid grid-cols-12 gap-1 items-center p-1.5 rounded-2xl border transition-all ${
                         set.completed
                           ? "bg-white border-slate-200"
                           : "bg-slate-100/70 border-slate-200/50 opacity-60"
@@ -371,7 +374,7 @@ export const EditCompletedWorkoutModal = ({
                         <button
                           type="button"
                           onClick={() => handleStepValue(exIdx, setIdx, "weight", -2.5)}
-                          className="w-6 h-7 rounded bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 shrink-0"
+                          className="w-7 sm:w-8 h-8 sm:h-9 rounded-lg bg-slate-100 text-slate-700 text-sm font-black hover:bg-slate-200 active:bg-slate-300 shrink-0 cursor-pointer"
                         >
                           -
                         </button>
@@ -380,12 +383,12 @@ export const EditCompletedWorkoutModal = ({
                           step="0.5"
                           value={set.weight}
                           onChange={(e) => handleUpdateSet(exIdx, setIdx, "weight", e.target.value)}
-                          className="w-full text-center h-7 rounded bg-slate-50 border border-slate-200 text-xs font-black"
+                          className="w-full text-center h-8 sm:h-9 rounded-lg bg-slate-50 border border-slate-200 text-xs sm:text-sm font-black focus:outline-none focus:border-purple-400"
                         />
                         <button
                           type="button"
                           onClick={() => handleStepValue(exIdx, setIdx, "weight", 2.5)}
-                          className="w-6 h-7 rounded bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 shrink-0"
+                          className="w-7 sm:w-8 h-8 sm:h-9 rounded-lg bg-slate-100 text-slate-700 text-sm font-black hover:bg-slate-200 active:bg-slate-300 shrink-0 cursor-pointer"
                         >
                           +
                         </button>
@@ -397,7 +400,7 @@ export const EditCompletedWorkoutModal = ({
                           type="number"
                           value={set.reps}
                           onChange={(e) => handleUpdateSet(exIdx, setIdx, "reps", e.target.value)}
-                          className="w-full text-center h-7 rounded bg-slate-50 border border-slate-200 text-xs font-black"
+                          className="w-full text-center h-8 sm:h-9 rounded-lg bg-slate-50 border border-slate-200 text-xs sm:text-sm font-black focus:outline-none focus:border-purple-400"
                         />
                       </div>
 
@@ -406,21 +409,22 @@ export const EditCompletedWorkoutModal = ({
                         <button
                           type="button"
                           onClick={() => handleUpdateSet(exIdx, setIdx, "completed")}
-                          className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs ${
+                          className={`w-8 sm:w-9 h-8 sm:h-9 rounded-xl flex items-center justify-center text-xs transition-colors cursor-pointer ${
                             set.completed
-                              ? "bg-emerald-500 text-white"
+                              ? "bg-emerald-500 text-white shadow-2xs"
                               : "bg-slate-200 text-slate-400"
                           }`}
                         >
-                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          <Check className="w-4 h-4 stroke-[3]" />
                         </button>
                         {ex.sets.length > 1 && (
                           <button
                             type="button"
                             onClick={() => handleRemoveSet(exIdx, setIdx)}
-                            className="text-slate-300 hover:text-rose-500"
+                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                            title="Delete Set"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>

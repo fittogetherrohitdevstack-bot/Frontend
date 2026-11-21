@@ -300,13 +300,13 @@ export const ExerciseLibraryTab = ({ onStartWorkoutWithExercise, onAddToPlan }) 
         </div>
 
         {/* Secondary Filter Dropdowns & Favorites */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-100">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between gap-2 pt-2 border-t border-slate-100">
+          <div className="col-span-2 sm:col-span-1 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
             {/* Equipment Filter */}
             <select
               value={selectedEquipment}
               onChange={(e) => handleFilterChange(setSelectedEquipment, e.target.value)}
-              className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+              className="w-full sm:w-auto min-h-[42px] px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
             >
               {EQUIPMENT_OPTIONS.map((eq) => (
                 <option key={eq} value={eq}>
@@ -319,7 +319,7 @@ export const ExerciseLibraryTab = ({ onStartWorkoutWithExercise, onAddToPlan }) 
             <select
               value={selectedDifficulty}
               onChange={(e) => handleFilterChange(setSelectedDifficulty, e.target.value)}
-              className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+              className="w-full sm:w-auto min-h-[42px] px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
             >
               {DIFFICULTY_OPTIONS.map((diff) => (
                 <option key={diff} value={diff}>
@@ -332,7 +332,7 @@ export const ExerciseLibraryTab = ({ onStartWorkoutWithExercise, onAddToPlan }) 
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
+              className="col-span-2 sm:col-span-1 w-full sm:w-auto min-h-[42px] px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none cursor-pointer"
             >
               <option value="media">Sort: Demo Media First</option>
               <option value="name">Sort: Alphabetical (A-Z)</option>
@@ -348,7 +348,7 @@ export const ExerciseLibraryTab = ({ onStartWorkoutWithExercise, onAddToPlan }) 
               setFavoritesOnly(!favoritesOnly);
               setPage(1);
             }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+            className={`col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 px-3.5 min-h-[42px] rounded-xl text-xs font-bold transition-all border cursor-pointer ${
               favoritesOnly
                 ? "bg-rose-50 border-rose-200 text-rose-700"
                 : "bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900"
@@ -378,7 +378,7 @@ export const ExerciseLibraryTab = ({ onStartWorkoutWithExercise, onAddToPlan }) 
                 setPage((p) => Math.max(1, p - 1));
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              className="p-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              className="min-w-[40px] min-h-[40px] rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center cursor-pointer transition-colors"
               title="Previous Page"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -394,7 +394,7 @@ export const ExerciseLibraryTab = ({ onStartWorkoutWithExercise, onAddToPlan }) 
                 setPage((p) => p + 1);
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              className="p-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              className="min-w-[40px] min-h-[40px] rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center cursor-pointer transition-colors"
               title="Next Page"
             >
               <ChevronRight className="w-4 h-4" />
@@ -509,7 +509,7 @@ export const ExerciseLibraryTab = ({ onStartWorkoutWithExercise, onAddToPlan }) 
                       haptics.tick();
                       favoriteMutation.mutate(exercise._id);
                     }}
-                    className="absolute top-2 right-2 p-1.5 rounded-xl bg-black/50 hover:bg-black/80 backdrop-blur-md text-white transition-colors cursor-pointer"
+                    className="absolute top-2 right-2 min-w-[38px] min-h-[38px] rounded-xl bg-black/50 hover:bg-black/80 backdrop-blur-md text-white transition-colors cursor-pointer flex items-center justify-center"
                   >
                     <Heart
                       className={`w-3.5 h-3.5 ${

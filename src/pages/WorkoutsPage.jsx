@@ -247,9 +247,10 @@ export const WorkoutsPage = () => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
-                <button
+                <motion.button
                   key={tab.id}
                   type="button"
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => {
                     haptics.selection();
                     setActiveTab(tab.id);
@@ -262,7 +263,7 @@ export const WorkoutsPage = () => {
                 >
                   <Icon className="w-4 h-4 stroke-[2.5]" />
                   <span>{tab.label}</span>
-                </button>
+                </motion.button>
               );
             })}
           </div>

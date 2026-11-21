@@ -155,7 +155,7 @@ export const WorkoutPlansTab = () => {
             setEditingPlan(null);
             setIsBuilderOpen(true);
           }}
-          className="shadow-md min-h-[44px] font-bold"
+          className="w-full sm:w-auto shadow-md min-h-[44px] font-black justify-center"
         >
           <Plus className="w-4 h-4 mr-1.5 stroke-[3]" /> Create Custom Plan
         </Button>
@@ -182,7 +182,7 @@ export const WorkoutPlansTab = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
               <Button
                 size="sm"
                 variant="secondary"
@@ -191,7 +191,7 @@ export const WorkoutPlansTab = () => {
                   setEditingPlan(activePlan);
                   setIsBuilderOpen(true);
                 }}
-                className="font-bold text-xs min-h-[38px]"
+                className="font-bold text-xs min-h-[42px] px-3.5 flex-1 sm:flex-initial justify-center"
               >
                 <Edit2 className="w-3.5 h-3.5 mr-1" /> Edit
               </Button>
@@ -202,7 +202,7 @@ export const WorkoutPlansTab = () => {
                   haptics.selection();
                   duplicatePlanMutation.mutate(activePlan._id);
                 }}
-                className="font-bold text-xs min-h-[38px]"
+                className="font-bold text-xs min-h-[42px] min-w-[42px] p-0 flex items-center justify-center shrink-0 border border-slate-200/80 bg-white"
                 title="Duplicate plan"
               >
                 <Copy className="w-3.5 h-3.5" />
@@ -212,7 +212,7 @@ export const WorkoutPlansTab = () => {
 
           {/* Schedule Strip */}
           {activePlan.schedule && activePlan.schedule.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-purple-100 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+            <div className="mt-4 pt-4 border-t border-purple-100 grid grid-cols-2 min-[420px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-1.5 sm:gap-2">
               {activePlan.schedule.map((day, idx) => (
                 <div
                   key={idx}
@@ -292,7 +292,7 @@ export const WorkoutPlansTab = () => {
                       setSelectedTemplate(tpl);
                       setIsPreviewOpen(true);
                     }}
-                    className="flex-1 text-xs font-bold min-h-[36px]"
+                    className="flex-1 text-xs font-bold min-h-[42px] justify-center"
                   >
                     Preview
                   </Button>
@@ -304,7 +304,7 @@ export const WorkoutPlansTab = () => {
                       haptics.goal();
                       applyTemplateMutation.mutate(tpl.templateKey);
                     }}
-                    className="flex-1 text-xs font-bold min-h-[36px]"
+                    className="flex-1 text-xs font-bold min-h-[42px] justify-center"
                   >
                     Apply
                   </Button>
@@ -335,12 +335,12 @@ export const WorkoutPlansTab = () => {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                   <Button
                     size="sm"
                     variant="secondary"
                     onClick={() => activatePlanMutation.mutate(plan._id)}
-                    className="text-xs font-bold min-h-[36px]"
+                    className="text-xs font-bold min-h-[40px] px-3 flex-1 sm:flex-initial justify-center"
                   >
                     Set as Active
                   </Button>
@@ -351,7 +351,7 @@ export const WorkoutPlansTab = () => {
                       setEditingPlan(plan);
                       setIsBuilderOpen(true);
                     }}
-                    className="text-xs font-bold min-h-[36px]"
+                    className="text-xs font-bold min-h-[40px] min-w-[40px] p-0 flex items-center justify-center shrink-0 border border-slate-200 bg-slate-50 hover:bg-slate-100"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </Button>
@@ -363,7 +363,7 @@ export const WorkoutPlansTab = () => {
                         deletePlanMutation.mutate(plan._id);
                       }
                     }}
-                    className="text-xs font-bold min-h-[36px] text-rose-500 hover:text-rose-700"
+                    className="text-xs font-bold min-h-[40px] min-w-[40px] p-0 flex items-center justify-center shrink-0 text-rose-500 hover:text-rose-700 border border-rose-100 bg-rose-50/50 hover:bg-rose-50"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>

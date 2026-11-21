@@ -182,7 +182,7 @@ export const ExerciseHistoryModal = ({
 
         {/* Footer */}
         <div className="p-3 border-t border-slate-100 bg-slate-50 flex justify-end shrink-0">
-          <Button size="sm" variant="outline" onClick={onClose}>
+          <Button size="sm" variant="outline" onClick={onClose} className="w-full sm:w-auto min-h-[42px] justify-center font-bold">
             Close
           </Button>
         </div>
